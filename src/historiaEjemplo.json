@@ -1,0 +1,80 @@
+{
+  "start": "scene1",
+  "scenes": {
+    "scene1": [
+      {
+        "action": "set_background",
+        "value": "assets/PKAcademy-bg.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiKCool-per1.png",
+        "position": "center"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "¿Qué opinas de mí?"
+      },
+      {
+        "action": "choice",
+        "options": [
+          {
+            "text": "Me gustas",
+            "goto": "after_choice",
+            "affinity": { "character": "Saiki", "amount": 3 }
+          },
+          {
+            "text": "Eres solo un amigo",
+            "goto": "after_choice",
+            "affinity": { "character": "Saiki", "amount": -1 }
+          }
+        ]
+      }
+    ],
+
+    "after_choice": [
+      {
+        "action": "check_affinity",
+        "character": "Saiki",
+        "minimum": 2,
+        "goto": "love_route",
+        "else": "friend_route"
+      }
+    ],
+
+    "love_route": [
+      {
+        "action": "set_background",
+        "value": "assets/PKAcademy-bg.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiFeliz.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "¡Yo también siento algo por ti!"
+      }
+    ],
+
+    "friend_route": [
+      {
+        "action": "set_background",
+        "value": "assets/PKAcademy-bg.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiSerio.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "Creo que es mejor que seamos amigos."
+      }
+    ]
+  }
+}
