@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Otome Engine</title>
@@ -8,15 +8,15 @@
 <body>
 <div id="game">
     <img id="background" class="background">
-
-    <img id="char_left" class="character">
-    <img id="char_center" class="character">
-    <img id="char_right" class="character">
-
-    <div id="textbox" class="textbox"></div>
+    <img id="character" class="character">
+    <div id="textbox" class="textbox">
+        <span id="text-content"></span>
+        <span id="next-arrow" class="arrow circle"></span>
+    </div>
     <div id="choices" class="choices"></div>
 </div>
 
 <script src="engine.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

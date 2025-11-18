@@ -46,7 +46,7 @@
     "love_route": [
       {
         "action": "set_background",
-        "value": "assets/PKAcademy-bg.png"
+        "value": "assets/FondoCorazon.png"
       },
       {
         "action": "show_character",

@@ -1,86 +1,94 @@
-let story = null;
-let currentScene = "";
-let index = 0;
-let affinity = {};
+// ============================================================
+//                     OTOME ENGINE
+//             engine.js - control principal del juego
+// ============================================================
 
-// ---- CARGAR HISTORIA ----
+// -------------------- Variables Globales --------------------
+let story = null;           // historia cargada desde JSON
+let currentScene = "";      // nombre de la escena actual
+let index = 0;              // índice dentro de la escena
+let affinity = {};          // puntos de afinidad por personaje
+
+// -------------------- Cargar Historia ----------------------
 async function loadStory() {
     const response = await fetch("historiaEjemplo.json");
     story = await response.json();
     startScene(story.start);
 }
 
-// ---- COMENZAR ESCENA ----
+// -------------------- Iniciar Escena -----------------------
 function startScene(sceneName) {
     currentScene = sceneName;
     index = 0;
     runAction();
 }
 
-// ---- OCULTAR TODOS LOS PERSONAJES ----
-function hideCharacters() {
-    ["char_left", "char_center", "char_right"].forEach(id => {
-        document.getElementById(id).style.opacity = 0;
-    });
-}
-
-// ---- MOSTRAR PERSONAJE ----
-function showCharacter(id, sprite) {
-    hideCharacters();
-    const img = document.getElementById(id);
-    img.src = sprite;
-    img.style.opacity = 1;
-}
-
-// ---- EJECUTAR ACCIÓN ----
+// -------------------- Ejecutar Acción ----------------------
 function runAction() {
     const scene = story.scenes[currentScene];
     const action = scene[index];
 
-    if (!action) return;
+    if (!action) return; // Fin de escena
 
     const choicesDiv = document.getElementById("choices");
-    choicesDiv.innerHTML = "";
+    choicesDiv.innerHTML = ""; // Limpiar botones de elección
 
-    switch (action.action) {
+    switch(action.action) {
 
+        // -------------------- Cambiar Fondo --------------------
         case "set_background":
             document.getElementById("background").src = action.value;
             index++;
             runAction();
             break;
 
+        // -------------------- Mostrar Personaje ----------------
         case "show_character":
-            if (action.position === "left") showCharacter("char_left", action.sprite);
-            else if (action.position === "right") showCharacter("char_right", action.sprite);
-            else if (action.position === "center") showCharacter("char_center", action.sprite);
-            index++;
-            runAction();
-            break;
+            const char = document.getElementById("character");
 
-        case "dialogue":
-            document.getElementById("textbox").innerText =
-                `${action.speaker}: ${action.text}`;
+            // Ocultamos la imagen para evitar parpadeo
+            char.style.opacity = 0;
 
-            document.getElementById("game").onclick = () => {
-                document.getElementById("game").onclick = null;
+            // Cambiamos la posición primero
+            char.style.left =
+                action.position === "left" ? "5%" :
+                    action.position === "right" ? "75%" :
+                        "40%";
+
+            // Cambiamos la imagen
+            char.src = action.sprite;
+
+            // Esperamos a que la imagen cargue completamente
+            char.onload = () => {
+                // Aplicamos fade in suave
+                char.style.transition = "opacity 0.3s";
+                char.style.opacity = 1;
+
+                // Avanzamos a la siguiente acción
                 index++;
                 runAction();
             };
             break;
 
+        // -------------------- Mostrar Diálogo ------------------
+        case "dialogue":
+            // La animación con efecto máquina de escribir
+            // se gestiona en script.js
+            break;
+
+        // -------------------- Opciones de Elección ------------
         case "choice":
             action.options.forEach(opt => {
                 const b = document.createElement("button");
                 b.innerText = opt.text;
 
                 b.onclick = () => {
-                    if (opt.affinity) {
-                        const char = opt.affinity.character;
+                    // Si la opción altera afinidad
+                    if(opt.affinity){
+                        const charName = opt.affinity.character;
                         const amt = opt.affinity.amount;
-
-                        if (!affinity[char]) affinity[char] = 0;
-                        affinity[char] += amt;
+                        if(!affinity[charName]) affinity[charName]=0;
+                        affinity[charName]+=amt;
                     }
                     startScene(opt.goto);
                 };
@@ -89,19 +97,22 @@ function runAction() {
             });
             break;
 
+        // -------------------- Afinidad Directa -----------------
         case "add_affinity":
-            if (!affinity[action.character]) affinity[action.character] = 0;
-            affinity[action.character] += action.amount;
+            if(!affinity[action.character]) affinity[action.character]=0;
+            affinity[action.character]+=action.amount;
             index++;
             runAction();
             break;
 
+        // -------------------- Comprobación de Afinidad ---------
         case "check_affinity":
-            const value = affinity[action.character] || 0;
-            const ok = value >= action.minimum;
-            startScene(ok ? action.goto : action.else);
+            const currentValue = affinity[action.character] || 0;
+            const nextScene = currentValue >= action.minimum ? action.goto : action.else;
+            startScene(nextScene);
             break;
     }
 }
 
+// -------------------- Inicializar Juego --------------------
 loadStory();
