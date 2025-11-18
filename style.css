@@ -23,43 +23,55 @@ body, html {
 }
 
 /* -------------------- Fondos ------------------------------ */
+
 .background {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* cubrir toda la pantalla */
+    object-fit: contain;     /* mantiene proporción */
+    background-color: #53234f; /* bandas laterales si hace falta */
     position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
     bottom: 0;
-    width: 20%; /* escala según pantalla */
-    transition: opacity 0.3s; /* fade suave al cambiar imagen */
+    height: 70vh;           /* MÁS GRANDE: usa 70% de la altura visible */
+    width: auto;            /* para mantener proporción */
+    object-fit: contain;    /* nunca distorsionar */
+    transition: opacity 0.25s ease;
+    opacity: 0;
+}
+
+.character.visible {
+    opacity: 1;
 }
 
 /* -------------------- Caja de texto ---------------------- */
 .textbox {
     position: absolute;
-    bottom: 0;
-    width: 100%;
+    bottom: 3vh;
+    width: 60%;             /* ocupa solo 60% */
+    left: 50%;              /* centrado */
+    transform: translateX(-50%);
     background: rgba(83, 35, 79, 0.8);
     color: white;
     padding: 2%;
     font-size: 2vh;
     display: flex;
-    align-items: center;          /* centra vertical */
-    justify-content: space-between;  /* texto normal alineado izquierda */
+    align-items: center;
+    justify-content: space-between;
     box-sizing: border-box;
-    height: 10vh;              /* altura fija */
-    line-height: 1.4;
-    overflow-y: hidden;        /* no crece */
+    height: 12vh;
+    border-radius: 1.5vh;   /* un poquito redondeado */
 }
 
 /* Texto dentro de la caja */
 #text-content {
     display: inline-block;
-    max-width: 90%;
+    max-width: 85%;
 }
 
 /* -------------------- Flecha circle next ----------------- */

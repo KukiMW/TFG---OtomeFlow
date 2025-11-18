@@ -72,11 +72,17 @@ runAction = function(){
 
     typeWriter(fullText, ()=>{
 
-        const isLastScene = (currentScene === Object.keys(story.scenes).slice(-1)[0]);
         const isLastActionInScene = (index === scene.length - 1);
 
+        // Si al terminar esta escena no existe un goto → ES FINAL
+        const isSceneFinal = (
+            isLastActionInScene &&
+            // La escena no tiene choice ni check_affinity que lleve a otro lado
+            !scene.some(a => a.action === "choice" || a.action === "check_affinity")
+        );
+
         // -------------------- Última acción de la última escena ----
-        if(isLastScene && isLastActionInScene){
+        if (isSceneFinal) {
             // Mostramos flecha primero para que el jugador lea
             arrow.style.display = "inline-block";
 
