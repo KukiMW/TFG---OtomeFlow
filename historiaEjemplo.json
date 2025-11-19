@@ -14,7 +14,7 @@
       {
         "action": "dialogue",
         "speaker": "Saiki",
-        "text": "¿Qué opinas de mí?"
+        "text": "¡Hola! ¿Qué opinas de mí?"
       },
       {
         "action": "choice",
@@ -57,6 +57,31 @@
         "action": "dialogue",
         "speaker": "Saiki",
         "text": "¡Yo también siento algo por ti!"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/KaidoFeliz.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "¡Qué lindo momento para nosotros!"
+      },
+      {
+        "action": "choice",
+        "options": [
+          {
+            "text": "Abrazar a Saiki",
+            "goto": "love_hug",
+            "affinity": { "character": "Saiki", "amount": 2 }
+          },
+          {
+            "text": "Sonreír a Kaido",
+            "goto": "love_smile",
+            "affinity": { "character": "Rikka", "amount": 2 }
+          }
+        ]
       }
     ],
 
@@ -74,6 +99,139 @@
         "action": "dialogue",
         "speaker": "Saiki",
         "text": "Creo que es mejor que seamos amigos."
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/KaidoNeutral.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "¡Pero aún podemos divertirnos juntos en la academia!"
+      },
+      {
+        "action": "choice",
+        "options": [
+          {
+            "text": "Jugar juntos",
+            "goto": "friend_play",
+            "affinity": { "character": "Kaido", "amount": 1 }
+          },
+          {
+            "text": "Estudiar juntos",
+            "goto": "friend_study",
+            "affinity": { "character": "Saiki", "amount": 1 }
+          }
+        ]
+      }
+    ],
+
+    "love_hug": [
+      {
+        "action": "set_background",
+        "value": "assets/FondoCorazon.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiFeliz.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "¡Qué abrazo tan cálido!"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/KaidoFeliz.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "Me siento feliz contigo."
+      }
+    ],
+
+    "love_smile": [
+      {
+        "action": "set_background",
+        "value": "assets/FondoCorazon.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiFeliz.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "Tu sonrisa ilumina mi día."
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/KaidoFeliz.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "¡Me alegra hacerte sonreír!"
+      }
+    ],
+
+    "friend_play": [
+      {
+        "action": "set_background",
+        "value": "assets/PKAcademy-gym-bg.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiSerio.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "¡Vamos a jugar en el gimnasio!"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/Kaidofeliz.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "¡Sí, será divertido!"
+      }
+    ],
+
+    "friend_study": [
+      {
+        "action": "set_background",
+        "value": "assets/PKAcademy-classroom-bg.png"
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/SaikiSerio.png",
+        "position": "left"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Saiki",
+        "text": "Vamos a estudiar juntos."
+      },
+      {
+        "action": "show_character",
+        "sprite": "assets/KaidoNeutral.png",
+        "position": "right"
+      },
+      {
+        "action": "dialogue",
+        "speaker": "Kaido",
+        "text": "¡Claro! Aprender juntos es mejor."
       }
     ]
   }

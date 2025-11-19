@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Otome Engine</title>
+    <title>Otome Flow</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +16,17 @@
     <div id="choices" class="choices"></div>
 </div>
 
-<script src="engine.js"></script>
-<script src="script.js"></script>
+<!-- El script principal ahora es mucho más limpio -->
+<script type="module">
+    import { Engine } from './engine/Engine.js';
+
+    // 1. Crear una instancia del motor
+    const otomeFlow = new Engine();
+
+    // 2. Cargar la historia y empezar el juego
+    otomeFlow.loadStory('./historiaEjemplo.json').then(() => {
+        otomeFlow.start();
+    });
+</script>
 </body>
 </html>
