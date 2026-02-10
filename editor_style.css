@@ -1,0 +1,223 @@
+/* ============================================================
+                     OTOME FLOW - EDITOR STYLE
+============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: "Poppins", sans-serif;
+    background: #f6ebff;
+    overflow: hidden;
+}
+
+/* --- LAYOUT DE 3 COLUMNAS --- */
+
+/* 1. IZQUIERDA: CONTROLES */
+#sidebar-left {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 22%;
+    height: 100%;
+    background: #c8a4ff;
+    padding: 15px;
+    box-sizing: border-box;
+    color: white;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+/* 2. DERECHA: EXPLORADOR DE ASSETS (NUEVO) */
+#sidebar-right {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 18%;
+    height: 100%;
+    background: #e0c3fc; /* Un tono ligeramente distinto para diferenciar */
+    padding: 15px;
+    box-sizing: border-box;
+    color: #42225a;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    border-left: 2px solid white;
+}
+
+/* 3. CENTRO: BLOCKLY */
+#blocklyArea {
+    position: absolute;
+    left: 22%; /* Empieza donde acaba la izq */
+    width: 60%; /* El espacio restante (100 - 22 - 18) */
+    height: 100%;
+}
+
+#blocklyDiv {
+    width: 100%;
+    height: 100%;
+}
+
+/* --- ESTILOS COMUNES DE PANELES --- */
+h2, h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    text-align: center;
+    margin-bottom: 15px;
+}
+h2 { font-size: 1.4rem; }
+
+.section {
+    background: rgba(255, 255, 255, 0.3);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+/* --- ESTILOS DEL ÁRBOL DE ARCHIVOS (DERECHA) --- */
+.tree-category {
+    margin-bottom: 15px;
+}
+.tree-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #5a2d82;
+}
+.tree-list {
+    list-style: none;
+    padding-left: 10px;
+    margin: 0;
+}
+.tree-item {
+    background: white;
+    margin-bottom: 4px;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between; /* Para separar texto del botón borrar */
+    align-items: center;
+    border: 1px solid #dbbdfc;
+}
+
+/* Botón de borrar (Papelera) */
+.delete-btn {
+    background: #ffadad;
+    color: #7a1b1b;
+    border: none;
+    border-radius: 4px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 5px;
+}
+.delete-btn:hover {
+    background: #ff5c5c;
+    color: white;
+}
+
+/* Subcarpeta de personaje */
+.char-folder {
+    margin-top: 8px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 8px;
+    padding: 5px;
+}
+.char-name {
+    font-weight: bold;
+    padding: 2px 5px;
+    color: #42225a;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* --- INPUTS (Igual que antes) --- */
+input[type="text"], input[type="file"], select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #b48de3;
+    box-sizing: border-box;
+    background: white;
+}
+button {
+    width: 100%;
+    padding: 10px;
+    background: #b48de3;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+button:hover { background: #9e78d2; }
+
+/* Estilos para la lista de ESCENAS */
+.scene-item {
+    background: #fff0f6; /* Un tono rojizo/rosado suave para diferenciar de assets */
+    border: 1px solid #ffdeeb;
+    margin-bottom: 5px;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.scene-item:hover {
+    background: #ffd1e1;
+}
+
+.scene-item.active {
+    background: #b48de3;
+    color: white;
+    border-color: #9e78d2;
+}
+
+/* Botones de gestión de escena */
+.scene-controls {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.btn-save-scene {
+    background: #4caf50; /* Verde */
+}
+.btn-save-scene:hover { background: #45a049; }
+
+.btn-new-scene {
+    background: #2196f3; /* Azul */
+}
+.btn-new-scene:hover { background: #1e88e5; }
+
+.scene-item {
+    /* ... estilos existentes ... */
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 4px solid transparent; /* Borde invisible por defecto */
+}
+
+.scene-item:hover {
+    background: #ffd1e1;
+}
+
+/* ESTILO PARA LA ESCENA ACTIVA (TAB SELECCIONADA) */
+.scene-item.active {
+    background: #fff;
+    border-left: 4px solid #b48de3; /* Borde morado a la izquierda */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-weight: bold;
+    color: #5a2d82;
+}

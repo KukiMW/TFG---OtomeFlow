@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Otome Flow - Inicio</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #f6ebff 0%, #c8a4ff 100%);
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #42225a;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 50px;
+            color: #5a2d82;
+        }
+
+        .menu-buttons {
+            display: flex;
+            gap: 30px;
+        }
+
+        .btn {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-create {
+            background-color: #b48de3;
+        }
+        .btn-play {
+            background-color: #ff9eb5;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<h1>Otome Flow</h1>
+<p>Crea y juega tus propias novelas visuales</p>
+
+<div class="menu-buttons">
+    <a href="editor.html" class="btn btn-create">✏️ Crear Historia</a>
+    <a href="game.html" class="btn btn-play">▶️ Jugar Historia</a>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Otome Flow - Editor Visual</title>
+    <link rel="stylesheet" href="editor_style.css">
+</head>
+<body>
+
+    <!-- 1. SIDEBAR IZQUIERDA: CONTROLES DE ASSETS -->
+    <aside id="sidebar-left">
+        <h2>Otome Editor</h2>
+        
+        <div class="section">
+            <h3>📥 Añadir</h3>
+            
+            <label>1. Fondo:</label>
+            <input type="file" id="bgInput" accept="image/*">
+            
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.5); margin: 15px 0;">
+            
+            <label>2. Crear Personaje:</label>
+            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                <input type="text" id="newCharName" placeholder="Nombre">
+                <button id="addCharBtn" style="width: 40px;">+</button>
+            </div>
+            
+            <label>3. Editar Personaje:</label>
+            <select id="charSelector">
+                <option value="" disabled selected>-- Selecciona --</option>
+            </select>
+            
+            <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
+                <label>Añadir Sprite a <b id="displayCharName">...</b>:</label>
+                <input type="file" id="spriteInput" accept="image/*">
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🚀 Exportar Juego</h3>
+            <label>Escena de Inicio:</label>
+            <input type="text" id="startSceneInput" value="inicio">
+            <!-- Botón para descargar el ZIP final -->
+            <button id="generateButton">📦 Descargar ZIP Completo</button>
+        </div>
+    </aside>
+
+    <!-- 2. CENTRO: BLOCKLY -->
+    <main id="blocklyArea">
+        <div id="blocklyDiv"></div>
+    </main>
+
+    <!-- 3. DERECHA: GESTIÓN DE ESCENAS -->
+    <aside id="sidebar-right">
+        
+        <!-- ZONA DE ESCENAS -->
+        <div class="section" style="background: rgba(255,255,255,0.6);">
+            <h3>🎬 Escenas</h3>
+            <p style="font-size: 0.8rem; margin-bottom: 10px;">Guarda cada escena antes de crear una nueva.</p>
+            
+            <div class="scene-controls">
+                <button id="saveSceneBtn" class="btn-save-scene">💾 Guardar Actual</button>
+                <button id="newSceneBtn" class="btn-new-scene">✨ Nueva (Limpiar)</button>
+            </div>
+
+            <div id="sceneList">
+                <p style="font-size: 0.8rem; text-align: center; color: #666;">No hay escenas guardadas</p>
+            </div>
+        </div>
+
+        <!-- ZONA DE LISTA DE ARCHIVOS -->
+        <h3>📂 Archivos Cargados</h3>
+        <div id="assetList">
+            <p style="font-size: 0.8rem; text-align: center; color: #666;">Sin archivos</p>
+        </div>
+    </aside>
+
+    <!-- TOOLBOX XML -->
+    <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+        <category name="Lógica 🔀" colour="210">
+            <block type="choice"></block>
+            <block type="choice_option"></block>
+        </category>
+    </xml>
+
+    <!-- SCRIPTS -->
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="editor.js"></script>
+
+</body>
+</html>
