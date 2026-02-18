@@ -37,11 +37,22 @@
         </div>
 
         <div class="section">
-            <h3>🚀 Exportar Juego</h3>
+            <h3>🚀 Gestión del Proyecto</h3>
             <label>Escena de Inicio:</label>
             <input type="text" id="startSceneInput" value="inicio">
-            <!-- Botón para descargar el ZIP final -->
-            <button id="generateButton">📦 Descargar ZIP Completo</button>
+            
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.5); margin: 10px 0;">
+            
+            <!-- BOTÓN EXPORTAR -->
+            <button id="generateButton" style="background: #4caf50;">📦 Exportar ZIP (Guardar)</button>
+            
+            <div style="height: 10px;"></div> <!-- Espacio -->
+
+            <!-- BOTÓN IMPORTAR -->
+            <label>Cargar proyecto existente:</label>
+            <button id="importProjectBtn" style="background: #ff9800;">📂 Importar ZIP</button>
+            <!-- Input invisible para cargar el archivo -->
+            <input type="file" id="projectInput" accept=".zip" style="display: none;">
         </div>
     </aside>
 
@@ -60,7 +71,8 @@
             
             <div class="scene-controls">
                 <button id="saveSceneBtn" class="btn-save-scene">💾 Guardar Actual</button>
-                <button id="newSceneBtn" class="btn-new-scene">✨ Nueva (Limpiar)</button>
+                <button id="newSceneBtn" class="btn-new-scene">✨ Nueva</button>
+                <button id="viewTreeBtn" style="background: #ff9800;">🌳 Ver Árbol</button>
             </div>
 
             <div id="sceneList">
@@ -83,10 +95,25 @@
         </category>
     </xml>
 
+        <!-- MODAL ÁRBOL DE HISTORIA -->
+    <div id="treeModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🌳 Árbol de la Historia</h2>
+                <button id="closeTreeBtn" class="close-btn">Cerrar</button>
+            </div>
+            <div class="modal-body">
+                <!-- Aquí Mermaid dibujará el gráfico -->
+                <div id="mermaidGraph" class="mermaid"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="editor.js"></script>
 
 </body>

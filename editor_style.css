@@ -188,8 +188,9 @@ button:hover { background: #9e78d2; }
 /* Botones de gestión de escena */
 .scene-controls {
     display: flex;
-    gap: 5px;
-    margin-bottom: 10px;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
 }
 
 .btn-save-scene {
@@ -203,7 +204,6 @@ button:hover { background: #9e78d2; }
 .btn-new-scene:hover { background: #1e88e5; }
 
 .scene-item {
-    /* ... estilos existentes ... */
     cursor: pointer;
     transition: all 0.2s;
     border-left: 4px solid transparent; /* Borde invisible por defecto */
@@ -221,3 +221,58 @@ button:hover { background: #9e78d2; }
     font-weight: bold;
     color: #5a2d82;
 }
+
+/* --- MODAL (VENTANA EMERGENTE) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    height: 90%;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 20px;
+    background: #c8a4ff;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 { margin: 0; }
+
+.close-btn {
+    background: #711651;
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal-body {
+    flex: 1;
+    padding: 20px;
+    overflow: auto; /* Permite scroll si el árbol es gigante */
+    background: #f9f9f9;
+    text-align: center;
+}
+
+/* Ajustes para Mermaid */
+.node rect { fill: #f6ebff !important; stroke: #b48de3 !important; stroke-width: 2px; }
+.edgeLabel { background-color: white; padding: 2px; border-radius: 4px; font-size: 0.8rem; }

@@ -82,26 +82,41 @@ function initEditor() {
         }
     ]);
 
-    // 2. GENERADORES
+    // 2. GENERADORES (SEGUROS)
     const generator = Blockly.JavaScript;
     const assign = generator.forBlock ? (k, f) => generator.forBlock[k] = f : (k, f) => generator[k] = f;
 
     assign('def_scene', (b) => {
         const id = b.getFieldValue('SCENE_ID').trim();
         let actions = Blockly.JavaScript.statementToCode(b, 'ACTIONS');
-        return `"${id}": [\n${actions.replace(/,\s*$/, "")}\n]`; 
+        // Usamos JSON.stringify para el ID también, por si tiene comillas
+        return `${JSON.stringify(id)}: [\n${actions.replace(/,\s*$/, "")}\n]`; 
     });
-    assign('action_narrator', (b) => `{"action": "dialogue", "speaker": "", "text": "${b.getFieldValue('TEXT')}"},`);
+    assign('action_narrator', (b) => {
+        const text = JSON.stringify(b.getFieldValue('TEXT'));
+        return `{"action": "dialogue", "speaker": "", "text": ${text}},`;
+    });
     assign('choice', (b) => `{"action": "choice", "options": [${Blockly.JavaScript.statementToCode(b, 'OPTIONS').replace(/,\s*$/, "")}]},`);
-    assign('choice_points', (b) => `{"text": "${b.getFieldValue('TEXT')}", "varName": "${b.getFieldValue('VAR_NAME')}", "varVal": ${b.getFieldValue('VAR_VAL')}},`);
+    assign('choice_points', (b) => {
+        const txt = JSON.stringify(b.getFieldValue('TEXT'));
+        const vName = JSON.stringify(b.getFieldValue('VAR_NAME'));
+        return `{"text": ${txt}, "varName": ${vName}, "varVal": ${b.getFieldValue('VAR_VAL')}},`;
+    });
     assign('choice_option', (b) => {
+        const txt = JSON.stringify(b.getFieldValue('TEXT'));
+        const go = JSON.stringify(b.getFieldValue('GOTO'));
         const val = b.getFieldValue('VAR_VAL');
-        const varJson = (val != 0) ? `, "varName": "${b.getFieldValue('VAR_NAME')}", "varVal": ${val}` : "";
-        return `{"text": "${b.getFieldValue('TEXT')}", "goto": "${b.getFieldValue('GOTO')}"${varJson}},`;
+        const vName = JSON.stringify(b.getFieldValue('VAR_NAME'));
+        const varJson = (val != 0) ? `, "varName": ${vName}, "varVal": ${val}` : "";
+        return `{"text": ${txt}, "goto": ${go}${varJson}},`;
     });
     assign('logic_check_var', (b) => JSON.stringify({
-        action: "check_variable", variable: b.getFieldValue('VAR'), operator: b.getFieldValue('OP'), value: b.getFieldValue('VAL'),
-        goto_true: b.getFieldValue('GOTO_TRUE'), goto_false: b.getFieldValue('GOTO_FALSE')
+        action: "check_variable", 
+        variable: b.getFieldValue('VAR'), 
+        operator: b.getFieldValue('OP'), 
+        value: b.getFieldValue('VAL'),
+        goto_true: b.getFieldValue('GOTO_TRUE'), 
+        goto_false: b.getFieldValue('GOTO_FALSE')
     }) + ",");
 
     // 3. INYECTAR
@@ -115,18 +130,15 @@ function initEditor() {
     refreshBlocklyEnv(); 
     renderAssetList();
     
-    // Crear escena inicial
     createNewScene("inicio");
 }
 
 // ============================================================
-//               LÓGICA DE PESTAÑAS (SERIALIZACIÓN MODERNA)
+//               LÓGICA CORE DE ESCENAS
 // ============================================================
 
 function createNewScene(forceName = null) {
-    if (currentSceneId) {
-        saveCurrentWorkspaceToMemory();
-    }
+    if (currentSceneId) saveCurrentWorkspaceToMemory();
 
     let name = forceName;
     if (!name) {
@@ -149,46 +161,33 @@ function createNewScene(forceName = null) {
     block.render();
     workspace.scrollCenter();
 
-    // Guardamos inmediatamente la nueva escena
     saveCurrentWorkspaceToMemory();
     renderSceneList();
 }
 
 function switchToScene(targetId) {
-    console.log(`Intentando cambiar a: ${targetId}`);
-    
-    // 1. Guardar lo actual antes de irnos
-    if (currentSceneId) {
-        saveCurrentWorkspaceToMemory();
-    }
+    if (currentSceneId && currentSceneId !== targetId) saveCurrentWorkspaceToMemory();
 
-    // 2. Limpiar
     workspace.clear();
     currentSceneId = targetId;
 
-    // 3. Cargar datos
     const sceneData = assetState.scenes[targetId];
-    
     if (sceneData && sceneData.blocklyState) {
-        console.log("Cargando bloques guardados...");
-        // ESTA ES LA CLAVE: Cargar el estado visual (JSON del editor, no del juego)
-        Blockly.serialization.workspaces.load(sceneData.blocklyState, workspace);
+        try {
+            Blockly.serialization.workspaces.load(sceneData.blocklyState, workspace);
+        } catch (e) {
+            console.error("Error al restaurar bloques:", e);
+            spawnDefaultBlock(targetId);
+        }
     } else {
-        console.log("Escena vacía o corrupta, creando bloque por defecto.");
-        const block = workspace.newBlock('def_scene');
-        block.setFieldValue(targetId, 'SCENE_ID');
-        block.initSvg();
-        block.render();
-        workspace.scrollCenter();
+        spawnDefaultBlock(targetId);
     }
-
     renderSceneList();
 }
 
 function saveCurrentWorkspaceToMemory() {
     if (!currentSceneId) return;
 
-    // Sincronizar ID
     const topBlocks = workspace.getTopBlocks(true);
     const sceneBlock = topBlocks.find(b => b.type === 'def_scene');
     let code = "";
@@ -198,15 +197,101 @@ function saveCurrentWorkspaceToMemory() {
         code = Blockly.JavaScript.blockToCode(sceneBlock);
     }
 
-    // GUARDADO MODERNO: Usamos serialization.save
     const state = Blockly.serialization.workspaces.save(workspace);
+    assetState.scenes[currentSceneId] = { code: code, blocklyState: state };
+}
 
-    assetState.scenes[currentSceneId] = {
-        code: code,
-        blocklyState: state // Guardamos el objeto de estado, no XML
-    };
+function spawnDefaultBlock(id) {
+    const block = workspace.newBlock('def_scene');
+    block.setFieldValue(id, 'SCENE_ID');
+    block.initSvg();
+    block.render();
+    workspace.scrollCenter();
+}
+
+// ============================================================
+//               LÓGICA DEL ÁRBOL VISUAL (MERMAID)
+// ============================================================
+function generateStoryTree() {
+    saveCurrentWorkspaceToMemory(); // Guardar lo último
+
+    let graphDefinition = "graph TD;\n";
+    graphDefinition += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
+    graphDefinition += "classDef start fill:#d1e7dd,stroke:#0f5132,stroke-width:3px;\n";
+    graphDefinition += "classDef logic fill:#fff3cd,stroke:#ffc107,stroke-width:2px,stroke-dasharray: 5 5;\n";
+
+    const sceneIds = Object.keys(assetState.scenes);
+    const startScene = document.getElementById('startSceneInput').value;
+
+    if (sceneIds.length === 0) {
+        alert("No hay escenas para visualizar.");
+        return;
+    }
+
+    sceneIds.forEach(id => {
+        const styleClass = (id === startScene) ? ":::start" : "";
+        const safeId = id.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        try {
+            // Parseamos el código JSON parcial de la escena
+            const jsonStr = `{ ${assetState.scenes[id].code} }`;
+            const sceneObj = JSON.parse(jsonStr);
+            const actions = sceneObj[Object.keys(sceneObj)[0]]; 
+
+            let hasLinks = false;
+
+            actions.forEach(action => {
+                // 1. DECISIONES
+                if (action.action === "choice") {
+                    action.options.forEach(opt => {
+                        if (opt.goto) {
+                            const safeDest = opt.goto.replace(/[^a-zA-Z0-9]/g, '_');
+                            let label = opt.text.substring(0, 15) + (opt.text.length>15?"...":"");
+                            // Mostrar si suma puntos
+                            if(opt.varVal && opt.varVal != 0) label += ` [${opt.varName} +${opt.varVal}]`;
+                            
+                            graphDefinition += `${safeId}${styleClass} -->|"${label}"| ${safeDest};\n`;
+                            hasLinks = true;
+                        }
+                    });
+                }
+                
+                // 2. JUEZ / VARIABLES
+                if (action.action === "check_variable") {
+                    const safeTrue = action.goto_true.replace(/[^a-zA-Z0-9]/g, '_');
+                    const safeFalse = action.goto_false.replace(/[^a-zA-Z0-9]/g, '_');
+                    const logicNode = `${safeId}_LOGIC_${Math.floor(Math.random()*1000)}`; // ID único para el rombo
+                    
+                    let opSymbol = action.operator;
+                    if(opSymbol === 'gte') opSymbol = '>=';
+                    if(opSymbol === 'gt') opSymbol = '>';
+                    if(opSymbol === 'eq') opSymbol = '=';
+                    if(opSymbol === 'lt') opSymbol = '<';
+                    if(opSymbol === 'lte') opSymbol = '<=';
+
+                    graphDefinition += `${safeId} -.-> ${logicNode}{{"¿${action.variable} ${opSymbol} ${action.value}?"}}:::logic;\n`;
+                    graphDefinition += `${logicNode} -->|Sí| ${safeTrue};\n`;
+                    graphDefinition += `${logicNode} -->|No| ${safeFalse};\n`;
+                    hasLinks = true;
+                }
+            });
+
+            if (!hasLinks) {
+                graphDefinition += `${safeId}${styleClass};\n`;
+            }
+
+        } catch (e) {
+            console.error(`Error analizando escena ${id} para el árbol:`, e);
+        }
+    });
+
+    // Renderizar en el modal
+    const mermaidDiv = document.getElementById('mermaidGraph');
+    mermaidDiv.innerHTML = graphDefinition;
+    document.getElementById('treeModal').style.display = 'flex';
     
-    console.log(`Guardada escena ${currentSceneId}`);
+    mermaidDiv.removeAttribute('data-processed');
+    mermaid.run({ nodes: [mermaidDiv] });
 }
 
 // ============================================================
@@ -214,8 +299,8 @@ function saveCurrentWorkspaceToMemory() {
 // ============================================================
 function setupEventListeners() {
     
+    // ASSETS
     const handleAsset = (arr, file) => { arr.push(file); refreshBlocklyEnv(); renderAssetList(); };
-    
     document.getElementById('bgInput').addEventListener('change', e => { if(e.target.files[0]) handleAsset(assetState.backgrounds, e.target.files[0]); });
     document.getElementById('spriteInput').addEventListener('change', e => {
         const char = document.getElementById('charSelector').value;
@@ -229,6 +314,7 @@ function setupEventListeners() {
         if(e.target.value) { document.getElementById('spriteUploadSection').style.display = 'block'; document.getElementById('displayCharName').innerText = e.target.value; }
     });
 
+    // ESCENAS
     const btnNew = document.getElementById('newSceneBtn');
     if(btnNew) btnNew.addEventListener('click', () => createNewScene());
 
@@ -241,6 +327,15 @@ function setupEventListeners() {
         setTimeout(() => btnSave.innerText = originalText, 1000);
     });
 
+    // VER ÁRBOL (¡AQUÍ ESTÁ EL LISTENER!)
+    const btnTree = document.getElementById('viewTreeBtn');
+    if (btnTree) btnTree.addEventListener('click', () => generateStoryTree());
+
+    document.getElementById('closeTreeBtn').addEventListener('click', () => {
+        document.getElementById('treeModal').style.display = 'none';
+    });
+
+    // IMPORT/EXPORT
     document.getElementById('generateButton').addEventListener('click', async () => {
         saveCurrentWorkspaceToMemory();
         const zip = new JSZip();
@@ -255,6 +350,9 @@ function setupEventListeners() {
             const validJson = JSON.stringify(JSON.parse(jsonStr), null, 2);
             zip.file("story.json", validJson);
 
+            const editorData = { startScene: start, scenes: assetState.scenes };
+            zip.file("project_data.json", JSON.stringify(editorData));
+
             const bgF = zip.folder("assets").folder("backgrounds");
             assetState.backgrounds.forEach(f => bgF.file(f.name, f));
             const chF = zip.folder("assets").folder("characters");
@@ -266,9 +364,67 @@ function setupEventListeners() {
             const blob = await zip.generateAsync({type:"blob"});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "otome_game.zip";
+            a.download = "otome_project.zip";
             document.body.appendChild(a); a.click(); document.body.removeChild(a);
         } catch(e) { alert("Error ZIP: " + e.message); }
+    });
+
+    document.getElementById('importProjectBtn').addEventListener('click', () => {
+        document.getElementById('projectInput').click();
+    });
+
+    document.getElementById('projectInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        if(!confirm("Importar borrará el proyecto actual. ¿Seguir?")) { e.target.value = ''; return; }
+
+        try {
+            const zip = new JSZip();
+            const loadedZip = await zip.loadAsync(file);
+
+            workspace.clear();
+            assetState.backgrounds = [];
+            assetState.characters = {};
+            assetState.scenes = {};
+            currentSceneId = null;
+
+            // Assets
+            const bgFiles = Object.keys(loadedZip.files).filter(path => path.startsWith('assets/backgrounds/') && !loadedZip.files[path].dir);
+            for(const path of bgFiles) {
+                const blob = await loadedZip.file(path).async("blob");
+                blob.name = path.split('/').pop(); 
+                assetState.backgrounds.push(blob);
+            }
+            const charFiles = Object.keys(loadedZip.files).filter(path => path.startsWith('assets/characters/') && !loadedZip.files[path].dir);
+            for(const path of charFiles) {
+                const parts = path.split('/'); 
+                const charName = parts[2];
+                const fileName = parts[3];
+                if(!assetState.characters[charName]) assetState.characters[charName] = [];
+                const blob = await loadedZip.file(path).async("blob");
+                blob.name = fileName;
+                assetState.characters[charName].push(blob);
+            }
+
+            // Datos
+            if (loadedZip.file("project_data.json")) {
+                const jsonText = await loadedZip.file("project_data.json").async("string");
+                const projectData = JSON.parse(jsonText);
+                assetState.scenes = projectData.scenes;
+                document.getElementById('startSceneInput').value = projectData.startScene || "inicio";
+            } else {
+                alert("ZIP antiguo. Se importarán assets pero no escenas.");
+                createNewScene("inicio");
+            }
+
+            refreshBlocklyEnv(); renderAssetList(); renderSceneList();
+            const scenes = Object.keys(assetState.scenes);
+            if(scenes.length > 0) switchToScene(scenes[0]);
+            else createNewScene("inicio");
+
+            alert("✅ Proyecto cargado.");
+        } catch(err) { console.error(err); alert("Error importar: " + err.message); }
+        e.target.value = ''; 
     });
 }
 
@@ -288,37 +444,14 @@ function renderSceneList() {
     keys.forEach(id => {
         const item = document.createElement('div');
         item.className = `scene-item ${id === currentSceneId ? 'active' : ''}`;
-        
-        const label = document.createElement('span');
-        label.innerText = `🎬 ${id}`;
-        
-        const btnDel = document.createElement('button');
-        btnDel.className = 'delete-btn';
-        btnDel.innerHTML = '✕';
-        btnDel.onclick = (e) => {
+        item.innerHTML = `<span>🎬 ${id}</span> <button class="delete-btn">✕</button>`;
+        item.addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') switchToScene(id); });
+        item.querySelector('button').addEventListener('click', (e) => {
             e.stopPropagation();
-            deleteScene(id);
-        };
-
-        item.onclick = () => switchToScene(id);
-        item.appendChild(label);
-        item.appendChild(btnDel);
+            if(confirm(`¿Borrar "${id}"?`)) { delete assetState.scenes[id]; renderSceneList(); }
+        });
         div.appendChild(item);
     });
-}
-
-function deleteScene(id) {
-    if (!confirm(`¿Borrar escena "${id}"?`)) return;
-    delete assetState.scenes[id];
-    if (currentSceneId === id) {
-        currentSceneId = null;
-        workspace.clear();
-        const remaining = Object.keys(assetState.scenes);
-        if (remaining.length > 0) switchToScene(remaining[0]);
-        else createNewScene("inicio");
-    } else {
-        renderSceneList();
-    }
 }
 
 function renderAssetList() {
@@ -358,7 +491,11 @@ function refreshBlocklyEnv() {
 
     const gen = Blockly.JavaScript;
     const assign = gen.forBlock ? (k,f)=>gen.forBlock[k]=f : (k,f)=>gen[k]=f;
-    assign('action_set_background', b => `{"action": "set_background", "value": "${b.getFieldValue('BG_IMAGE')}"},`);
+    
+    assign('action_set_background', b => {
+        const val = b.getFieldValue('BG_IMAGE');
+        return `{"action": "set_background", "value": "${val}"},`;
+    });
 
     let charXml = '';
     Object.keys(assetState.characters).forEach(k => {
@@ -372,7 +509,12 @@ function refreshBlocklyEnv() {
             "args0": [{"type":"input_dummy"}, {"type":"field_dropdown","name":"SPRITE","options":opts}, {"type":"input_dummy"}, {"type":"field_input","name":"TEXT","text":"..."}],
             "previousStatement": null, "nextStatement": null, "colour": 120
         });
-        assign(`char_${safe}`, b => `{"action": "show_character", "sprite": "${b.getFieldValue('SPRITE')}", "position": "center"}, {"action": "dialogue", "speaker": "${k}", "text": "${b.getFieldValue('TEXT')}"},`);
+        
+        assign(`char_${safe}`, b => {
+            const sprite = b.getFieldValue('SPRITE');
+            const safeText = JSON.stringify(b.getFieldValue('TEXT')); 
+            return `{"action": "show_character", "sprite": "${sprite}", "position": "center"}, {"action": "dialogue", "speaker": "${k}", "text": ${safeText}},`;
+        });
         charXml += `<block type="char_${safe}"></block>`;
     });
 
