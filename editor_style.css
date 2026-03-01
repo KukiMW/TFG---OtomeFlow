@@ -10,49 +10,201 @@ body, html {
     font-family: "Poppins", sans-serif;
     background: #f6ebff;
     overflow: hidden;
+    display: flex;
+    flex-direction: column; /* Para la barra superior */
 }
 
-/* --- LAYOUT DE 3 COLUMNAS --- */
-
-/* 1. IZQUIERDA: CONTROLES */
-#sidebar-left {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 22%;
-    height: 100%;
-    background: #c8a4ff;
-    padding: 15px;
-    box-sizing: border-box;
+/* ============================================================
+   1. BARRA SUPERIOR (HEADER)
+============================================================ */
+#top-bar {
+    height: 50px;
+    background: #731565; /* Color oscuro Otome */
     color: white;
-    overflow-y: auto;
-    z-index: 10;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 20;
+    flex-shrink: 0; /* Evita que se encoja */
 }
 
-/* 2. DERECHA: EXPLORADOR DE ASSETS (NUEVO) */
-#sidebar-right {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 18%;
-    height: 100%;
-    background: #e0c3fc; /* Un tono ligeramente distinto para diferenciar */
+.home-link {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: opacity 0.2s;
+}
+
+.home-link:hover {
+    opacity: 0.8;
+}
+
+.home-link h1 {
+    font-size: 1.2rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* ============================================================
+   2. CONTENEDOR PRINCIPAL (LAYOUT FLEX)
+============================================================ */
+#main-wrapper {
+    display: flex;
+    flex: 1; /* Ocupa el resto de la altura */
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============================================================
+   3. BARRA LATERAL IZQUIERDA (CONTROLES)
+============================================================ */
+#sidebar-left {
+    width: 280px; /* Ancho fijo inicial */
+    background: #c8a4ff;
+    overflow-y: auto;
     padding: 15px;
     box-sizing: border-box;
-    color: #42225a;
-    overflow-y: auto;
+    transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    border-right: 1px solid rgba(255,255,255,0.3);
     z-index: 10;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-    border-left: 2px solid white;
 }
 
-/* 3. CENTRO: BLOCKLY */
-#blocklyArea {
+/* Estado Cerrado (Colapsado) */
+#sidebar-left.closed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    border: none;
+}
+
+/* Títulos de secciones */
+.section {
+    background: rgba(255, 255, 255, 0.4);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    color: #4a148c;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    padding-bottom: 5px;
+}
+
+.divider {
+    border: 0;
+    border-top: 1px solid rgba(255,255,255,0.4);
+    margin: 10px 0;
+}
+
+/* Formularios */
+label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: 8px;
+    color: #4a148c;
+}
+
+input[type="text"], select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #b48de3;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+input[type="file"] {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    width: 100%;
+}
+
+.input-group {
+    display: flex;
+    gap: 5px;
+}
+
+/* Botones Genéricos */
+button {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 5px;
+    transition: filter 0.2s, transform 0.1s;
+    font-family: inherit;
+}
+
+button:hover {
+    filter: brightness(1.1);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+/* Botones Específicos */
+#addCharBtn {
+    width: 40px;
+    margin-top: 0;
+    background: #731565;
+}
+
+.btn-export { background: #4caf50; } /* Verde */
+.btn-import { background: #ff9800; } /* Naranja */
+
+/* ============================================================
+   4. PESTAÑA DE COLAPSO (TOGGLE)
+============================================================ */
+#sidebarToggle {
+    width: 20px;
+    height: 50px;
+    background: #711651;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 0 10px 10px 0; /* Borde redondeado a la derecha */
+    align-self: center; /* Centrado verticalmente */
     position: absolute;
-    left: 22%; /* Empieza donde acaba la izq */
-    width: 60%; /* El espacio restante (100 - 22 - 18) */
+    left: 280px; /* Pegado al borde de la barra */
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+}
+
+#sidebarToggle:hover {
+    background: #9c27b0;
+}
+
+/* Cuando la barra se cierra, la pestaña se mueve a la izquierda */
+#sidebar-left.closed + #sidebarToggle {
+    left: 0;
+}
+
+/* ============================================================
+   5. ÁREA CENTRAL (BLOCKLY)
+============================================================ */
+#blocklyArea {
+    flex: 1; /* Ocupa todo el espacio disponible */
+    position: relative;
     height: 100%;
+    background: #fff;
 }
 
 #blocklyDiv {
@@ -60,219 +212,209 @@ body, html {
     height: 100%;
 }
 
-/* --- ESTILOS COMUNES DE PANELES --- */
-h2, h3 {
-    margin-top: 0;
-    font-size: 1.1rem;
-    text-align: center;
-    margin-bottom: 15px;
-}
-h2 { font-size: 1.4rem; }
-
-.section {
-    background: rgba(255, 255, 255, 0.3);
+/* ============================================================
+   6. BARRA LATERAL DERECHA (ESCENAS Y ARBOL)
+============================================================ */
+#sidebar-right {
+    width: 260px; /* Un poco más ancha para nombres largos */
+    background: #e0c3fc;
     padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    border-left: 2px solid white;
+    z-index: 10;
 }
 
-/* --- ESTILOS DEL ÁRBOL DE ARCHIVOS (DERECHA) --- */
-.tree-category {
+.scene-section {
+    background: rgba(255,255,255,0.6);
+}
+
+/* Botones de gestión de escena */
+.scene-controls {
+    display: flex;
+    flex-direction: column; /* Verticales */
+    gap: 8px;
     margin-bottom: 15px;
 }
-.tree-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-    color: #5a2d82;
-}
-.tree-list {
-    list-style: none;
-    padding-left: 10px;
-    margin: 0;
-}
-.tree-item {
-    background: white;
-    margin-bottom: 4px;
-    padding: 6px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    display: flex;
-    justify-content: space-between; /* Para separar texto del botón borrar */
-    align-items: center;
-    border: 1px solid #dbbdfc;
-}
 
-/* Botón de borrar (Papelera) */
-.delete-btn {
-    background: #ffadad;
-    color: #7a1b1b;
-    border: none;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    font-size: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 5px;
-}
-.delete-btn:hover {
-    background: #ff5c5c;
-    color: white;
-}
+.btn-save-scene { background: #4caf50; }
+.btn-new-scene { background: #2196f3; }
+.btn-tree { background: #9c27b0; }
 
-/* Subcarpeta de personaje */
-.char-folder {
-    margin-top: 8px;
-    background: rgba(255,255,255,0.5);
-    border-radius: 8px;
-    padding: 5px;
-}
-.char-name {
-    font-weight: bold;
-    padding: 2px 5px;
-    color: #42225a;
-    display: flex;
-    justify-content: space-between;
-}
-
-/* --- INPUTS (Igual que antes) --- */
-input[type="text"], input[type="file"], select {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #b48de3;
-    box-sizing: border-box;
-    background: white;
-}
-button {
-    width: 100%;
-    padding: 10px;
-    background: #b48de3;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-}
-button:hover { background: #9e78d2; }
-
-/* Estilos para la lista de ESCENAS */
+/* Lista de Escenas (Items) */
 .scene-item {
-    background: #fff0f6; /* Un tono rojizo/rosado suave para diferenciar de assets */
-    border: 1px solid #ffdeeb;
-    margin-bottom: 5px;
-    padding: 8px;
+    background: white;
+    padding: 8px 12px;
+    margin-bottom: 6px;
     border-radius: 6px;
     font-size: 0.9rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: background 0.2s;
-}
-
-.scene-item:hover {
-    background: #ffd1e1;
-}
-
-.scene-item.active {
-    background: #b48de3;
-    color: white;
-    border-color: #9e78d2;
-}
-
-/* Botones de gestión de escena */
-.scene-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 15px;
-}
-
-.btn-save-scene {
-    background: #4caf50; /* Verde */
-}
-.btn-save-scene:hover { background: #45a049; }
-
-.btn-new-scene {
-    background: #2196f3; /* Azul */
-}
-.btn-new-scene:hover { background: #1e88e5; }
-
-.scene-item {
-    cursor: pointer;
     transition: all 0.2s;
     border-left: 4px solid transparent; /* Borde invisible por defecto */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .scene-item:hover {
-    background: #ffd1e1;
+    background: #f8e1ff;
 }
 
-/* ESTILO PARA LA ESCENA ACTIVA (TAB SELECCIONADA) */
+/* Escena Activa (Seleccionada) */
 .scene-item.active {
     background: #fff;
-    border-left: 4px solid #b48de3; /* Borde morado a la izquierda */
+    border-left-color: #711651; /* Borde morado */
+    color: #711651;
+    font-weight: 600;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    font-weight: bold;
-    color: #5a2d82;
 }
 
-/* --- MODAL (VENTANA EMERGENTE) --- */
+/* Botón borrar (X) */
+.delete-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: #ef5350;
+    font-size: 0.8rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    border-radius: 4px;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    background: #d32f2f;
+}
+
+.empty-msg {
+    font-size: 0.8rem;
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    margin: 10px 0;
+}
+
+/* ============================================================
+   7. LISTA DE ARCHIVOS (ASSETS TREE)
+============================================================ */
+.tree-category {
+    margin-bottom: 15px;
+    color: #4a148c;
+}
+
+.tree-item {
+    background: rgba(255, 255, 255, 0.7);
+    margin-bottom: 4px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(180, 141, 227, 0.3);
+}
+
+.char-folder {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 8px;
+}
+
+.char-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: #4a148c;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ============================================================
+   8. MODAL (VENTANA EMERGENTE)
+============================================================ */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Fondo oscuro semitransparente */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(2px); /* Efecto borroso de fondo */
 }
 
 .modal-content {
     background: white;
     width: 90%;
-    height: 90%;
-    border-radius: 15px;
+    max-width: 1000px;
+    height: 85%;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
     overflow: hidden;
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
 .modal-header {
-    padding: 20px;
-    background: #c8a4ff;
+    padding: 15px 25px;
+    background: #711651;
     color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.modal-header h2 { margin: 0; }
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+}
 
 .close-btn {
-    background: #711651;
-    border: none;
+    width: auto;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.5);
     color: white;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
+    padding: 5px 15px;
+    margin: 0;
+}
+
+.close-btn:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: white;
 }
 
 .modal-body {
     flex: 1;
-    padding: 20px;
-    overflow: auto; /* Permite scroll si el árbol es gigante */
-    background: #f9f9f9;
+    padding: 30px;
+    overflow: auto;
+    background: #f8f9fa;
     text-align: center;
 }
 
-/* Ajustes para Mermaid */
-.node rect { fill: #f6ebff !important; stroke: #b48de3 !important; stroke-width: 2px; }
-.edgeLabel { background-color: white; padding: 2px; border-radius: 4px; font-size: 0.8rem; }
+/* Ajustes para Mermaid (Diagramas) */
+.node rect {
+    fill: #f6ebff !important;
+    stroke: #b48de3 !important;
+    stroke-width: 2px;
+}
+.edgeLabel {
+    background-color: white;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    border: 1px solid #ddd;
+}

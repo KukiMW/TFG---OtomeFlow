@@ -2,74 +2,185 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Otome Flow - Inicio</title>
+    <title>Otome Flow - Acceso</title>
+    <!-- Iconos y Fuentes -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- 1. LIBRERÍA SUPABASE (OBLIGATORIA) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
-
         body {
-            margin: 0;
-            height: 100vh;
-            background: linear-gradient(135deg, #f6ebff 0%, #c8a4ff 100%);
+            margin: 0; height: 100vh;
+            background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 100%);
             font-family: 'Poppins', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #42225a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #4a148c;
+        }
+        
+        /* Contenedor Login */
+        .auth-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(74, 20, 140, 0.2);
+            width: 350px;
+            text-align: center;
         }
 
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 0px white;
+        h1 { margin: 0 0 10px; font-size: 2rem; }
+        p { color: #7b1fa2; margin-bottom: 20px; font-size: 0.9rem; }
+
+        input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            border: 1px solid #e1bee7; border-radius: 8px;
+            box-sizing: border-box; font-family: inherit;
         }
 
-        p {
-            font-size: 1.2rem;
-            margin-bottom: 50px;
-            color: #5a2d82;
+        button {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            cursor: pointer; font-weight: bold; font-size: 1rem;
+            transition: 0.2s; margin-bottom: 10px;
         }
 
-        .menu-buttons {
-            display: flex;
-            gap: 30px;
-        }
+        .btn-primary { background: #711651; color: white; }
+        .btn-primary:hover { background: #4a0030; }
 
-        .btn {
-            padding: 20px 40px;
-            font-size: 1.5rem;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            text-decoration: none;
-            font-weight: bold;
-            color: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+        .btn-secondary { background: white; color: #711651; border: 1px solid #711651; }
+        .btn-secondary:hover { background: #f3e5f5; }
 
-        .btn-create {
-            background-color: #b48de3;
-        }
-        .btn-play {
-            background-color: #ff9eb5;
-        }
+        .loading { opacity: 0.5; pointer-events: none; }
 
-        .btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        /* Ocultar secciones por defecto */
+        .hidden { display: none !important; }
+
+        /* Estilo del Menú Principal (Cuando estás logueado) */
+        .menu-container {
+            display: flex; gap: 20px;
         }
+        .card-btn {
+            background: white; width: 180px; padding: 20px;
+            border-radius: 15px; text-decoration: none; color: #4a148c;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .card-btn:hover { transform: translateY(-5px); }
+        .material-icons { font-size: 3rem; margin-bottom: 10px; }
+        
+        #userInfo { position: absolute; top: 20px; right: 20px; font-size: 0.9rem; }
+        #logoutBtn { background: none; border: none; color: #d32f2f; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
-<h1>Otome Flow</h1>
-<p>Crea y juega tus propias novelas visuales</p>
+    <!-- INFORMACIÓN DE USUARIO (SOLO VISIBLE SI LOGUEADO) -->
+    <div id="userInfo" class="hidden">
+        Hola, <span id="userEmail">usuario</span> | 
+        <button id="logoutBtn">Cerrar Sesión</button>
+    </div>
 
-<div class="menu-buttons">
-    <a href="editor.html" class="btn btn-create">✏️ Crear Historia</a>
-    <a href="game.html" class="btn btn-play">▶️ Jugar Historia</a>
-</div>
+    <!-- PANTALLA 1: LOGIN / REGISTRO -->
+    <div id="authSection" class="auth-container">
+        <h1>Otome Flow</h1>
+        <p>Inicia sesión para guardar tus proyectos en la nube.</p>
+        
+        <input type="email" id="email" placeholder="Correo electrónico">
+        <input type="password" id="password" placeholder="Contraseña">
+        
+        <button id="loginBtn" class="btn-primary">Iniciar Sesión</button>
+        <button id="signupBtn" class="btn-secondary">Registrarse</button>
+        
+        <p id="authMessage" style="margin-top: 15px; font-size: 0.8rem; color: #d32f2f;"></p>
+    </div>
 
+
+    <!-- SCRIPTS -->
+    <!-- 1. Cargamos tu configuración -->
+    <script src="supabaseClient.js"></script>
+    
+    <!-- 2. Lógica de Autenticación -->
+    <script>
+        // Referencias
+        const authSection = document.getElementById('authSection');
+        const mainMenu = document.getElementById('mainMenu');
+        const userInfo = document.getElementById('userInfo');
+        const emailInput = document.getElementById('email');
+        const passInput = document.getElementById('password');
+        const msg = document.getElementById('authMessage');
+
+        // --- VERIFICAR SESIÓN ---
+        async function checkSession() {
+            // CAMBIO: Usamos 'sb' en lugar de 'supabase'
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                showMenu(session.user.email);
+            } else {
+                authSection.classList.remove('hidden');
+            }
+        }
+        
+        // Esperamos un poco a que supabaseClient.js cargue la variable sb
+        window.addEventListener('load', checkSession);
+
+        // --- FUNCIÓN REDIRECCIÓN ---
+        function showMenu(email) {
+            // Guardamos el email en localStorage por si acaso lo necesitamos luego para mostrarlo
+            localStorage.setItem('userEmail', email);
+            // Redirección directa al Dashboard
+            window.location.href = 'dashboard.html';
+        }
+
+        // --- 1. INICIAR SESIÓN ---
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passInput.value;
+            
+            msg.innerText = "Conectando...";
+            
+            // CAMBIO: Usamos 'sb'
+            const { data, error } = await sb.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                msg.innerText = "Error: " + error.message;
+            } else {
+                showMenu(data.user.email);
+            }
+        });
+
+        // --- 2. REGISTRARSE ---
+        document.getElementById('signupBtn').addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passInput.value;
+
+            msg.innerText = "Creando cuenta...";
+
+            // CAMBIO: Usamos 'sb'
+            const { data, error } = await sb.auth.signUp({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                msg.innerText = "Error: " + error.message;
+            } else {
+                msg.style.color = "green";
+                msg.innerText = "¡Cuenta creada! Iniciando sesión...";
+                // A veces loguea directo, si no, pedimos login
+                if(data.session) showMenu(data.user.email);
+            }
+        });
+
+        // --- 3. CERRAR SESIÓN ---
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            // CAMBIO: Usamos 'sb'
+            await sb.auth.signOut();
+            window.location.reload(); 
+        });
+
+    </script>
 </body>
 </html>

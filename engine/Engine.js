@@ -87,6 +87,10 @@ export class Engine {
             case "check_variable":
                 this.handleCheck(action);
                 return; 
+
+            case "jump":
+                this.startScene(action.goto);
+                return;
         }
 
         this.gameState.currentIndex++;

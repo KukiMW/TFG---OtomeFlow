@@ -2,150 +2,92 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Otome Flow - Jugador</title>
-    <!-- Librería para descomprimir el ZIP -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link rel="stylesheet" href="game_style.css">
+    <title>Jugando Historia</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Solo necesitamos Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Estilos específicos para la pantalla de carga (Lobby) */
-        #file-upload-screen {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(34, 34, 34, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            color: white;
-            font-family: sans-serif;
+        #loadingScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #711651; color: white; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 2000;
         }
-        .upload-box {
-            background: #c8a4ff;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            color: #42225a;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
         }
-        .upload-box h2 { margin-top: 0; }
-        
-        input[type="file"] {
-            margin-top: 20px;
-            padding: 10px;
-            background: white;
-            border-radius: 5px;
-            border: 1px solid #42225a;
-            cursor: pointer;
-        }
-        .back-btn {
-            margin-top: 20px;
-            color: #dcbdfc;
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        .back-btn:hover { text-decoration: underline; color: white; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<!-- 1. PANTALLA DE CARGA (LOBBY) -->
-<div id="file-upload-screen">
-    <div class="upload-box">
-        <h2>¡Hora de Jugar!</h2>
-        <p>Sube el archivo <b>.zip</b> que descargaste del editor.</p>
-        <!-- Solo un input, aceptando ZIP y JSON -->
-        <input type="file" id="storyFileInput" accept=".zip,.json">
+    <!-- PANTALLA DE CARGA -->
+    <div id="loadingScreen">
+        <div class="spinner"></div>
+        <h2 id="loadingText">Cargando historia...</h2>
     </div>
-    <a href="index.html" class="back-btn">← Volver al Menú Principal</a>
-</div>
 
-<!-- 2. CONTENEDOR DEL JUEGO (OCULTO INICIALMENTE) -->
-<div id="game" style="display: none;">
-    <img id="background" class="background">
-    <img id="character" class="character">
-    <div id="textbox" class="textbox">
-        <span id="text-content"></span>
-        <span id="next-arrow" class="arrow circle"></span>
+    <!-- JUEGO -->
+    <div id="game">
+        <img id="background" class="background">
+        <img id="character" class="character">
+        <div id="textbox" class="textbox">
+            <span id="text-content"></span>
+            <span id="next-arrow" class="arrow circle"></span>
+        </div>
+        <div id="choices" class="choices"></div>
     </div>
-    <div id="choices" class="choices"></div>
-</div>
 
-<!-- LÓGICA DE CARGA -->
-<script type="module">
-    import { Engine } from './engine/Engine.js';
-
-    // Referencias al DOM
-    const uploadScreen = document.getElementById('file-upload-screen');
-    const fileInput = document.getElementById('storyFileInput');
-    const gameContainer = document.getElementById('game');
+    <script src="supabaseClient.js"></script>
     
-    // Instanciamos el motor (se quedará esperando datos)
-    const otomeFlow = new Engine();
+    <script type="module">
+        import { Engine } from './engine/Engine.js';
 
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+        const otomeFlow = new Engine();
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingText = document.getElementById('loadingText');
 
-        console.log("Archivo detectado:", file.name);
+        async function initGame() {
+            // 1. Obtener ID de la URL
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id');
 
-        try {
-            // OPCIÓN A: Es un archivo ZIP (El estándar nuevo)
-            if (file.name.endsWith('.zip')) {
-                console.log("Procesando ZIP...");
-                const zip = await JSZip.loadAsync(file);
-
-                // 1. Buscar y leer story.json dentro del zip
-                if (!zip.file("story.json")) {
-                    alert("El ZIP no es válido: Falta el archivo 'story.json' dentro.");
-                    return;
-                }
-                
-                const jsonText = await zip.file("story.json").async("string");
-                const storyData = JSON.parse(jsonText);
-
-                // 2. Extraer imágenes a memoria (Blob URLs)
-                const assetMap = {};
-                
-                // Filtramos solo los archivos que están en la carpeta assets/
-                const imageFiles = Object.keys(zip.files).filter(path => 
-                    path.startsWith('assets/') && !zip.files[path].dir
-                );
-
-                console.log(`Extrayendo ${imageFiles.length} imágenes...`);
-
-                for (const path of imageFiles) {
-                    // Convertimos el archivo comprimido en un "Blob" (objeto binario en memoria)
-                    const blob = await zip.file(path).async("blob");
-                    // Creamos una URL temporal (ej: blob:http://localhost/...)
-                    const objectUrl = URL.createObjectURL(blob);
-                    
-                    // Guardamos en el mapa: "assets/bg.png" -> "blob:..."
-                    assetMap[path] = objectUrl; 
-                }
-
-                // 3. Inyectar datos al motor
-                otomeFlow.loadStoryFromData(storyData);
-                otomeFlow.setAssetMap(assetMap);
-
-            // OPCIÓN B: Es solo un JSON (Para pruebas rápidas sin imágenes)
-            } else if (file.name.endsWith('.json')) {
-                console.log("Cargando JSON suelto...");
-                const text = await file.text();
-                otomeFlow.loadStoryFromData(JSON.parse(text));
+            if (!projectId) {
+                alert("Error: ID de juego no especificado.");
+                window.location.href = "dashboard.html";
+                return;
             }
 
-            // 4. ¡Arrancar el juego!
-            uploadScreen.style.display = 'none'; // Ocultar lobby
-            gameContainer.style.display = 'block'; // Mostrar juego
-            otomeFlow.start();
+            try {
+                // 2. Descargar datos de Supabase
+                const { data, error } = await sb
+                    .from('projects')
+                    .select('story_data')
+                    .eq('id', projectId)
+                    .single();
 
-        } catch (error) {
-            console.error(error);
-            alert("Ocurrió un error al cargar el archivo:\n" + error.message);
+                if (error) throw error;
+                if (!data.story_data) throw new Error("Este proyecto está vacío o corrupto.");
+
+                console.log("Historia cargada:", data.story_data);
+
+                // 3. Iniciar Motor (El JSON ya tiene las URLs públicas de Supabase)
+                otomeFlow.loadStoryFromData(data.story_data);
+                
+                // Ocultar carga y empezar
+                loadingScreen.style.display = 'none';
+                document.getElementById('game').style.display = 'block';
+                otomeFlow.start();
+
+            } catch (err) {
+                console.error(err);
+                loadingText.innerText = "Error: " + err.message;
+            }
         }
-    });
-</script>
+
+        // Arrancar cuando cargue la ventana
+        window.onload = initGame;
+    </script>
 </body>
 </html>

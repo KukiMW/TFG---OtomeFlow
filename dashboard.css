@@ -1,0 +1,208 @@
+/* dashboard.css */
+
+/* NAVBAR */
+.navbar {
+    background-color: white;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid #e0e0e0;
+    position: fixed;
+    top: 0; width: 100%;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+.logo-text {
+    font-size: 1.5rem;
+    color: #5f6368;
+}
+.logo-text b { color: var(--primary); }
+
+.nav-right { display: flex; align-items: center; gap: 15px; }
+
+.user-avatar {
+    width: 35px; height: 35px;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+#logoutBtn {
+    background: none; border: none; color: #5f6368; font-weight: 500;
+}
+#logoutBtn:hover { color: var(--primary); text-decoration: underline; }
+
+/* CONTENEDOR PRINCIPAL */
+.main-container {
+    margin-top: 80px; /* Espacio para la navbar */
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 15px;
+}
+
+.dashboard-header h1 { font-size: 2rem; color: #202124; margin: 0; }
+.dashboard-header p { color: #5f6368; margin-top: 5px; }
+
+/* GRID DE PROYECTOS */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* TARJETAS (CARDS) */
+.class-card {
+    background: white;
+    border: 1px solid #dadce0;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, transform 0.2s;
+    height: 260px; /* Altura fija para uniformidad */
+}
+
+.class-card:hover {
+    box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background-image: linear-gradient(135deg, #711651 0%, #a44f8b 100%);
+    padding: 16px;
+    color: white;
+    height: 80px;
+    position: relative;
+}
+
+.card-title {
+    font-size: 1.3rem;
+    font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.card-subtitle {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.card-body {
+    padding: 16px;
+    flex-grow: 1;
+    color: #3c4043;
+    font-size: 0.9rem;
+    overflow: hidden;
+}
+
+.card-footer {
+    border-top: 1px solid #dadce0;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: flex-end; /* Botones a la derecha */
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+}
+
+/* BOTONES EN TARJETA */
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #5f6368;
+    display: flex; align-items: center; gap: 5px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.icon-btn:hover { background: rgba(0,0,0,0.05); color: #202124; }
+
+.btn-play {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex; align-items: center;
+    transition: background 0.2s;
+}
+.btn-play:hover { background-color: #5a1040; }
+
+/* MENÚ DESPLEGABLE (3 PUNTOS) */
+.dropdown {
+    position: absolute; top: 10px; right: 5px;
+}
+.dropbtn {
+    color: white; cursor: pointer; padding: 10px; border-radius: 50%;
+}
+.dropbtn:hover { background-color: rgba(255,255,255,0.2); }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0; top: 40px;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 10;
+    overflow: hidden;
+}
+.dropdown-content a {
+    color: #333; padding: 12px 16px;
+    text-decoration: none; display: block;
+    cursor: pointer; font-size: 0.9rem;
+}
+.dropdown-content a:hover { background-color: #f1f1f1; }
+.show { display: block; }
+
+/* BOTÓN FLOTANTE (+) */
+.fab {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    width: 60px; height: 60px;
+    background: white;
+    color: #ea4335; /* Google Red */
+    border-radius: 50%;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+    border: none;
+    font-size: 36px;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+}
+.fab:hover { transform: scale(1.1); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+
+/* FORMULARIO MODAL */
+form label { display: block; margin-top: 15px; font-weight: 600; color: #555; }
+form input, form textarea {
+    width: 100%; padding: 10px; margin-top: 5px;
+    border: 1px solid #ccc; border-radius: 6px;
+    box-sizing: border-box; font-family: inherit;
+}
+.modal-actions {
+    margin-top: 25px;
+    display: flex; justify-content: flex-end; gap: 10px;
+}
+.btn-text { background: none; border: none; color: #666; font-weight: 600; }
+.btn-text:hover { color: #333; }
+.btn-primary { 
+    background: #1a73e8; color: white; border: none; 
+    padding: 10px 24px; border-radius: 4px; font-weight: 600; 
+}
+.btn-primary:hover { background: #1557b0; }

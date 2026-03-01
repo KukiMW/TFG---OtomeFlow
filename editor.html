@@ -3,99 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <title>Otome Flow - Editor Visual</title>
+    <!-- CSS -->
     <link rel="stylesheet" href="editor_style.css">
+    <!-- Iconos Material (Opcional, pero recomendado para flechas bonitas) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
 
-    <!-- 1. SIDEBAR IZQUIERDA: CONTROLES DE ASSETS -->
-    <aside id="sidebar-left">
-        <h2>Otome Editor</h2>
-        
-        <div class="section">
-            <h3>📥 Añadir</h3>
-            
-            <label>1. Fondo:</label>
-            <input type="file" id="bgInput" accept="image/*">
-            
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.5); margin: 15px 0;">
-            
-            <label>2. Crear Personaje:</label>
-            <div style="display: flex; gap: 5px; margin-bottom: 10px;">
-                <input type="text" id="newCharName" placeholder="Nombre">
-                <button id="addCharBtn" style="width: 40px;">+</button>
-            </div>
-            
-            <label>3. Editar Personaje:</label>
-            <select id="charSelector">
-                <option value="" disabled selected>-- Selecciona --</option>
-            </select>
-            
-            <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
-                <label>Añadir Sprite a <b id="displayCharName">...</b>:</label>
-                <input type="file" id="spriteInput" accept="image/*">
-            </div>
+    <!-- 1. BARRA SUPERIOR (HEADER) -->
+    <header id="top-bar">
+        <div class="header-left">
+            <!-- El título ahora es el botón de volver -->
+            <a href="index.html" class="home-link" title="Volver al Menú Principal">
+                <span class="material-icons">home</span>
+                <h1>OTOME EDITOR</h1>
+            </a>
         </div>
-
-        <div class="section">
-            <h3>🚀 Gestión del Proyecto</h3>
-            <label>Escena de Inicio:</label>
-            <input type="text" id="startSceneInput" value="inicio">
-            
-            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.5); margin: 10px 0;">
-            
-            <!-- BOTÓN EXPORTAR -->
-            <button id="generateButton" style="background: #4caf50;">📦 Exportar ZIP (Guardar)</button>
-            
-            <div style="height: 10px;"></div> <!-- Espacio -->
-
-            <!-- BOTÓN IMPORTAR -->
-            <label>Cargar proyecto existente:</label>
-            <button id="importProjectBtn" style="background: #ff9800;">📂 Importar ZIP</button>
-            <!-- Input invisible para cargar el archivo -->
-            <input type="file" id="projectInput" accept=".zip" style="display: none;">
+        <div class="header-right">
+            <!-- Aquí podrías poner usuario o configuración en el futuro -->
         </div>
-    </aside>
+    </header>
 
-    <!-- 2. CENTRO: BLOCKLY -->
-    <main id="blocklyArea">
-        <div id="blocklyDiv"></div>
-    </main>
+    <!-- CONTENEDOR PRINCIPAL (Flex) -->
+    <div id="main-wrapper">
 
-    <!-- 3. DERECHA: GESTIÓN DE ESCENAS -->
-    <aside id="sidebar-right">
-        
-        <!-- ZONA DE ESCENAS -->
-        <div class="section" style="background: rgba(255,255,255,0.6);">
-            <h3>🎬 Escenas</h3>
-            <p style="font-size: 0.8rem; margin-bottom: 10px;">Guarda cada escena antes de crear una nueva.</p>
-            
-            <div class="scene-controls">
-                <button id="saveSceneBtn" class="btn-save-scene">💾 Guardar Actual</button>
-                <button id="newSceneBtn" class="btn-new-scene">✨ Nueva</button>
-                <button id="viewTreeBtn" style="background: #ff9800;">🌳 Ver Árbol</button>
+        <!-- 2. SIDEBAR IZQUIERDA -->
+        <aside id="sidebar-left">
+            <div class="section">
+                <h3>📥 Añadir</h3>
+                <label>1. Fondo:</label>
+                <input type="file" id="bgInput" accept="image/*">
+                
+                <hr class="divider">
+                
+                <label>2. Personaje:</label>
+                <div class="input-group">
+                    <input type="text" id="newCharName" placeholder="Nombre">
+                    <button id="addCharBtn">+</button>
+                </div>
+                
+                <label>3. Editar:</label>
+                <select id="charSelector">
+                    <option value="" disabled selected>-- Selecciona --</option>
+                </select>
+                
+                <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
+                    <label>Añadir Sprite a <b id="displayCharName">...</b>:</label>
+                    <input type="file" id="spriteInput" accept="image/*">
+                </div>
             </div>
 
-            <div id="sceneList">
-                <p style="font-size: 0.8rem; text-align: center; color: #666;">No hay escenas guardadas</p>
+            <div class="section">
+                <h3>🚀 Proyecto</h3>
+                <label>Nombre Escena Inicio:</label>
+                <input type="text" id="startSceneInput" value="inicio">
+                
+                <hr class="divider">
+                
+                <!-- AHORA SOLO GUARDAMOS EN LA NUBE -->
+                <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:1rem;">
+                    ☁️ GUARDAR EN LA NUBE
+                </button>
+                
+                <div style="margin-top:10px; text-align:center;">
+                    <a href="dashboard.html" style="color:#711651; text-decoration:underline; font-size:0.8rem;">Volver al Dashboard</a>
+                </div>
             </div>
+        </aside>
+
+        <!-- 3. PESTAÑA DE COLAPSO (La "Mini expansión") -->
+        <div id="sidebarToggle" title="Contraer/Expandir">
+            <span class="material-icons">chevron_left</span>
         </div>
 
-        <!-- ZONA DE LISTA DE ARCHIVOS -->
-        <h3>📂 Archivos Cargados</h3>
-        <div id="assetList">
-            <p style="font-size: 0.8rem; text-align: center; color: #666;">Sin archivos</p>
-        </div>
-    </aside>
+        <!-- 4. CENTRO: BLOCKLY -->
+        <main id="blocklyArea">
+            <div id="blocklyDiv"></div>
+        </main>
 
-    <!-- TOOLBOX XML -->
-    <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
-        <category name="Lógica 🔀" colour="210">
-            <block type="choice"></block>
-            <block type="choice_option"></block>
-        </category>
-    </xml>
+        <!-- 5. DERECHA: ESCENAS -->
+        <aside id="sidebar-right">
+            <div class="section scene-section">
+                <h3>🎬 Escenas</h3>
+                <div class="scene-controls">
+                    <button id="newSceneBtn" class="btn-new-scene">✨ Nueva</button>
+                    <button id="saveSceneBtn" class="btn-save-scene">💾 Guardar</button>
+                    <button id="viewTreeBtn" class="btn-tree">🌳 Árbol</button>
+                </div>
+                <div id="sceneList"><p class="empty-msg">Vacío</p></div>
+            </div>
 
-        <!-- MODAL ÁRBOL DE HISTORIA -->
+            <h3>📂 Archivos</h3>
+            <div id="assetList"><p class="empty-msg">Vacío</p></div>
+        </aside>
+
+    </div>
+
+    <!-- MODAL ÁRBOL -->
     <div id="treeModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -103,18 +107,30 @@
                 <button id="closeTreeBtn" class="close-btn">Cerrar</button>
             </div>
             <div class="modal-body">
-                <!-- Aquí Mermaid dibujará el gráfico -->
                 <div id="mermaidGraph" class="mermaid"></div>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPTS -->
+    <!-- TOOLBOX XML -->
+    <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
+        <category name="Lógica" colour="210"></category>
+    </xml>
+
+    <!-- 1. Librerías Externas -->
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 2. Configuración Supabase -->
+    <script src="supabaseClient.js"></script>
+
+    <!-- 3. Lógica del Editor -->
     <script src="editor.js"></script>
+</body>
+</html>
 
 </body>
 </html>
