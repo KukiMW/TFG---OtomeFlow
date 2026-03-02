@@ -57,8 +57,10 @@ export class Engine {
     async runNextAction() {
         const scene = this.story.scenes[this.gameState.currentScene];
         
+         // --- MODIFICADO: DETECTAR FIN DE JUEGO ---
         if (!scene || this.gameState.currentIndex >= scene.length) {
-            console.log("Fin de la escena actual.");
+            console.log("Fin de la historia.");
+            this.finishGame(); // <--- LLAMADA NUEVA
             return; 
         }
 
@@ -95,6 +97,56 @@ export class Engine {
 
         this.gameState.currentIndex++;
         this.runNextAction();
+    }
+
+    // --- PANTALLA FINAL Y GUARDADO ---
+    async finishGame() {
+        // 1. Mostrar pantalla de fin (HTML inyectado)
+        const gameDiv = document.getElementById('game');
+        
+        // Crear un overlay de fin
+        const endScreen = document.createElement('div');
+        endScreen.style.cssText = `
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85); color: white;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        `;
+
+        const totalScore = Object.values(this.gameState.variables).reduce((a, b) => a + b, 0);
+
+        endScreen.innerHTML = `
+            <h1 style="font-size: 3rem; margin-bottom: 20px;">🎉 ¡Fin de la Historia!</h1>
+            <p style="font-size: 1.5rem;">Puntuación final: ${totalScore}</p>
+            <button id="backDashBtn" style="
+                margin-top: 30px; padding: 15px 30px; font-size: 1.2rem;
+                background: #711651; color: white; border: none; border-radius: 8px; cursor: pointer;
+            ">Volver al Dashboard</button>
+        `;
+
+        gameDiv.appendChild(endScreen);
+
+        // 2. Guardar progreso en Supabase (Si hay ID de proyecto y usuario logueado)
+        // Necesitamos leer el ID del proyecto de la URL de nuevo
+        const projectId = new URLSearchParams(window.location.search).get('id');
+        
+        // Intentar guardar (si el usuario está logueado)
+        if (window.sb && projectId) {
+            const { data: { user } } = await window.sb.auth.getUser();
+            if (user) {
+                // GUARDAMOS TAMBIÉN EL EMAIL
+                await window.sb.from('student_progress').insert([{
+                    user_id: user.id,
+                    user_email: user.email, 
+                    project_id: projectId,
+                    score: totalScore
+                }]);
+                console.log("Progreso guardado.");
+            }
+        }
+
+        // 3. Evento botón volver
+        document.getElementById('backDashBtn').onclick = () => window.location.href = 'dashboard.html';
     }
 
     // ============================================================

@@ -10,24 +10,46 @@ export class DialogueManager {
         this.typingTimeout = null;
         this.isTyping = false;
         this.resolvePromise = null;
+        
+        // Guardamos las referencias a las funciones para poder añadir/quitar listeners limpiamente
+        this.boundHandleInput = null;
+        this.boundHandleKey = null;
     }
 
     show(action) {
         return new Promise(resolve => {
-            this.resolvePromise = resolve; // Guardamos la función resolve para llamarla al hacer clic
+            this.resolvePromise = resolve; 
             const fullText = `${action.speaker}: ${action.text}`;
 
             this.nextArrow.style.display = "none";
             this.typeWriter(fullText);
 
-            // El manejador de clic ahora se gestiona aquí dentro
-            this.gameContainer.onclick = () => {
+            // --- NUEVA LÓGICA DE CONTROL ---
+            
+            // 1. Definir qué pasa al interactuar (Clic o Tecla)
+            this.boundHandleInput = () => {
                 if (this.isTyping) {
+                    // Si escribe: Completar texto de golpe
                     this.skipTyping(fullText);
                 } else {
-                    // El nextArrow.onclick se gestionará dentro del callback de typeWriter
+                    // Si terminó: Avanzar
+                    this.advance();
                 }
             };
+
+            // 2. Definir detector de teclas (Espacio y Enter)
+            this.boundHandleKey = (e) => {
+                if (e.code === "Space" || e.code === "Enter") {
+                    e.preventDefault(); // Evitar scroll de la página con espacio
+                    this.boundHandleInput();
+                }
+            };
+
+            // 3. Activar los "oídos" (Listeners)
+            // Clic en cualquier parte del juego
+            this.gameContainer.onclick = this.boundHandleInput;
+            // Tecla presionada
+            document.addEventListener('keydown', this.boundHandleKey);
         });
     }
 
@@ -40,9 +62,8 @@ export class DialogueManager {
             if (i < text.length) {
                 this.textContent.innerText = text.substring(0, i + 1);
                 i++;
-                this.typingTimeout = setTimeout(type, 40);
+                this.typingTimeout = setTimeout(type, 30); // Velocidad de escritura
             } else {
-                this.isTyping = false;
                 this.onTypingFinished();
             }
         };
@@ -52,19 +73,27 @@ export class DialogueManager {
     skipTyping(fullText) {
         clearTimeout(this.typingTimeout);
         this.textContent.innerText = fullText;
-        this.isTyping = false;
         this.onTypingFinished();
     }
 
     onTypingFinished() {
+        this.isTyping = false;
         this.nextArrow.style.display = "inline-block";
-        this.nextArrow.onclick = () => {
-            this.nextArrow.style.display = "none";
-            this.gameContainer.onclick = null; // Limpiamos el evento para que no interfiera
-            this.nextArrow.onclick = null;
-            if (this.resolvePromise) {
-                this.resolvePromise(); // Resolvemos la promesa para que el Engine continúe
-            }
-        };
+        // Nota: Ya no necesitamos asignar onclick a la flecha aquí, 
+        // porque el click en gameContainer captura todo.
+    }
+
+    // Función para limpiar y terminar
+    advance() {
+        this.nextArrow.style.display = "none";
+        
+        // ¡IMPORTANTE! Limpiar los eventos para que no se disparen en la siguiente escena por error
+        this.gameContainer.onclick = null;
+        document.removeEventListener('keydown', this.boundHandleKey);
+        
+        if (this.resolvePromise) {
+            this.resolvePromise(); // Avisar al Engine para seguir
+            this.resolvePromise = null;
+        }
     }
 }

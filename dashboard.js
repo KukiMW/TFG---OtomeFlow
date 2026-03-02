@@ -1,173 +1,331 @@
 // ============================================================
-//               DASHBOARD REAL (CON SUPABASE)
+//               DASHBOARD REAL FINAL
 // ============================================================
 
-// Verificar sesión al inicio
-async function checkAuth() {
+let currentUser = null;
+let currentProfile = null; // { role: 'teacher' | 'student' }
+let editingProjectId = null;
+let currentAssignId = null; // ID del proyecto que estamos asignando
+
+// 1. INICIO Y AUTENTICACIÓN
+async function initDashboard() {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) {
-        window.location.href = 'index.html'; // Si no hay sesión, fuera
+        window.location.href = 'index.html';
+        return;
+    }
+    currentUser = session.user;
+
+    // Obtener rol real
+    const { data: profile } = await sb
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+    
+    currentProfile = profile || { role: 'student' };
+    
+    setupUIByRole();
+    loadProjects();
+}
+
+function setupUIByRole() {
+    // Avatar
+    document.getElementById('userAvatar').innerText = currentUser.email[0].toUpperCase();
+    
+    // Etiqueta de Rol
+    const roleLabel = document.getElementById('roleLabel');
+    if (currentProfile.role === 'teacher') {
+        roleLabel.innerText = "👨‍🏫 Profesor";
+        document.getElementById('fabAdd').style.display = 'flex';
+        document.getElementById('headerTitle').innerText = "Gestión de Clases";
     } else {
-        loadProjects();
-        document.getElementById('userAvatar').innerText = session.user.email[0].toUpperCase();
+        roleLabel.innerText = "🎓 Alumno";
+        document.getElementById('fabAdd').style.display = 'none';
+        document.getElementById('headerTitle').innerText = "Mis Tareas";
     }
 }
 
-// 1. CARGAR PROYECTOS DE LA DB
+// 2. CARGAR PROYECTOS
 async function loadProjects() {
     const grid = document.getElementById('gamesGrid');
     grid.innerHTML = '<p>Cargando...</p>';
 
-    const { data: { user } } = await sb.auth.getUser();
+    let projects = [];
+    let myProgress = [];
 
-    // SELECT * FROM projects WHERE user_id = current_user
-    const { data: projects, error } = await sb
-        .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+    // --- PROFESOR: Sus proyectos ---
+    if (currentProfile.role === 'teacher') {
+        const { data } = await sb
+            .from('projects')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+        projects = data || [];
+    } 
+    
+    // --- ALUMNO: Proyectos asignados ---
+    else {
+        // 1. Buscar asignaciones
+        const { data: assignments } = await sb
+            .from('assignments')
+            .select('project_id')
+            .eq('student_email', currentUser.email);
+        
+        if (assignments && assignments.length > 0) {
+            const projectIds = assignments.map(a => a.project_id);
+            // 2. Cargar detalles (GRACIAS A LA NUEVA POLÍTICA SQL, AHORA ESTO FUNCIONARÁ)
+            const { data } = await sb
+                .from('projects')
+                .select('*')
+                .in('id', projectIds);
+            projects = data || [];
+        }
 
-    if (error) {
-        console.error(error);
-        grid.innerHTML = '<p style="color:red">Error al cargar proyectos.</p>';
-        return;
+        // 3. Cargar progreso
+        const { data: progress } = await sb
+            .from('student_progress')
+            .select('project_id')
+            .eq('user_id', currentUser.id);
+        myProgress = progress || [];
     }
 
-    renderGrid(projects);
+    renderGrid(projects, myProgress);
 }
 
-// 2. RENDERIZAR TARJETAS
-
-let currentRole = 'teacher'; // Estado local
-
-// Evento cambio de rol
-document.getElementById('roleSwitch').addEventListener('change', (e) => {
-    currentRole = e.target.value;
-    
-    // Ocultar/Mostrar botón crear según rol
-    document.getElementById('fabAdd').style.display = (currentRole === 'teacher') ? 'flex' : 'none';
-    
-    // Recargar tarjetas
-    loadProjects(); 
-});
-
-function renderGrid(projects) {
+// 3. RENDERIZAR
+function renderGrid(projects, myProgress = []) {
     const grid = document.getElementById('gamesGrid');
     grid.innerHTML = "";
 
-    if (projects.length === 0) {
-        grid.innerHTML = "<p>No tienes proyectos aún.</p>";
+    if (!projects || projects.length === 0) {
+        grid.innerHTML = "<p>No hay historias disponibles.</p>";
         return;
     }
+
+    const completedIds = new Set(myProgress.map(p => p.project_id));
 
     projects.forEach(proj => {
         const card = document.createElement('div');
         card.className = 'class-card';
-        
-        let footerButtons = '';
+        let footerContent = '';
+        let headerExtra = '';
 
-        if (currentRole === 'teacher') {
-            // VISTA PROFESOR: Editar y Menú completo
-            footerButtons = `
-                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar">
-                    <span class="material-icons">edit</span> EDITAR
-                </button>
+        if (currentProfile.role === 'teacher') {
+            // PROFESOR
+            headerExtra = `
+                <div class="dropdown">
+                    <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
+                    <div id="menu-${proj.id}" class="dropdown-content">
+                        <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
+                    </div>
+                </div>`;
+            
+            footerContent = `
+                <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons">group_add</span></button>
+                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons">analytics</span></button>
+                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar"><span class="material-icons">edit</span></button>
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
         } else {
-            // VISTA ALUMNO: Solo Jugar
-            footerButtons = `
-                <div style="font-size:0.8rem; color:green; font-weight:bold; margin-right:auto;">Asignada</div>
-                <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play" style="width:100%">JUGAR</button>
-            `;
+            // ALUMNO
+            if (completedIds.has(proj.id)) {
+                 footerContent = `
+                    <div style="color: green; font-weight: bold; width: 100%; text-align: center;">✅ COMPLETADO</div>
+                    <button onclick="window.location.href='game.html?id=${proj.id}'" class="icon-btn" title="Repetir">🔄</button>
+                `;
+            } else {
+                 footerContent = `
+                    <div style="font-size:0.8rem; color:#d93025; font-weight:bold; margin-right:auto;">Pendiente</div>
+                    <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">JUGAR</button>
+                `;
+            }
         }
-
-        // El menú de 3 puntos solo sale si eres profesor
-        const menuHtml = (currentRole === 'teacher') ? `
-            <div class="dropdown">
-                <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
-                <div id="menu-${proj.id}" class="dropdown-content">
-                    <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
-                </div>
-            </div>` : '';
 
         card.innerHTML = `
             <div class="card-header">
                 <div class="card-title">${proj.title}</div>
                 <div class="card-subtitle">ID: ${proj.id}</div>
-                ${menuHtml}
+                ${headerExtra}
             </div>
-            <div class="card-body">
-                ${proj.description || "Sin descripción."}
-            </div>
-            <div class="card-footer">
-                ${footerButtons}
-            </div>
+            <div class="card-body">${proj.description || "Sin descripción."}</div>
+            <div class="card-footer">${footerContent}</div>
         `;
         grid.appendChild(card);
     });
 }
 
-// 3. CREAR PROYECTO NUEVO
-document.getElementById('fabAdd').onclick = () => document.getElementById('createModal').style.display = 'flex';
+// 4. LÓGICA DE ASIGNACIÓN (PROFESOR)
+
+window.openAssignModal = async (id) => {
+    currentAssignId = id;
+    document.getElementById('assignModal').style.display = 'flex';
+    await loadAssignedStudents(id);
+};
+
+// Cargar lista de alumnos ya asignados
+async function loadAssignedStudents(projectId) {
+    const list = document.getElementById('assignedList');
+    list.innerHTML = "<li>Cargando...</li>";
+
+    const { data } = await sb
+        .from('assignments')
+        .select('student_email, created_at')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+    list.innerHTML = "";
+    if (!data || data.length === 0) {
+        list.innerHTML = "<li>Aún no hay alumnos asignados.</li>";
+        return;
+    }
+
+    data.forEach(a => {
+        const li = document.createElement('li');
+        li.innerHTML = `👤 ${a.student_email}`;
+        li.style.padding = "5px 0";
+        li.style.borderBottom = "1px solid #eee";
+        list.appendChild(li);
+    });
+}
+
+document.getElementById('assignForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('studentEmail').value.trim();
+    
+    if(!email) return;
+
+    // Insertar en assignments
+    const { error } = await sb.from('assignments').insert([{
+        project_id: currentAssignId,
+        student_email: email,
+        assigned_by: currentUser.id
+    }]);
+
+    if(error) {
+        // Código de error para "Unique Violation" en Postgres
+        if(error.code === '23505') {
+            alert("⚠️ Este alumno ya tiene asignada esta tarea.");
+        } else {
+            alert("Error: " + error.message);
+        }
+    } else {
+        // Éxito
+        document.getElementById('studentEmail').value = '';
+        await loadAssignedStudents(currentAssignId); // Recargar la lista
+    }
+});
+
+// 5. VER NOTAS
+window.openScoresModal = async (id) => {
+    document.getElementById('scoresModal').style.display = 'flex';
+    const list = document.getElementById('scoresList');
+    list.innerHTML = "Cargando...";
+
+    const { data: scores } = await sb
+        .from('student_progress')
+        .select('*')
+        .eq('project_id', id)
+        .order('score', { ascending: false });
+
+    if(!scores || scores.length === 0) {
+        list.innerHTML = "<p>Nadie ha completado esta historia aún.</p>";
+        return;
+    }
+
+    let html = '<table style="width:100%; text-align:left; border-collapse: collapse;">';
+    html += '<tr style="border-bottom:2px solid #ddd;"><th>Alumno</th><th>Nota</th><th>Fecha</th></tr>';
+    
+    scores.forEach(s => {
+        const date = new Date(s.completed_at).toLocaleDateString();
+        html += `<tr style="border-bottom:1px solid #eee;">
+            <td style="padding:8px;">${s.user_email || 'Anónimo'}</td>
+            <td style="padding:8px; font-weight:bold; color:#711651;">${s.score}</td>
+            <td style="padding:8px; color:#666;">${date}</td>
+        </tr>`;
+    });
+    html += '</table>';
+    list.innerHTML = html;
+};
+
+// 6. GESTIÓN PROYECTOS (CREAR/EDITAR/BORRAR)
+
+document.getElementById('fabAdd').onclick = () => {
+    editingProjectId = null;
+    document.getElementById('createForm').reset();
+    document.querySelector('#createModal h2').innerText = "Nueva Historia";
+    document.querySelector('#createForm button[type="submit"]').innerText = "Crear";
+    document.getElementById('createModal').style.display = 'flex';
+};
+
 document.getElementById('closeModal').onclick = () => document.getElementById('createModal').style.display = 'none';
+
+window.editProjectMetadata = (id, title, desc) => {
+    editingProjectId = id;
+    document.getElementById('newTitle').value = title;
+    document.getElementById('newDesc').value = desc === 'undefined' ? '' : desc; 
+    
+    document.querySelector('#createModal h2').innerText = "Editar Información";
+    document.querySelector('#createForm button[type="submit"]').innerText = "Guardar Cambios";
+    document.getElementById('createModal').style.display = 'flex';
+};
 
 document.getElementById('createForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = document.getElementById('newTitle').value;
     const desc = document.getElementById('newDesc').value;
-    const { data: { user } } = await sb.auth.getUser();
 
-    // INSERT en Supabase
-    const { data, error } = await sb
-        .from('projects')
-        .insert([{ 
-            title: title, 
-            description: desc,
-            user_id: user.id,
-            project_data: {}, // Vacío al principio
-            story_data: {}    // Vacío
-        }])
-        .select();
+    if (editingProjectId) {
+        // UPDATE
+        const { error } = await sb
+            .from('projects')
+            .update({ title: title, description: desc })
+            .eq('id', editingProjectId);
 
-    if (error) {
-        alert("Error al crear: " + error.message);
+        if (error) alert(error.message);
+        else {
+            loadProjects();
+            document.getElementById('createModal').style.display = 'none';
+        }
     } else {
-        document.getElementById('createModal').style.display = 'none';
-        // Redirigir directamente al editor con el ID del nuevo proyecto
-        window.location.href = `editor.html?id=${data[0].id}`;
+        // INSERT
+        const { data, error } = await sb
+            .from('projects')
+            .insert([{ 
+                title: title, description: desc, user_id: currentUser.id,
+                project_data: {}, story_data: {}    
+            }])
+            .select();
+
+        if (error) alert(error.message);
+        else window.location.href = `editor.html?id=${data[0].id}`; 
     }
 });
 
-// 4. FUNCIONES AUXILIARES
+// Helpers Menú
 window.toggleMenu = (id) => {
     document.getElementById(`menu-${id}`).classList.toggle("show");
 };
 
-// Cerrar menús si clicas fuera
 window.onclick = function(event) {
     if (!event.target.matches('.dropbtn')) {
         var dropdowns = document.getElementsByClassName("dropdown-content");
         for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
+            if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
         }
     }
 }
 
 window.deleteProject = async (id) => {
-    if(confirm("¿Seguro que quieres borrar este proyecto? No se puede deshacer.")) {
+    if(confirm("¿Seguro? Esto borrará el proyecto y sus asignaciones.")) {
+        // Primero borrar asignaciones relacionadas para evitar error de Foreign Key
+        await sb.from('assignments').delete().eq('project_id', id);
+        await sb.from('student_progress').delete().eq('project_id', id);
+        // Luego borrar el proyecto
         const { error } = await sb.from('projects').delete().eq('id', id);
         if(!error) loadProjects();
-        else alert("Error al borrar");
+        else alert("Error al borrar: " + error.message);
     }
-};
-
-window.exportZip = (id) => {
-    alert("Funcionalidad de Exportar ZIP en proceso de migración al backend.");
-    // Aquí iría la lógica de descargar los datos de supabase y generar el zip
 };
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -176,4 +334,4 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 });
 
 // Arrancar
-checkAuth();
+initDashboard();

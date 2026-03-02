@@ -1,5 +1,5 @@
 // ============================================================
-//               1. ESTADO GLOBAL
+//               1. ESTADO GLOBAL (MEMORIA RAM)
 // ============================================================
 const assetState = {
     backgrounds: [], 
@@ -18,6 +18,12 @@ let projectDBId = new URLSearchParams(window.location.search).get('id');
 function initEditor() {
     console.log("🚀 Iniciando Editor Otome Flow...");
 
+    // Validación de Supabase
+    if (!window.sb) {
+        alert("Error Crítico: Supabase no está conectado. Revisa supabaseClient.js");
+        return;
+    }
+
     if (!projectDBId) {
         if(confirm("⚠️ No hay proyecto seleccionado. ¿Volver al Dashboard?")) {
             window.location.href = "dashboard.html";
@@ -27,17 +33,25 @@ function initEditor() {
 
     if (!Blockly.JavaScript) { alert("Error: Falta JS Compressed"); return; }
 
-    // 1. Definir y Registrar todo lo estático
+    // 1. Definir Bloques
     defineStaticBlocks();
     registerStaticGenerators();
 
     // 2. Inyectar Blockly
+    const initialToolbox = `
+    <xml>
+        <category name="Cargando..." colour="290"></category>
+    </xml>`;
+
     workspace = Blockly.inject('blocklyDiv', {
-        toolbox: '<xml></xml>', // Toolbox vacío temporal
-        scrollbars: true, trashcan: true
+        toolbox: initialToolbox, 
+        scrollbars: true, 
+        trashcan: true
     });
 
-    // 3. Configurar Eventos UI
+    Blockly.JavaScript.init(workspace);
+
+    // 3. Configurar UI
     setupEventListeners();
 
     // 4. Cargar Toolbox BASE inmediatamente
@@ -48,13 +62,13 @@ function initEditor() {
 }
 
 // ============================================================
-//               3. CONEXIÓN NUBE Y ASSETS
+//               3. CONEXIÓN NUBE
 // ============================================================
 
 async function loadProjectFromCloud() {
     console.log("☁️ Cargando proyecto ID:", projectDBId);
     
-    const { data, error } = await sb
+    const { data, error } = await window.sb
         .from('projects')
         .select('project_data, title')
         .eq('id', projectDBId)
@@ -74,16 +88,22 @@ async function loadProjectFromCloud() {
         assetState.characters = data.project_data.assets?.characters || {};
         
         const startScene = data.project_data.startScene || "inicio";
-        document.getElementById('startSceneInput').value = startScene;
+        const startInput = document.getElementById('startSceneInput');
+        if(startInput) startInput.value = startScene;
 
+        // Actualizar UI
         refreshBlocklyEnv();
         renderAssetList();
         renderSceneList();
+        
+        // CORRECCIÓN: Actualizar el desplegable de personajes con los cargados
+        updateCharDropdown();
 
         const scenes = Object.keys(assetState.scenes);
         switchToScene(scenes[0]);
     } else {
         console.log("✨ Proyecto nuevo: Creando escena 'inicio'...");
+        refreshBlocklyEnv(); 
         createNewScene("inicio");
     }
 }
@@ -94,8 +114,8 @@ async function uploadAssetToCloud(file, folder) {
 
     console.log(`📤 Subiendo a Supabase: ${filePath}`);
 
-    const { data, error } = await sb.storage
-        .from('otome-assets') 
+    const { data, error } = await window.sb.storage
+        .from('otome-assets')
         .upload(filePath, file);
 
     if (error) {
@@ -104,7 +124,7 @@ async function uploadAssetToCloud(file, folder) {
         return null;
     }
 
-    const { data: publicData } = sb.storage.from('otome-assets').getPublicUrl(filePath);
+    const { data: publicData } = window.sb.storage.from('otome-assets').getPublicUrl(filePath);
     
     console.log("✅ Subida exitosa:", publicData.publicUrl);
     
@@ -141,7 +161,7 @@ async function saveProjectToCloud() {
     try {
         const storyData = JSON.parse(jsonStr); 
 
-        const { error } = await sb
+        const { error } = await window.sb
             .from('projects')
             .update({
                 project_data: editorData,
@@ -184,6 +204,8 @@ function createNewScene(forceName = null) {
     currentSceneId = name;
     workspace.clear();
     spawnDefaultBlock(name);
+    
+    // Guardar inmediatamente
     saveCurrentWorkspaceToMemory();
     renderSceneList();
 }
@@ -199,7 +221,7 @@ function switchToScene(targetId) {
         try {
             Blockly.serialization.workspaces.load(sceneData.blocklyState, workspace);
         } catch (e) {
-            console.warn("Bloques corruptos, restaurando default.");
+            console.error("Error restaurando bloques", e);
             spawnDefaultBlock(targetId);
         }
     } else {
@@ -210,6 +232,9 @@ function switchToScene(targetId) {
 
 function saveCurrentWorkspaceToMemory() {
     if (!currentSceneId) return;
+
+    // Asegurar inicialización del generador
+    Blockly.JavaScript.init(workspace);
 
     const topBlocks = workspace.getTopBlocks(true);
     const sceneBlock = topBlocks.find(b => b.type === 'def_scene');
@@ -231,77 +256,19 @@ function spawnDefaultBlock(id) {
 }
 
 // ============================================================
-//               5. GENERACIÓN DE BLOQUES
-// ============================================================
-function refreshBlocklyEnv() {
-    const defs = [];
-    
-    let bgOpts = assetState.backgrounds.map(f => [f.name, f.url]);
-    if(!bgOpts.length) bgOpts=[["(Sube un fondo)", ""]];
-
-    defs.push({
-        "type": "action_set_background", "message0": "🖼️ Fondo: %1",
-        "args0": [{"type": "field_dropdown", "name": "BG_IMAGE", "options": bgOpts}],
-        "previousStatement": null, "nextStatement": null, "colour": 230
-    });
-
-    try { Blockly.defineBlocksWithJsonArray(defs); } catch(e) {}
-
-    const generator = Blockly.JavaScript;
-    const assign = generator.forBlock ? (k,f)=>generator.forBlock[k]=f : (k,f)=>generator[k]=f;
-    assign('action_set_background', b => `{"action": "set_background", "value": "${b.getFieldValue('BG_IMAGE')}"},`);
-
-    let charXml = '';
-    const charNames = Object.keys(assetState.characters);
-    
-    if (charNames.length > 0) {
-        charNames.forEach(k => {
-            const safe = k.replace(/[^a-zA-Z0-9]/g, '_');
-            let opts = assetState.characters[k].map(f=>[f.name, f.url]);
-            if(!opts.length) opts=[["(Sube un sprite)", ""]];
-
-            const charDef = {
-                "type": `char_${safe}`,
-                "message0": `👤 ${k} %1 Expr: %2 %3 Dice: %4`,
-                "args0": [{"type":"input_dummy"}, {"type":"field_dropdown","name":"SPRITE","options":opts}, {"type":"input_dummy"}, {"type":"field_input","name":"TEXT","text":"..."}],
-                "previousStatement": null, "nextStatement": null, "colour": 120
-            };
-            
-            try { Blockly.defineBlocksWithJsonArray([charDef]); } catch(e) {}
-            
-            assign(`char_${safe}`, b => {
-                const sprite = b.getFieldValue('SPRITE');
-                const safeText = JSON.stringify(b.getFieldValue('TEXT')); 
-                return `{"action": "show_character", "sprite": "${sprite}", "position": "center"}, {"action": "dialogue", "speaker": "${k}", "text": ${safeText}},`;
-            });
-            charXml += `<block type="char_${safe}"></block>`;
-        });
-    }
-
-    const toolboxStr = `
-    <xml>
-        <category name="Estructura" colour="290"><block type="def_scene"></block></category>
-        <category name="Fondos" colour="230"><block type="action_set_background"></block></category>
-        <category name="Narrativa" colour="160"><block type="action_narrator"></block></category>
-        <category name="Personajes" colour="120">${charXml}</category>
-        <category name="Lógica" colour="210">
-            <block type="choice"></block>
-            <block type="choice_option"></block>
-            <block type="choice_points"></block>
-            <block type="logic_check_var"></block>
-            <block type="action_jump"></block>
-        </category>
-    </xml>`;
-
-    workspace.updateToolbox(toolboxStr);
-}
-
-// ============================================================
-//               6. EVENTOS UI
+//               5. EVENTOS UI
 // ============================================================
 function setupEventListeners() {
     
-    // ASSETS
+    const sidebar = document.getElementById('sidebar-left');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    if(toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('closed');
+            setTimeout(() => Blockly.svgResize(workspace), 350);
+        });
+    }
+
     document.getElementById('bgInput').addEventListener('change', async e => {
         if(e.target.files[0]) {
             const asset = await uploadAssetToCloud(e.target.files[0], 'backgrounds');
@@ -341,7 +308,6 @@ function setupEventListeners() {
         }
     });
 
-    // ESCENAS
     document.getElementById('newSceneBtn').addEventListener('click', () => createNewScene());
     
     document.getElementById('saveSceneBtn').addEventListener('click', () => {
@@ -353,25 +319,15 @@ function setupEventListeners() {
 
     document.getElementById('saveCloudBtn').addEventListener('click', saveProjectToCloud);
     
-    // ÁRBOL VISUAL
     document.getElementById('viewTreeBtn').addEventListener('click', generateStoryTree);
     document.getElementById('closeTreeBtn').addEventListener('click', () => document.getElementById('treeModal').style.display = 'none');
-    
-    // COLAPSO BARRA
-    const toggleBtn = document.getElementById('sidebarToggle');
-    if(toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            document.getElementById('sidebar-left').classList.toggle('closed');
-            setTimeout(() => Blockly.svgResize(workspace), 350);
-        });
-    }
 }
 
 // ============================================================
-//               7. ÁRBOL VISUAL (MERMAID) - CORREGIDO
+//               6. ÁRBOL VISUAL (MERMAID)
 // ============================================================
 async function generateStoryTree() {
-    saveCurrentWorkspaceToMemory(); // Asegurar datos frescos
+    saveCurrentWorkspaceToMemory(); 
 
     let graphDefinition = "graph TD;\n";
     graphDefinition += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
@@ -443,7 +399,7 @@ async function generateStoryTree() {
         await mermaid.run({ nodes: [container] });
     } catch(err) {
         console.error("Error renderizando gráfico:", err);
-        container.innerHTML = "Error al generar gráfico.";
+        container.innerHTML = "Error al generar gráfico. Revisa que las nombres de escenas no tengan caracteres extraños.";
     }
 }
 
@@ -521,6 +477,65 @@ function registerStaticGenerators() {
         const dest = JSON.stringify(b.getFieldValue('GOTO'));
         return `{"action": "jump", "goto": ${dest}},`;
     });
+}
+
+function refreshBlocklyEnv() {
+    const defs = [];
+    
+    let bgOpts = assetState.backgrounds.map(f => [f.name, f.url]);
+    if(!bgOpts.length) bgOpts=[["(Sin fondos)",""]];
+
+    defs.push({
+        "type": "action_set_background", "message0": "🖼️ Fondo: %1",
+        "args0": [{"type": "field_dropdown", "name": "BG_IMAGE", "options": bgOpts}],
+        "previousStatement": null, "nextStatement": null, "colour": 230
+    });
+
+    const gen = Blockly.JavaScript;
+    const assign = gen.forBlock ? (k,f)=>gen.forBlock[k]=f : (k,f)=>gen[k]=f;
+    assign('action_set_background', b => `{"action": "set_background", "value": "${b.getFieldValue('BG_IMAGE')}"},`);
+
+    let charXml = '';
+    const charNames = Object.keys(assetState.characters);
+    
+    if (charNames.length > 0) {
+        charNames.forEach(k => {
+            const safe = k.replace(/[^a-zA-Z0-9]/g, '_');
+            let opts = assetState.characters[k].map(f=>[f.name, f.url]);
+            if(!opts.length) opts=[["(Sin img)",""]];
+
+            const charDef = {
+                "type": `char_${safe}`,
+                "message0": `👤 ${k} %1 Expr: %2 %3 Dice: %4`,
+                "args0": [{"type":"input_dummy"}, {"type":"field_dropdown","name":"SPRITE","options":opts}, {"type":"input_dummy"}, {"type":"field_input","name":"TEXT","text":"..."}],
+                "previousStatement": null, "nextStatement": null, "colour": 120
+            };
+            
+            try { Blockly.defineBlocksWithJsonArray([charDef]); } catch(e) {}
+            
+            assign(`char_${safe}`, b => {
+                const sprite = b.getFieldValue('SPRITE');
+                const safeText = JSON.stringify(b.getFieldValue('TEXT')); 
+                return `{"action": "show_character", "sprite": "${sprite}", "position": "center"}, {"action": "dialogue", "speaker": "${k}", "text": ${safeText}},`;
+            });
+            charXml += `<block type="char_${safe}"></block>`;
+        });
+    }
+
+    try { Blockly.defineBlocksWithJsonArray(defs); } catch(e){}
+
+    workspace.updateToolbox(`
+    <xml>
+        <category name="Estructura" colour="290"><block type="def_scene"></block></category>
+        <category name="Fondos" colour="230"><block type="action_set_background"></block></category>
+        <category name="Narrativa" colour="160"><block type="action_narrator"></block></category>
+        <category name="Personajes" colour="120">${charXml}</category>
+        <category name="Lógica" colour="210">
+            <block type="choice"></block><block type="choice_option"></block>
+            <block type="choice_points"></block><block type="logic_check_var"></block>
+            <block type="action_jump"></block>
+        </category>
+    </xml>`);
 }
 
 window.addEventListener('load', initEditor);

@@ -1,0 +1,384 @@
+{
+  "assets": {
+    "characters": {
+      "UNO": [
+        {
+          "url": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png",
+          "name": "1-Personaje.png"
+        }
+      ]
+    },
+    "backgrounds": [
+      {
+        "url": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361137647_Kingdom.jpg",
+        "name": "Kingdom.jpg"
+      },
+      {
+        "url": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg",
+        "name": "First Door.jpg"
+      }
+    ]
+  },
+  "scenes": {
+    "FIN": {
+      "code": "\"FIN\": [\n  {\"action\": \"set_background\", \"value\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361137647_Kingdom.jpg\"},{\"action\": \"dialogue\", \"speaker\": \"\", \"text\": \"Aquí acaba la aventura, ¡gracias por jugar!\"}\n]",
+      "blocklyState": {
+        "blocks": {
+          "blocks": [
+            {
+              "x": -140,
+              "y": -208,
+              "id": "9e.^m?zE6V|-3;wr?-;;",
+              "type": "def_scene",
+              "fields": {
+                "SCENE_ID": "FIN"
+              },
+              "inputs": {
+                "ACTIONS": {
+                  "block": {
+                    "id": "[%4ddzE;x~44IVsjdRd0",
+                    "next": {
+                      "block": {
+                        "id": "eS6QTUQiJm@qLLka4Enb",
+                        "type": "action_narrator",
+                        "fields": {
+                          "TEXT": "Aquí acaba la aventura, ¡gracias por jugar!"
+                        }
+                      }
+                    },
+                    "type": "action_set_background",
+                    "fields": {
+                      "BG_IMAGE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361137647_Kingdom.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "languageVersion": 0
+        }
+      }
+    },
+    "inicio": {
+      "code": "\"inicio\": [\n  {\"action\": \"set_background\", \"value\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361137647_Kingdom.jpg\"},{\"action\": \"dialogue\", \"speaker\": \"\", \"text\": \"En un reino muy muy lejano....\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"Buenas, ¡soy Uno! Necesito ayuda.\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"Mis amigos están teniendo muchos problemas matemáticos ¿podrías ayudarnos?\"},{\"action\": \"choice\", \"options\": [  {\"text\": \"Si claro\", \"varName\": \"puntos\", \"varVal\": 0}]},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"Muchas gracias, ¡vamos!\"},{\"action\": \"jump\", \"goto\": \"Problema_1\"}\n]",
+      "blocklyState": {
+        "blocks": {
+          "blocks": [
+            {
+              "x": -179,
+              "y": -229,
+              "id": "q#Ri[Au=Cn168I(9zVw[",
+              "type": "def_scene",
+              "fields": {
+                "SCENE_ID": "inicio"
+              },
+              "inputs": {
+                "ACTIONS": {
+                  "block": {
+                    "id": "#n?_ir4szYP*1nn]~/xH",
+                    "next": {
+                      "block": {
+                        "id": "?J:UghB6#eTsv(2p`9.f",
+                        "next": {
+                          "block": {
+                            "id": ".Tbw(j4y_4K$)MRsb}ex",
+                            "next": {
+                              "block": {
+                                "id": "^RtIJ#Z`.@iYpvMYp2V,",
+                                "next": {
+                                  "block": {
+                                    "id": "Tm2H?jVTk)5UDKKyO1(/",
+                                    "next": {
+                                      "block": {
+                                        "id": "13`/lyNJ@cyxBA+-:Wr-",
+                                        "next": {
+                                          "block": {
+                                            "id": "RT$n9v,)m*0hkkEc5+F$",
+                                            "type": "action_jump",
+                                            "fields": {
+                                              "GOTO": "Problema_1"
+                                            }
+                                          }
+                                        },
+                                        "type": "char_UNO",
+                                        "fields": {
+                                          "TEXT": "Muchas gracias, ¡vamos!",
+                                          "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                                        }
+                                      }
+                                    },
+                                    "type": "choice",
+                                    "inputs": {
+                                      "OPTIONS": {
+                                        "block": {
+                                          "id": "lBWMZ1F(%vIL4(4c,S3$",
+                                          "type": "choice_points",
+                                          "fields": {
+                                            "TEXT": "Si claro",
+                                            "VAR_VAL": 0,
+                                            "VAR_NAME": "puntos"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "type": "char_UNO",
+                                "fields": {
+                                  "TEXT": "Mis amigos están teniendo muchos problemas matemáticos ¿podrías ayudarnos?",
+                                  "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                                }
+                              }
+                            },
+                            "type": "char_UNO",
+                            "fields": {
+                              "TEXT": "Buenas, ¡soy Uno! Necesito ayuda.",
+                              "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                            }
+                          }
+                        },
+                        "type": "action_narrator",
+                        "fields": {
+                          "TEXT": "En un reino muy muy lejano...."
+                        }
+                      }
+                    },
+                    "type": "action_set_background",
+                    "fields": {
+                      "BG_IMAGE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361137647_Kingdom.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "languageVersion": 0
+        }
+      }
+    },
+    "Problema_1": {
+      "code": "\"Problema_1\": [\n  {\"action\": \"set_background\", \"value\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"¡Oh no!, han cerrado las puertas.\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"Pero recuerdo que había una combinación secreta, pero no recuerdo como acaba...\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"Dice así: 28 x 2 + 65 = ?\"},{\"action\": \"choice\", \"options\": [  {\"text\": \"102\", \"varName\": \"puntos\", \"varVal\": 0},{\"text\": \"105\", \"varName\": \"puntos\", \"varVal\": 0},{\"text\": \"121\", \"varName\": \"puntos\", \"varVal\": 1},{\"text\": \"136\", \"varName\": \"puntos\", \"varVal\": 0}]},{\"action\":\"check_variable\",\"variable\":\"puntos\",\"operator\":\"eq\",\"value\":1,\"goto_true\":\"RespuestaCorrecta\",\"goto_false\":\"RespuestaIncorrecta\"}\n]",
+      "blocklyState": {
+        "blocks": {
+          "blocks": [
+            {
+              "x": -155,
+              "y": -219,
+              "id": "hZ0laeG~CS5j}bshcZPb",
+              "type": "def_scene",
+              "fields": {
+                "SCENE_ID": "Problema_1"
+              },
+              "inputs": {
+                "ACTIONS": {
+                  "block": {
+                    "id": "gt2PLLQvSe:{+*u)ldZS",
+                    "next": {
+                      "block": {
+                        "id": "+GqNMVo/Hnk7*^4?EOLt",
+                        "next": {
+                          "block": {
+                            "id": "wBjx(6xoY`2i6SFg`UGg",
+                            "next": {
+                              "block": {
+                                "id": "W5(xajO3v9]$1lj`GU#O",
+                                "next": {
+                                  "block": {
+                                    "id": "yA,ZD~fWukoA#o]*)ROz",
+                                    "next": {
+                                      "block": {
+                                        "id": "D2]d^#bI|TB~kbv=1w{x",
+                                        "type": "logic_check_var",
+                                        "fields": {
+                                          "OP": "eq",
+                                          "VAL": 1,
+                                          "VAR": "puntos",
+                                          "GOTO_TRUE": "RespuestaCorrecta",
+                                          "GOTO_FALSE": "RespuestaIncorrecta"
+                                        }
+                                      }
+                                    },
+                                    "type": "choice",
+                                    "inputs": {
+                                      "OPTIONS": {
+                                        "block": {
+                                          "id": "s|!C(p2iDu0J{0Lb(wHt",
+                                          "next": {
+                                            "block": {
+                                              "id": "1gk8}4nBC4?x]!One+)5",
+                                              "next": {
+                                                "block": {
+                                                  "id": "!4a3t9rA9`Jt#3gzF[Of",
+                                                  "next": {
+                                                    "block": {
+                                                      "id": "J7XU#Iva^-3HEo%DD5Bi",
+                                                      "type": "choice_points",
+                                                      "fields": {
+                                                        "TEXT": "136",
+                                                        "VAR_VAL": 0,
+                                                        "VAR_NAME": "puntos"
+                                                      }
+                                                    }
+                                                  },
+                                                  "type": "choice_points",
+                                                  "fields": {
+                                                    "TEXT": "121",
+                                                    "VAR_VAL": 1,
+                                                    "VAR_NAME": "puntos"
+                                                  }
+                                                }
+                                              },
+                                              "type": "choice_points",
+                                              "fields": {
+                                                "TEXT": "105",
+                                                "VAR_VAL": 0,
+                                                "VAR_NAME": "puntos"
+                                              }
+                                            }
+                                          },
+                                          "type": "choice_points",
+                                          "fields": {
+                                            "TEXT": "102",
+                                            "VAR_VAL": 0,
+                                            "VAR_NAME": "puntos"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "type": "char_UNO",
+                                "fields": {
+                                  "TEXT": "Dice así: 28 x 2 + 65 = ?",
+                                  "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                                }
+                              }
+                            },
+                            "type": "char_UNO",
+                            "fields": {
+                              "TEXT": "Pero recuerdo que había una combinación secreta, pero no recuerdo como acaba...",
+                              "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                            }
+                          }
+                        },
+                        "type": "char_UNO",
+                        "fields": {
+                          "TEXT": "¡Oh no!, han cerrado las puertas.",
+                          "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                        }
+                      }
+                    },
+                    "type": "action_set_background",
+                    "fields": {
+                      "BG_IMAGE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "languageVersion": 0
+        }
+      }
+    },
+    "RespuestaCorrecta": {
+      "code": "\"RespuestaCorrecta\": [\n  {\"action\": \"set_background\", \"value\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"¡Eso era! Sigamos\"},{\"action\": \"jump\", \"goto\": \"FIN\"}\n]",
+      "blocklyState": {
+        "blocks": {
+          "blocks": [
+            {
+              "x": -70,
+              "y": -193,
+              "id": "wxggznE:vFn6-HYT..IP",
+              "type": "def_scene",
+              "fields": {
+                "SCENE_ID": "RespuestaCorrecta"
+              },
+              "inputs": {
+                "ACTIONS": {
+                  "block": {
+                    "id": "-[0_4B]j)#C|rs1Y#+)O",
+                    "next": {
+                      "block": {
+                        "id": "^=#t3@iZNc3YT!xSwjVd",
+                        "next": {
+                          "block": {
+                            "id": "/VxZIQYOtf=:xnq6#nL-",
+                            "type": "action_jump",
+                            "fields": {
+                              "GOTO": "FIN"
+                            }
+                          }
+                        },
+                        "type": "char_UNO",
+                        "fields": {
+                          "TEXT": "¡Eso era! Sigamos",
+                          "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                        }
+                      }
+                    },
+                    "type": "action_set_background",
+                    "fields": {
+                      "BG_IMAGE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "languageVersion": 0
+        }
+      }
+    },
+    "RespuestaIncorrecta": {
+      "code": "\"RespuestaIncorrecta\": [\n  {\"action\": \"set_background\", \"value\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg\"},{\"action\": \"show_character\", \"sprite\": \"https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png\", \"position\": \"center\"}, {\"action\": \"dialogue\", \"speaker\": \"UNO\", \"text\": \"No eso no era\"},{\"action\": \"jump\", \"goto\": \"FIN\"}\n]",
+      "blocklyState": {
+        "blocks": {
+          "blocks": [
+            {
+              "x": -128,
+              "y": -211,
+              "id": "({`(a+vMn{i~{f7NXZvC",
+              "type": "def_scene",
+              "fields": {
+                "SCENE_ID": "RespuestaIncorrecta"
+              },
+              "inputs": {
+                "ACTIONS": {
+                  "block": {
+                    "id": "car9TBp5/Qmb/z#[s1K1",
+                    "next": {
+                      "block": {
+                        "id": ":Y?2CGBp`L#]d`rg`o5$",
+                        "next": {
+                          "block": {
+                            "id": "YWR=U+3DqovB*k^.hpKz",
+                            "type": "action_jump",
+                            "fields": {
+                              "GOTO": "FIN"
+                            }
+                          }
+                        },
+                        "type": "char_UNO",
+                        "fields": {
+                          "TEXT": "No eso no era",
+                          "SPRITE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/characters/1772361147010_1-Personaje.png"
+                        }
+                      }
+                    },
+                    "type": "action_set_background",
+                    "fields": {
+                      "BG_IMAGE": "https://gbnnzbehlctprgxaskwm.supabase.co/storage/v1/object/public/otome-assets/backgrounds/1772361363194_First_Door.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          ],
+          "languageVersion": 0
+        }
+      }
+    }
+  },
+  "startScene": "inicio"
+}
