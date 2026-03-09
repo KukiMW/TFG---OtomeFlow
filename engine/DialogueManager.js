@@ -11,44 +11,59 @@ export class DialogueManager {
         this.isTyping = false;
         this.resolvePromise = null;
         
-        // Guardamos las referencias a las funciones para poder añadir/quitar listeners limpiamente
         this.boundHandleInput = null;
         this.boundHandleKey = null;
+
+        // Configuración de la voz
+        this.synth = window.speechSynthesis;
     }
 
     show(action) {
         return new Promise(resolve => {
             this.resolvePromise = resolve; 
-            const fullText = `${action.speaker}: ${action.text}`;
+            
+            // Si el speaker es vacío (Narrador), no ponemos los dos puntos
+            const prefix = action.speaker ? `${action.speaker}: ` : "";
+            const fullText = `${prefix}${action.text}`;
 
             this.nextArrow.style.display = "none";
             this.typeWriter(fullText);
 
-            // --- NUEVA LÓGICA DE CONTROL ---
-            
-            // 1. Definir qué pasa al interactuar (Clic o Tecla)
+            // --- NUEVO: SÍNTESIS DE VOZ (TEXT-TO-SPEECH) ---
+            if (this.synth) {
+                // Cancelamos cualquier voz anterior que estuviera hablando
+                this.synth.cancel();
+                
+                // Creamos el nuevo audio solo con el texto (sin leer el nombre del personaje)
+                const utterance = new SpeechSynthesisUtterance(action.text);
+                utterance.lang = 'es-ES'; // Idioma español
+                utterance.rate = 1.0;     // Velocidad normal
+                utterance.pitch = 1.0;    // Tono normal
+
+                // Opcional: Si quieres cambiar la voz según el personaje, podrías hacerlo aquí
+                // if (action.speaker === 'Saiki') utterance.pitch = 0.5; // Voz más grave
+
+                this.synth.speak(utterance);
+            }
+            // ----------------------------------------------
+
+            // Lógica de avance
             this.boundHandleInput = () => {
                 if (this.isTyping) {
-                    // Si escribe: Completar texto de golpe
                     this.skipTyping(fullText);
                 } else {
-                    // Si terminó: Avanzar
                     this.advance();
                 }
             };
 
-            // 2. Definir detector de teclas (Espacio y Enter)
             this.boundHandleKey = (e) => {
                 if (e.code === "Space" || e.code === "Enter") {
-                    e.preventDefault(); // Evitar scroll de la página con espacio
+                    e.preventDefault(); 
                     this.boundHandleInput();
                 }
             };
 
-            // 3. Activar los "oídos" (Listeners)
-            // Clic en cualquier parte del juego
             this.gameContainer.onclick = this.boundHandleInput;
-            // Tecla presionada
             document.addEventListener('keydown', this.boundHandleKey);
         });
     }
@@ -62,7 +77,7 @@ export class DialogueManager {
             if (i < text.length) {
                 this.textContent.innerText = text.substring(0, i + 1);
                 i++;
-                this.typingTimeout = setTimeout(type, 30); // Velocidad de escritura
+                this.typingTimeout = setTimeout(type, 30);
             } else {
                 this.onTypingFinished();
             }
@@ -79,20 +94,18 @@ export class DialogueManager {
     onTypingFinished() {
         this.isTyping = false;
         this.nextArrow.style.display = "inline-block";
-        // Nota: Ya no necesitamos asignar onclick a la flecha aquí, 
-        // porque el click en gameContainer captura todo.
     }
 
-    // Función para limpiar y terminar
     advance() {
         this.nextArrow.style.display = "none";
-        
-        // ¡IMPORTANTE! Limpiar los eventos para que no se disparen en la siguiente escena por error
         this.gameContainer.onclick = null;
         document.removeEventListener('keydown', this.boundHandleKey);
         
+        // Cortar la voz si el jugador avanza rápido
+        if (this.synth) this.synth.cancel();
+        
         if (this.resolvePromise) {
-            this.resolvePromise(); // Avisar al Engine para seguir
+            this.resolvePromise(); 
             this.resolvePromise = null;
         }
     }

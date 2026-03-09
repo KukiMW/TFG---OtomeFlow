@@ -3,26 +3,27 @@
 // ============================================================
 
 let currentUser = null;
-let currentProfile = null; // { role: 'teacher' | 'student' }
+let currentProfile = null; // Guardará el objeto completo de la BD: { role: 'teacher' | 'student' }
 let editingProjectId = null;
-let currentAssignId = null; // ID del proyecto que estamos asignando
+let currentAssignId = null;
 
 // 1. INICIO Y AUTENTICACIÓN
 async function initDashboard() {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session } } = await window.sb.auth.getSession();
     if (!session) {
         window.location.href = 'index.html';
         return;
     }
     currentUser = session.user;
 
-    // Obtener rol real
-    const { data: profile } = await sb
+    // Obtener rol real de la base de datos
+    const { data: profile, error } = await window.sb
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
         .single();
     
+    // Si hay error o no existe, asumimos que es alumno por seguridad
     currentProfile = profile || { role: 'student' };
     
     setupUIByRole();
@@ -52,49 +53,52 @@ async function loadProjects() {
     grid.innerHTML = '<p>Cargando...</p>';
 
     let projects = [];
-    let myProgress = [];
+    let myProgress =[];
 
     // --- PROFESOR: Sus proyectos ---
+    // USAMOS currentProfile.role
     if (currentProfile.role === 'teacher') {
-        const { data } = await sb
+        const { data, error } = await window.sb
             .from('projects')
             .select('*')
             .eq('user_id', currentUser.id)
             .order('created_at', { ascending: false });
-        projects = data || [];
+        
+        if (error) console.error("Error cargando proyectos profe:", error);
+        projects = data ||[];
     } 
     
     // --- ALUMNO: Proyectos asignados ---
     else {
         // 1. Buscar asignaciones
-        const { data: assignments } = await sb
+        const { data: assignments, error: assignError } = await window.sb
             .from('assignments')
             .select('project_id')
             .eq('student_email', currentUser.email);
         
         if (assignments && assignments.length > 0) {
             const projectIds = assignments.map(a => a.project_id);
-            // 2. Cargar detalles (GRACIAS A LA NUEVA POLÍTICA SQL, AHORA ESTO FUNCIONARÁ)
-            const { data } = await sb
+            // 2. Cargar detalles
+            const { data } = await window.sb
                 .from('projects')
                 .select('*')
                 .in('id', projectIds);
-            projects = data || [];
+            projects = data ||[];
         }
 
         // 3. Cargar progreso
-        const { data: progress } = await sb
+        const { data: progress } = await window.sb
             .from('student_progress')
             .select('project_id')
             .eq('user_id', currentUser.id);
-        myProgress = progress || [];
+        myProgress = progress ||[];
     }
 
     renderGrid(projects, myProgress);
 }
 
 // 3. RENDERIZAR
-function renderGrid(projects, myProgress = []) {
+function renderGrid(projects, myProgress =[]) {
     const grid = document.getElementById('gamesGrid');
     grid.innerHTML = "";
 
@@ -111,20 +115,34 @@ function renderGrid(projects, myProgress = []) {
         let footerContent = '';
         let headerExtra = '';
 
+        // Escapar comillas para evitar errores en el menú
+        const safeTitle = proj.title.replace(/'/g, "\\'");
+        const safeDesc = (proj.description || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+
         if (currentProfile.role === 'teacher') {
-            // PROFESOR
+            // --- VISTA PROFESOR ---
+            
+            // 1. AÑADIMOS "EDITAR INFO" AL MENÚ DE 3 PUNTOS
             headerExtra = `
                 <div class="dropdown">
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
+                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}')">✏️ Editar Info</a>
                         <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
                     </div>
                 </div>`;
             
+            // 2. DEJAMOS EL FOOTER LIMPIO CON LOS ICONOS PRINCIPALES
             footerContent = `
-                <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons">group_add</span></button>
-                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons">analytics</span></button>
-                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar"><span class="material-icons">edit</span></button>
+                <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos">
+                    <span class="material-icons">group_add</span>
+                </button>
+                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas">
+                    <span class="material-icons">analytics</span>
+                </button>
+                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar Bloques">
+                    <span class="material-icons">edit</span>
+                </button>
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
         } else {
@@ -168,7 +186,7 @@ async function loadAssignedStudents(projectId) {
     const list = document.getElementById('assignedList');
     list.innerHTML = "<li>Cargando...</li>";
 
-    const { data } = await sb
+    const { data } = await window.sb
         .from('assignments')
         .select('student_email, created_at')
         .eq('project_id', projectId)
@@ -196,7 +214,7 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
     if(!email) return;
 
     // Insertar en assignments
-    const { error } = await sb.from('assignments').insert([{
+    const { error } = await window.sb.from('assignments').insert([{
         project_id: currentAssignId,
         student_email: email,
         assigned_by: currentUser.id
@@ -222,7 +240,7 @@ window.openScoresModal = async (id) => {
     const list = document.getElementById('scoresList');
     list.innerHTML = "Cargando...";
 
-    const { data: scores } = await sb
+    const { data: scores } = await window.sb
         .from('student_progress')
         .select('*')
         .eq('project_id', id)
@@ -277,7 +295,7 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
 
     if (editingProjectId) {
         // UPDATE
-        const { error } = await sb
+        const { error } = await window.sb
             .from('projects')
             .update({ title: title, description: desc })
             .eq('id', editingProjectId);
@@ -289,7 +307,7 @@ document.getElementById('createForm').addEventListener('submit', async (e) => {
         }
     } else {
         // INSERT
-        const { data, error } = await sb
+        const { data, error } = await window.sb
             .from('projects')
             .insert([{ 
                 title: title, description: desc, user_id: currentUser.id,
@@ -318,18 +336,19 @@ window.onclick = function(event) {
 
 window.deleteProject = async (id) => {
     if(confirm("¿Seguro? Esto borrará el proyecto y sus asignaciones.")) {
-        // Primero borrar asignaciones relacionadas para evitar error de Foreign Key
-        await sb.from('assignments').delete().eq('project_id', id);
-        await sb.from('student_progress').delete().eq('project_id', id);
+        // Primero borrar dependencias para evitar error
+        await window.sb.from('assignments').delete().eq('project_id', id);
+        await window.sb.from('student_progress').delete().eq('project_id', id);
+        
         // Luego borrar el proyecto
-        const { error } = await sb.from('projects').delete().eq('id', id);
+        const { error } = await window.sb.from('projects').delete().eq('id', id);
         if(!error) loadProjects();
         else alert("Error al borrar: " + error.message);
     }
 };
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await sb.auth.signOut();
+    await window.sb.auth.signOut();
     window.location.href = 'index.html';
 });
 

@@ -5,6 +5,7 @@
 export class ChoiceManager {
     constructor(choicesElement) {
         this.element = choicesElement;
+        this.synth = window.speechSynthesis; // Inicializar el lector de voz
     }
 
     show(options) {
@@ -12,13 +13,28 @@ export class ChoiceManager {
             this.element.innerHTML = ""; // Limpiar opciones anteriores
 
             options.forEach(opt => {
-                const button = document.createElement("button");
-                button.innerText = opt.text;
-                button.onclick = () => {
+                const b = document.createElement("button");
+                b.innerText = opt.text;
+
+                // --- NUEVO: LEER TEXTO AL PASAR EL RATÓN (HOVER) ---
+                b.onmouseenter = () => {
+                    if (this.synth) {
+                        this.synth.cancel(); // Corta lo que estuviera diciendo antes
+                        const utterance = new SpeechSynthesisUtterance(opt.text);
+                        utterance.lang = 'es-ES'; // Idioma español
+                        this.synth.speak(utterance);
+                    }
+                };
+                // ----------------------------------------------------
+
+                b.onclick = () => {
+                    // Callamos a la voz cuando el jugador hace clic para avanzar
+                    if (this.synth) this.synth.cancel(); 
+                    
                     this.element.innerHTML = ""; // Limpiar al elegir
                     resolve(opt); // Resolvemos la promesa con la opción elegida
                 };
-                this.element.appendChild(button);
+                this.element.appendChild(b);
             });
         });
     }
