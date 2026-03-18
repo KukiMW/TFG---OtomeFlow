@@ -121,18 +121,18 @@ function renderGrid(projects, myProgress =[]) {
 
         if (currentProfile.role === 'teacher') {
             // --- VISTA PROFESOR ---
-            
-            // 1. AÑADIMOS "EDITAR INFO" AL MENÚ DE 3 PUNTOS
+            // MENÚ DE 3 PUNTOS
             headerExtra = `
                 <div class="dropdown">
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
                         <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}')">✏️ Editar Info</a>
+                        <a onclick="cloneProject(${proj.id})">📑 Duplicar / Copiar</a>
                         <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
                     </div>
                 </div>`;
             
-            // 2. DEJAMOS EL FOOTER LIMPIO CON LOS ICONOS PRINCIPALES
+            // FOOTER
             footerContent = `
                 <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos">
                     <span class="material-icons">group_add</span>
@@ -350,6 +350,168 @@ window.deleteProject = async (id) => {
 document.getElementById('logoutBtn').addEventListener('click', async () => {
     await window.sb.auth.signOut();
     window.location.href = 'index.html';
+});
+
+// ============================================================
+//               CLONAR PROYECTO (COMPARTIR/COPIAR)
+// ============================================================
+window.cloneProject = async (id) => {
+    if(!confirm("¿Crear una copia exacta de este proyecto en tu cuenta?")) return;
+
+    // 1. Obtener el original
+    const { data: original } = await window.sb.from('projects').select('*').eq('id', id).single();
+    if (!original) return;
+
+    // 2. Insertar copia
+    const { error } = await window.sb.from('projects').insert([{
+        title: original.title + " (Copia)",
+        description: original.description,
+        user_id: currentUser.id,
+        project_data: original.project_data,
+        story_data: original.story_data
+    }]);
+
+    if(error) alert("Error al clonar: " + error.message);
+    else { alert("¡Proyecto duplicado!"); loadProjects(); }
+};
+
+// ============================================================
+//               DESCARGAR CSV DE NOTAS
+// ============================================================
+let currentScoresData =[]; // Guardamos los datos temporalmente para el CSV
+
+window.openScoresModal = async (id) => {
+    document.getElementById('scoresModal').style.display = 'flex';
+    const list = document.getElementById('scoresList');
+    list.innerHTML = "Cargando...";
+
+    // Usamos un JOIN (inner join) para obtener el Nombre, Apellidos y DNI desde la tabla profiles
+    const { data: scores } = await window.sb
+        .from('student_progress')
+        .select(`
+            score, completed_at, user_email,
+            profiles (first_name, last_name, dni, class_name)
+        `)
+        .eq('project_id', id)
+        .order('score', { ascending: false });
+
+    currentScoresData = scores ||[]; // Guardamos para el CSV
+
+    if(currentScoresData.length === 0) {
+        list.innerHTML = "<p>Nadie ha completado esta historia aún.</p>";
+        return;
+    }
+
+    let html = '<table style="width:100%; text-align:left; border-collapse: collapse;">';
+    html += '<tr style="border-bottom:2px solid #ddd;"><th>DNI</th><th>Alumno</th><th>Clase</th><th>Nota</th><th>Fecha</th></tr>';
+    
+    currentScoresData.forEach(s => {
+        const p = s.profiles || {};
+        const name = p.first_name ? `${p.first_name} ${p.last_name}` : s.user_email;
+        const date = new Date(s.completed_at).toLocaleDateString();
+        
+        html += `<tr style="border-bottom:1px solid #eee;">
+            <td style="padding:8px; font-size:0.85rem;">${p.dni || '-'}</td>
+            <td style="padding:8px;">${name}</td>
+            <td style="padding:8px;">${p.class_name || '-'}</td>
+            <td style="padding:8px; font-weight:bold; color:#711651;">${s.score}</td>
+            <td style="padding:8px; color:#666; font-size:0.85rem;">${date}</td>
+        </tr>`;
+    });
+    list.innerHTML = html + '</table>';
+};
+
+// Evento Descargar CSV
+document.getElementById('downloadCsvBtn').addEventListener('click', () => {
+    if (currentScoresData.length === 0) return;
+
+    // Crear cabecera CSV
+    let csvContent = "DNI,Nombre,Apellidos,Email,Clase,Puntuacion,Fecha_Completado\n";
+
+    // Añadir filas
+    currentScoresData.forEach(s => {
+        const p = s.profiles || {};
+        const date = new Date(s.completed_at).toLocaleDateString();
+        // Envolver en comillas por si hay comas en los nombres
+        csvContent += `"${p.dni || ''}","${p.first_name || ''}","${p.last_name || ''}","${s.user_email}","${p.class_name || ''}",${s.score},"${date}"\n`;
+    });
+
+    // Descargar archivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "calificaciones_otomeflow.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+// ============================================================
+//               ASIGNAR POR CLASE ENTERA
+// ============================================================
+
+window.openAssignModal = async (id) => {
+    currentAssignId = id;
+    document.getElementById('assignModal').style.display = 'flex';
+    
+    // 1. Cargar lista de alumnos ya asignados
+    await loadAssignedStudents(id);
+
+    // 2. Cargar la lista de clases disponibles en el Select
+    const select = document.getElementById('classSelect');
+    select.innerHTML = '<option value="">Cargando clases...</option>';
+
+    // Obtener nombres de clases únicos de los alumnos
+    const { data: classes } = await window.sb
+        .from('profiles')
+        .select('class_name')
+        .eq('role', 'student')
+        .not('class_name', 'is', null);
+
+    // Filtrar duplicados
+    const uniqueClasses =[...new Set(classes.map(c => c.class_name))];
+
+    select.innerHTML = '<option value="" disabled selected>Elige una clase...</option>';
+    uniqueClasses.forEach(c => {
+        if(c.trim() !== '') select.innerHTML += `<option value="${c}">${c}</option>`;
+    });
+};
+
+// Evento Asignar a Clase
+document.getElementById('assignClassForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const className = document.getElementById('classSelect').value;
+    if(!className) return;
+
+    // 1. Obtener todos los correos de los alumnos de esa clase
+    const { data: students } = await window.sb
+        .from('profiles')
+        .select('email')
+        .eq('role', 'student')
+        .eq('class_name', className);
+
+    if (!students || students.length === 0) {
+        alert("No hay alumnos registrados en esa clase.");
+        return;
+    }
+
+    // 2. Preparar el array para insertar a todos de golpe
+    const assignmentsToInsert = students.map(s => ({
+        project_id: currentAssignId,
+        student_email: s.email,
+        assigned_by: currentUser.id
+    }));
+
+    // 3. Insertar ignorando los que ya estaban asignados (gracias a ON CONFLICT si usáramos RPC, pero aquí lo haremos simple)
+    let addedCount = 0;
+    for (let assign of assignmentsToInsert) {
+        const { error } = await window.sb.from('assignments').insert([assign]);
+        if (!error) addedCount++;
+    }
+
+    alert(`¡Asignado! Se han añadido ${addedCount} alumnos nuevos de la clase ${className}.`);
+    await loadAssignedStudents(currentAssignId);
 });
 
 // Arrancar

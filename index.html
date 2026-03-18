@@ -3,185 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <title>Otome Flow - Acceso</title>
-    <!-- Iconos y Fuentes -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="assets/OF.png">
-
-    <!-- 1. LIBRERÍA SUPABASE (OBLIGATORIA) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        body {
-            margin: 0; height: 100vh;
-            background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 100%);
-            font-family: 'Poppins', sans-serif;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #4a148c;
-        }
+        body { margin: 0; height: 100vh; background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 100%); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; color: #4a148c; }
+        .auth-container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(74, 20, 140, 0.2); width: 400px; max-height: 90vh; overflow-y: auto; }
+        h1 { margin: 0 0 10px; font-size: 2.2rem; text-align: center; }
+        p.subtitle { text-align: center; color: #7b1fa2; margin-bottom: 20px; }
         
-        /* Contenedor Login */
-        .auth-container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(74, 20, 140, 0.2);
-            width: 350px;
-            text-align: center;
-        }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #f3e5f5; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #ba68c8; transition: 0.3s; }
+        .tab.active { color: #711651; border-bottom: 3px solid #711651; }
 
-        h1 { margin: 0 0 10px; font-size: 2rem; }
-        p { color: #7b1fa2; margin-bottom: 20px; font-size: 0.9rem; }
-
-        input {
-            width: 100%; padding: 12px; margin-bottom: 15px;
-            border: 1px solid #e1bee7; border-radius: 8px;
-            box-sizing: border-box; font-family: inherit;
-        }
-
-        button {
-            width: 100%; padding: 12px; border: none; border-radius: 8px;
-            cursor: pointer; font-weight: bold; font-size: 1rem;
-            transition: 0.2s; margin-bottom: 10px;
-        }
-
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 500; }
+        input[type="text"], input[type="email"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #e1bee7; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background: #711651; color: white; }
         .btn-primary:hover { background: #4a0030; }
+        .btn-google { background: white; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;}
+        .btn-google:hover { background: #f1f1f1; }
 
-        .btn-secondary { background: white; color: #711651; border: 1px solid #711651; }
-        .btn-secondary:hover { background: #f3e5f5; }
-
-        .loading { opacity: 0.5; pointer-events: none; }
-
-        /* Ocultar secciones por defecto */
         .hidden { display: none !important; }
-
-        /* Estilo del Menú Principal (Cuando estás logueado) */
-        .menu-container {
-            display: flex; gap: 20px;
-        }
-        .card-btn {
-            background: white; width: 180px; padding: 20px;
-            border-radius: 15px; text-decoration: none; color: #4a148c;
-            display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
-        }
-        .card-btn:hover { transform: translateY(-5px); }
-        .material-icons { font-size: 3rem; margin-bottom: 10px; }
-        
-        #userInfo { position: absolute; top: 20px; right: 20px; font-size: 0.9rem; }
-        #logoutBtn { background: none; border: none; color: #d32f2f; cursor: pointer; text-decoration: underline; }
+        .radio-group { display: flex; gap: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <!-- INFORMACIÓN DE USUARIO (SOLO VISIBLE SI LOGUEADO) -->
-    <div id="userInfo" class="hidden">
-        Hola, <span id="userEmail">usuario</span> | 
-        <button id="logoutBtn">Cerrar Sesión</button>
-    </div>
-
-    <!-- PANTALLA 1: LOGIN / REGISTRO -->
-    <div id="authSection" class="auth-container">
+    <div class="auth-container">
         <h1>Otome Flow</h1>
-        <p>Inicia sesión para guardar tus proyectos en la nube.</p>
-        
-        <input type="email" id="email" placeholder="Correo electrónico">
-        <input type="password" id="password" placeholder="Contraseña">
-        
-        <button id="loginBtn" class="btn-primary">Iniciar Sesión</button>
-        <button id="signupBtn" class="btn-secondary">Registrarse</button>
-        
-        <p id="authMessage" style="margin-top: 15px; font-size: 0.8rem; color: #d32f2f;"></p>
+        <p class="subtitle">Plataforma Educativa Narrativa</p>
+
+        <!-- Pestañas -->
+        <div class="tabs">
+            <div class="tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</div>
+            <div class="tab" id="tabRegister" onclick="switchTab('register')">Registrarse</div>
+        </div>
+
+        <!-- FORMULARIO LOGIN -->
+        <div id="loginForm">
+            <div class="form-group"><label>Email</label><input type="email" id="loginEmail"></div>
+            <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass"></div>
+            <button class="btn-primary" onclick="doLogin()">Entrar</button>
+            <button class="btn-google" onclick="doGoogleLogin()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20"> Entrar con Google
+            </button>
+        </div>
+
+        <!-- FORMULARIO REGISTRO -->
+        <div id="registerForm" class="hidden">
+            <div class="form-group">
+                <label>Soy un...</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="role" value="student" checked onchange="toggleStudentFields(true)"> 🎓 Alumno</label>
+                    <label><input type="radio" name="role" value="teacher" onchange="toggleStudentFields(false)"> 👨‍🏫 Profesor</label>
+                </div>
+            </div>
+
+            <div class="form-group"><label>Nombre</label><input type="text" id="regName"></div>
+            <div class="form-group"><label>Apellidos</label><input type="text" id="regLastname"></div>
+            
+            <div id="studentFields">
+                <div class="form-group"><label>DNI</label><input type="text" id="regDni"></div>
+                <div class="form-group"><label>Clase / Grupo (Ej: 3ºA)</label><input type="text" id="regClass"></div>
+            </div>
+
+            <div class="form-group"><label>Email</label><input type="email" id="regEmail"></div>
+            <div class="form-group"><label>Contraseña</label><input type="password" id="regPass"></div>
+            
+            <button class="btn-primary" onclick="doRegister()">Crear Cuenta</button>
+        </div>
+
+        <p id="msg" style="margin-top: 15px; font-size: 0.85rem; text-align: center; color: #d32f2f;"></p>
     </div>
 
-
-    <!-- SCRIPTS -->
-    <!-- 1. Cargamos tu configuración -->
     <script src="supabaseClient.js"></script>
-    
-    <!-- 2. Lógica de Autenticación -->
     <script>
-        // Referencias
-        const authSection = document.getElementById('authSection');
-        const mainMenu = document.getElementById('mainMenu');
-        const userInfo = document.getElementById('userInfo');
-        const emailInput = document.getElementById('email');
-        const passInput = document.getElementById('password');
-        const msg = document.getElementById('authMessage');
+        const msgBox = document.getElementById('msg');
 
-        // --- VERIFICAR SESIÓN ---
-        async function checkSession() {
-            // CAMBIO: Usamos 'sb' en lugar de 'supabase'
-            const { data: { session } } = await sb.auth.getSession();
-            if (session) {
-                showMenu(session.user.email);
-            } else {
-                authSection.classList.remove('hidden');
+        // Comprobar si ya estamos logueados
+        window.onload = async () => {
+            const { data: { session } } = await window.sb.auth.getSession();
+            if (session) window.location.href = 'dashboard.html';
+        };
+
+        function switchTab(tab) {
+            document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+            document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login');
+            document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register');
+            msgBox.innerText = "";
+        }
+
+        function toggleStudentFields(show) {
+            document.getElementById('studentFields').classList.toggle('hidden', !show);
+        }
+
+        async function doLogin() {
+            msgBox.style.color = "#333"; msgBox.innerText = "Conectando...";
+            const { error } = await window.sb.auth.signInWithPassword({
+                email: document.getElementById('loginEmail').value,
+                password: document.getElementById('loginPass').value
+            });
+            if (error) msgBox.innerText = "❌ " + error.message;
+            else window.location.href = 'dashboard.html';
+        }
+
+        async function doRegister() {
+            msgBox.style.color = "#333"; msgBox.innerText = "Registrando...";
+            
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const metadata = {
+                role: role,
+                first_name: document.getElementById('regName').value,
+                last_name: document.getElementById('regLastname').value
+            };
+
+            if (role === 'student') {
+                metadata.dni = document.getElementById('regDni').value;
+                metadata.class_name = document.getElementById('regClass').value;
             }
-        }
-        
-        // Esperamos un poco a que supabaseClient.js cargue la variable sb
-        window.addEventListener('load', checkSession);
 
-        // --- FUNCIÓN REDIRECCIÓN ---
-        function showMenu(email) {
-            // Guardamos el email en localStorage por si acaso lo necesitamos luego para mostrarlo
-            localStorage.setItem('userEmail', email);
-            // Redirección directa al Dashboard
-            window.location.href = 'dashboard.html';
-        }
-
-        // --- 1. INICIAR SESIÓN ---
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passInput.value;
-            
-            msg.innerText = "Conectando...";
-            
-            // CAMBIO: Usamos 'sb'
-            const { data, error } = await sb.auth.signInWithPassword({
-                email: email,
-                password: password,
+            const { data, error } = await window.sb.auth.signUp({
+                email: document.getElementById('regEmail').value,
+                password: document.getElementById('regPass').value,
+                options: { data: metadata } // Aquí enviamos los datos extra al Trigger de SQL
             });
 
             if (error) {
-                msg.innerText = "Error: " + error.message;
+                msgBox.style.color = "#d32f2f"; msgBox.innerText = "❌ " + error.message;
             } else {
-                showMenu(data.user.email);
+                msgBox.style.color = "green"; msgBox.innerText = "✅ ¡Cuenta creada! Iniciando sesión...";
+                setTimeout(() => window.location.href = 'dashboard.html', 1500);
             }
-        });
+        }
 
-        // --- 2. REGISTRARSE ---
-        document.getElementById('signupBtn').addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passInput.value;
-
-            msg.innerText = "Creando cuenta...";
-
-            // CAMBIO: Usamos 'sb'
-            const { data, error } = await sb.auth.signUp({
-                email: email,
-                password: password,
+        // LOGIN CON GOOGLE
+        async function doGoogleLogin() {
+            const { error } = await window.sb.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.origin + '/dashboard.html' }
             });
-
-            if (error) {
-                msg.innerText = "Error: " + error.message;
-            } else {
-                msg.style.color = "green";
-                msg.innerText = "¡Cuenta creada! Iniciando sesión...";
-                // A veces loguea directo, si no, pedimos login
-                if(data.session) showMenu(data.user.email);
-            }
-        });
-
-        // --- 3. CERRAR SESIÓN ---
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            // CAMBIO: Usamos 'sb'
-            await sb.auth.signOut();
-            window.location.reload(); 
-        });
-
+            if (error) alert("Error con Google: " + error.message);
+        }
     </script>
 </body>
 </html>

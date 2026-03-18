@@ -55,22 +55,33 @@
         </div>
     </div>
 
-    <!-- MODAL ASIGNAR TAREA (MEJORADO) -->
+    <!-- (Mantén tu Navbar y Grid igual, solo cambia los modales) -->
+    
+    <!-- MODAL ASIGNAR TAREA -->
     <div id="assignModal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
-            <h2>📢 Asignar a Alumnos</h2>
-            <form id="assignForm">
-                <div style="display: flex; gap:10px;">
+            <h2>📢 Asignar Tarea</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <label><b>Opción A: Por correo electrónico</b></label>
+                <form id="assignEmailForm" style="display: flex; gap:5px;">
                     <input type="email" id="studentEmail" placeholder="alumno@ejemplo.com" required style="margin:0;">
                     <button type="submit" class="btn-primary" style="margin:0;">Añadir</button>
-                </div>
-            </form>
+                </form>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label><b>Opción B: A una clase entera</b></label>
+                <form id="assignClassForm" style="display: flex; gap:5px;">
+                    <select id="classSelect" required style="margin:0;">
+                        <option value="">Cargando clases...</option>
+                    </select>
+                    <button type="submit" class="btn-primary" style="margin:0;">Asignar a todos</button>
+                </form>
+            </div>
             
-            <h3 style="font-size:1rem; margin-top:20px; border-bottom:1px solid #eee; padding-bottom:5px;">Alumnos asignados:</h3>
-            <ul id="assignedList" style="list-style:none; padding:0; max-height:150px; overflow-y:auto;">
-                <!-- Lista inyectada por JS -->
-                <li style="color:#888; font-size:0.9rem;">Cargando lista...</li>
-            </ul>
+            <h3 style="font-size:1rem; border-bottom:1px solid #eee; padding-bottom:5px;">Alumnos ya asignados:</h3>
+            <ul id="assignedList" style="list-style:none; padding:0; max-height:100px; overflow-y:auto; font-size:0.9rem;"></ul>
 
             <div class="modal-actions">
                 <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="btn-text">Cerrar</button>
@@ -82,7 +93,11 @@
     <div id="scoresModal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <h2>📊 Calificaciones</h2>
-            <div id="scoresList" style="margin-top:20px; max-height:300px; overflow-y:auto;"></div>
+            <!-- NUEVO BOTÓN DESCARGAR CSV -->
+            <button id="downloadCsvBtn" style="background:#4caf50; color:white; padding:5px 15px; border-radius:5px; border:none; float:right;">📥 Descargar CSV</button>
+            <div style="clear:both;"></div>
+
+            <div id="scoresList" style="margin-top:10px; max-height:300px; overflow-y:auto;"></div>
             <div class="modal-actions">
                 <button type="button" onclick="document.getElementById('scoresModal').style.display='none'" class="btn-primary">Cerrar</button>
             </div>
