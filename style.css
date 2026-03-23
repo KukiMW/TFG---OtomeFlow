@@ -1,3 +1,4 @@
+
 /* style.css - Estilos Base */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -88,24 +89,17 @@ body, html {
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    
-    /* 1. SUELO ELEVADO: Apoyamos la imagen encima de la caja de texto (aprox 160px desde abajo) */
-    bottom: 160px;
-    
-    /* 2. CALIDAD Y TOPE: La pantalla entera (100vh) menos el hueco de abajo y margen superior */
-    max-height: calc(100vh - 180px); 
-    height: auto;    
-    max-width: 100%; 
+    bottom: 0;
+    height: 85%; /* Altura relativa a la pantalla */
     width: auto;
-
-    /* 3. POSICIÓN POR DEFECTO: Tercio izquierdo */
-    left: 33%; 
-    transform: translateX(-50%);
-
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
-    pointer-events: none; /* Para que no bloqueen clics de la caja de diálogo */
+    pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
+
+    left: 50%;
+    transform: translateX(-50%); /* Centrado horizontal */
+    width: auto; /* Ancho automático para mantener proporción */
     z-index: 2; /* Encima del fondo */
 }
 
@@ -141,20 +135,6 @@ body, html {
     width: 100%;
 
     line-height: 1.5;
-}
-
-.speaker-name {
-    position: absolute;
-    top: -30px; /* Lo saca por encima de la caja */
-    left: 20px;
-    background: #d8a4ff;
-    color: #2b1029;
-    padding: 5px 20px;
-    border-radius: 10px 10px 0 0;
-    font-weight: bold;
-    font-size: 1rem;
-    border: 2px solid #d8a4ff;
-    border-bottom: none;
 }
 
 /* -------------------- Flecha siguiente ----------------- */
