@@ -1,56 +1,56 @@
 // ============================================================
-//               OTOME ENGINE - DIALOGUE
+//               OTOME ENGINE - DIALOGUE (CON NOMBRE Y VOZ)
 // ============================================================
 export class DialogueManager {
     constructor(textboxElement, gameContainer) {
+        this.textboxElement = textboxElement; // Referencia al contenedor principal
         this.textContent = textboxElement.querySelector("#text-content");
         this.nextArrow = textboxElement.querySelector("#next-arrow");
+        
+        // 1. Buscamos la etiqueta del nombre
+        this.speakerNameElement = textboxElement.querySelector(".speaker-name");
+        
         this.gameContainer = gameContainer;
-
         this.typingTimeout = null;
         this.isTyping = false;
         this.resolvePromise = null;
-        
         this.boundHandleInput = null;
         this.boundHandleKey = null;
-
-        // Configuración de la voz
         this.synth = window.speechSynthesis;
     }
 
     show(action) {
         return new Promise(resolve => {
             this.resolvePromise = resolve; 
-            
-            // Si el speaker es vacío (Narrador), no ponemos los dos puntos
-            const prefix = action.speaker ? `${action.speaker}: ` : "";
-            const fullText = `${prefix}${action.text}`;
+
+            // 2. GESTIÓN DEL NOMBRE DEL PERSONAJE
+            if (action.speaker && action.speaker.trim() !== "") {
+                // Si hay un nombre, mostramos la pestaña y ponemos el nombre
+                this.speakerNameElement.style.display = "block";
+                this.speakerNameElement.innerText = action.speaker;
+            } else {
+                // Si es el Narrador (vacío), ocultamos la pestaña del nombre
+                this.speakerNameElement.style.display = "none";
+            }
+
+            // El texto a escribir ahora es SOLO el texto (sin el nombre delante)
+            const textToType = action.text;
 
             this.nextArrow.style.display = "none";
-            this.typeWriter(fullText);
+            this.typeWriter(textToType);
 
-            // --- NUEVO: SÍNTESIS DE VOZ (TEXT-TO-SPEECH) ---
+            // Síntesis de voz
             if (this.synth) {
-                // Cancelamos cualquier voz anterior que estuviera hablando
                 this.synth.cancel();
-                
-                // Creamos el nuevo audio solo con el texto (sin leer el nombre del personaje)
-                const utterance = new SpeechSynthesisUtterance(action.text);
-                utterance.lang = 'es-ES'; // Idioma español
-                utterance.rate = 1.0;     // Velocidad normal
-                utterance.pitch = 1.0;    // Tono normal
-
-                // Opcional: Si quieres cambiar la voz según el personaje, podrías hacerlo aquí
-                // if (action.speaker === 'Saiki') utterance.pitch = 0.5; // Voz más grave
-
+                const utterance = new SpeechSynthesisUtterance(textToType);
+                utterance.lang = 'es-ES';
                 this.synth.speak(utterance);
             }
-            // ----------------------------------------------
 
-            // Lógica de avance
+            // Controles de avance
             this.boundHandleInput = () => {
                 if (this.isTyping) {
-                    this.skipTyping(fullText);
+                    this.skipTyping(textToType);
                 } else {
                     this.advance();
                 }
@@ -101,7 +101,6 @@ export class DialogueManager {
         this.gameContainer.onclick = null;
         document.removeEventListener('keydown', this.boundHandleKey);
         
-        // Cortar la voz si el jugador avanza rápido
         if (this.synth) this.synth.cancel();
         
         if (this.resolvePromise) {

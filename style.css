@@ -88,19 +88,25 @@ body, html {
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    bottom: 0;
     
-    /* --- EL TRUCO DE LA CALIDAD ESTÁ AQUÍ --- */
-    max-height: 90%; /* Límite máximo: no puede superar el 90% de la pantalla */
-    height: auto;    /* Altura automática: respeta el tamaño original si es pequeño */
-    max-width: 100%; /* Evita que imágenes gigantes se salgan por los lados */
-    width: auto;     /* Mantiene la proporción correcta */
-    /* ---------------------------------------- */
+    /* 1. SUELO ELEVADO: Apoyamos la imagen encima de la caja de texto (aprox 160px desde abajo) */
+    bottom: 160px;
+    
+    /* 2. CALIDAD Y TOPE: La pantalla entera (100vh) menos el hueco de abajo y margen superior */
+    max-height: calc(100vh - 180px); 
+    height: auto;    
+    max-width: 100%; 
+    width: auto;
+
+    /* 3. POSICIÓN POR DEFECTO: Tercio izquierdo */
+    left: 33%; 
+    transform: translateX(-50%);
 
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
     pointer-events: none; /* Para que no bloqueen clics de la caja de diálogo */
+    z-index: 2; /* Encima del fondo */
 }
 
 /* -------------------- Caja de texto ---------------------- */
