@@ -89,7 +89,7 @@ body, html {
 .character {
     position: absolute;
     
-    /* 1. ELEVAR EL SUELO/
+    /* 1. ELEVAR EL SUELO*/
     bottom: 140px; 
 
     /* 2. ALTURA MÁXIMA: La pantalla entera (100vh) menos el hueco de abajo */
