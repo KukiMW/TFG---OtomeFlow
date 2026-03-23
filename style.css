@@ -88,7 +88,7 @@ body, html {
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    bottom: 0;
+    bottom: 10;
 
     max-height: 80%; /* Nunca será más alto que el 90% de la pantalla */
     height: auto;    /* Si la imagen es pequeña, se queda pequeña y nítida */
@@ -100,7 +100,7 @@ body, html {
     opacity: 0;
     pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
 
-    left: 50%;
+    left: 20%;
     transform: translateX(-50%); /* Centrado horizontal */
     width: auto; /* Ancho automático para mantener proporción */
     z-index: 2; /* Encima del fondo */
