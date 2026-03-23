@@ -86,33 +86,24 @@ body, html {
 }
 
 /* -------------------- Personajes ------------------------- */
-
-/* -------------------- Personajes ------------------------- */
-@keyframes float {
-    0%, 100% { bottom: 140px; }
-    50% { bottom: 155px; } /* Animamos el bottom para no usar transform */
-}
-
 .character {
     position: absolute;
+    
+    /* 1. ELEVAR EL SUELO*/
     bottom: 140px; 
-    left: 5%; /* Esto lo enviará a la izquierda */
-    
+
+    /* 2. ALTURA MÁXIMA: La pantalla entera (100vh) menos el hueco de abajo */
     max-height: calc(100vh - 150px); 
+    height: auto;    
+    max-width: 100%; 
     width: auto;
-    max-width: 45%; 
-    
+
     object-fit: contain;
-    z-index: 2;
-    opacity: 1; /* Asegúrate de que el JS lo ponga en 1 para verlo */
-    
-    /* Aplicamos la animación de flotar */
-    animation: float 3s ease-in-out infinite;
-    
-    /* Quitamos cualquier posible conflicto */
-    right: auto;
-    margin: 0;
-    pointer-events: none;
+    transition: opacity 0.3s;
+    opacity: 0;
+    pointer-events: none; /* Para no bloquear clics */
+    z-index: 2; /* Encima del fondo */
+    left: 5%; 
 }
 
 /* -------------------- Caja de texto ---------------------- */
