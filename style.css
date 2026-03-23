@@ -94,23 +94,24 @@ body, html {
 
 .character {
     animation: float 3s ease-in-out infinite;
-    background-color: rgba(255, 0, 0, 0.3); /* Esto pondrá un cuadro rojo tras el búho */
-    
+    .character {
     position: absolute;
     bottom: 140px; 
     
-    left: 30px !important;
+    /* Obligamos a que se pegue a la izquierda */
+    left: 20px !important; 
     right: auto !important;
-    transform: none !important;
+    margin: 0 !important; 
+    transform: none !important; /* IMPORTANTE: Esto quita cualquier centrado previo */
 
     max-height: calc(100vh - 150px); 
-    height: auto;    
-    max-width: 45%; /* Limita el ancho para que no ocupe toda la pantalla */
     width: auto;
-
+    max-width: 40%; 
+    
     object-fit: contain;
-    transition: opacity 0.3s;
     z-index: 2;
+    opacity: 1; /* Cámbialo a 1 para probar si ya se posicionó bien */
+}
 }
 
 /* -------------------- Caja de texto ---------------------- */
