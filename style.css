@@ -94,23 +94,22 @@ body, html {
 
 .character {
     animation: float 3s ease-in-out infinite;
-    position: absolute;
     
-    /* 1. ELEVAR EL SUELO*/
+    position: absolute;
     bottom: 140px; 
+    
+    left: 10px !important;
+    right: auto !important;
+    transform: none !important;
 
-    /* 2. ALTURA MÁXIMA: La pantalla entera (100vh) menos el hueco de abajo */
     max-height: calc(100vh - 150px); 
     height: auto;    
-    max-width: 100%; 
+    max-width: 45%; /* Limita el ancho para que no ocupe toda la pantalla */
     width: auto;
 
     object-fit: contain;
     transition: opacity 0.3s;
-    opacity: 0;
-    pointer-events: none; /* Para no bloquear clics */
-    z-index: 2; /* Encima del fondo */
-    left: 5%; 
+    z-index: 2;
 }
 
 /* -------------------- Caja de texto ---------------------- */
