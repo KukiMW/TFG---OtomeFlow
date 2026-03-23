@@ -137,6 +137,20 @@ body, html {
     line-height: 1.5;
 }
 
+.speaker-name {
+    position: absolute;
+    top: -30px; /* Lo saca por encima de la caja */
+    left: 20px;
+    background: #d8a4ff;
+    color: #2b1029;
+    padding: 5px 20px;
+    border-radius: 10px 10px 0 0;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 2px solid #d8a4ff;
+    border-bottom: none;
+}
+
 /* -------------------- Flecha siguiente ----------------- */
 .arrow.circle {
     position: absolute;
