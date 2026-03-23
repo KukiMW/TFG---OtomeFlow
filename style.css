@@ -88,22 +88,24 @@ body, html {
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    bottom: 10;
+    
+    /* 1. ELEVAR EL SUELO/
+    bottom: 140px; 
 
-    max-height: 80%; /* Nunca será más alto que el 90% de la pantalla */
-    height: auto;    /* Si la imagen es pequeña, se queda pequeña y nítida */
-    max-width: 100%; /* Evita que se salga por los lados */
+    /* 2. ALTURA MÁXIMA: La pantalla entera (100vh) menos el hueco de abajo */
+    max-height: calc(100vh - 150px); 
+    height: auto;    
+    max-width: 100%; 
     width: auto;
 
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
-    pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
-
-    left: 20%;
-    transform: translateX(-50%); /* Centrado horizontal */
-    width: auto; /* Ancho automático para mantener proporción */
+    pointer-events: none; /* Para no bloquear clics */
     z-index: 2; /* Encima del fondo */
+
+    /* 3. TERCIO IZQUIERDO: 33% de la pantalla */
+    left: 33%; 
 }
 
 /* -------------------- Caja de texto ---------------------- */
