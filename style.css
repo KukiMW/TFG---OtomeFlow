@@ -89,8 +89,12 @@ body, html {
 .character {
     position: absolute;
     bottom: 0;
-    height: 85%; /* Altura relativa a la pantalla */
+
+    max-height: 80%; /* Nunca será más alto que el 90% de la pantalla */
+    height: auto;    /* Si la imagen es pequeña, se queda pequeña y nítida */
+    max-width: 100%; /* Evita que se salga por los lados */
     width: auto;
+
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
