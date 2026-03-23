@@ -94,7 +94,7 @@ body, html {
 
 .character {
     animation: float 3s ease-in-out infinite;
-    .character {
+
     position: absolute;
     bottom: 140px; 
     
@@ -111,7 +111,6 @@ body, html {
     object-fit: contain;
     z-index: 2;
     opacity: 1; /* Cámbialo a 1 para probar si ya se posicionó bien */
-}
 }
 
 /* -------------------- Caja de texto ---------------------- */
