@@ -87,30 +87,32 @@ body, html {
 
 /* -------------------- Personajes ------------------------- */
 
+/* -------------------- Personajes ------------------------- */
 @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    0%, 100% { bottom: 140px; }
+    50% { bottom: 155px; } /* Animamos el bottom para no usar transform */
 }
 
 .character {
-    animation: float 3s ease-in-out infinite;
-
     position: absolute;
     bottom: 140px; 
+    left: 5%; /* Esto lo enviará a la izquierda */
     
-    /* Obligamos a que se pegue a la izquierda */
-    left: 20px !important; 
-    right: auto !important;
-    margin: 0 !important; 
-    transform: none !important; /* IMPORTANTE: Esto quita cualquier centrado previo */
-
     max-height: calc(100vh - 150px); 
     width: auto;
-    max-width: 40%; 
+    max-width: 45%; 
     
     object-fit: contain;
     z-index: 2;
-    opacity: 1; /* Cámbialo a 1 para probar si ya se posicionó bien */
+    opacity: 1; /* Asegúrate de que el JS lo ponga en 1 para verlo */
+    
+    /* Aplicamos la animación de flotar */
+    animation: float 3s ease-in-out infinite;
+    
+    /* Quitamos cualquier posible conflicto */
+    right: auto;
+    margin: 0;
+    pointer-events: none;
 }
 
 /* -------------------- Caja de texto ---------------------- */
