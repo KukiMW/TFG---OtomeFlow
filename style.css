@@ -89,19 +89,18 @@ body, html {
 .character {
     position: absolute;
     bottom: 0;
-    height: 90%; /* Ajustado para que se vean grandes */
-    height: 85%; /* Altura relativa a la pantalla */
-    width: auto;
+    
+    /* --- EL TRUCO DE LA CALIDAD ESTÁ AQUÍ --- */
+    max-height: 90%; /* Límite máximo: no puede superar el 90% de la pantalla */
+    height: auto;    /* Altura automática: respeta el tamaño original si es pequeño */
+    max-width: 100%; /* Evita que imágenes gigantes se salgan por los lados */
+    width: auto;     /* Mantiene la proporción correcta */
+    /* ---------------------------------------- */
+
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
-    pointer-events: none; /* Para que no bloqueen clics */
-    pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
-
-    left: 50%;
-    transform: translateX(-50%); /* Centrado horizontal */
-    width: auto; /* Ancho automático para mantener proporción */
-    z-index: 2; /* Encima del fondo */
+    pointer-events: none; /* Para que no bloqueen clics de la caja de diálogo */
 }
 
 /* -------------------- Caja de texto ---------------------- */
