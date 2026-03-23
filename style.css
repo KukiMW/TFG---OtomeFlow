@@ -86,7 +86,14 @@ body, html {
 }
 
 /* -------------------- Personajes ------------------------- */
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
 .character {
+    animation: float 3s ease-in-out infinite;
     position: absolute;
     
     /* 1. ELEVAR EL SUELO*/
@@ -103,8 +110,6 @@ body, html {
     opacity: 0;
     pointer-events: none; /* Para no bloquear clics */
     z-index: 2; /* Encima del fondo */
-
-    /* 3. TERCIO IZQUIERDO: 33% de la pantalla */
     left: 5%; 
 }
 
@@ -132,6 +137,20 @@ body, html {
     z-index: 10; /* Muy por encima */
     flex-direction: column;
     cursor: pointer; /* Indica que se puede clicar */
+}
+
+.speaker-name {
+    position: absolute;
+    top: -30px; /* Lo saca por encima de la caja */
+    left: 20px;
+    background: #d8a4ff;
+    color: #2b1029;
+    padding: 5px 20px;
+    border-radius: 10px 10px 0 0;
+    font-weight: bold;
+    font-size: 1rem;
+    border: 2px solid #d8a4ff;
+    border-bottom: none;
 }
 
 /* Texto dentro de la caja */
