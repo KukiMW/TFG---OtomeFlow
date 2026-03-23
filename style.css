@@ -94,6 +94,7 @@ body, html {
 
 .character {
     animation: float 3s ease-in-out infinite;
+    background-color: rgba(255, 0, 0, 0.3); /* Esto pondrá un cuadro rojo tras el búho */
     
     position: absolute;
     bottom: 140px; 
