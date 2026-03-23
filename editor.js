@@ -270,26 +270,67 @@ function setupEventListeners() {
     }
 
     document.getElementById('bgInput').addEventListener('change', async e => {
-        if(e.target.files[0]) {
-            const asset = await uploadAssetToCloud(e.target.files[0], 'backgrounds');
-            if(asset) {
-                assetState.backgrounds.push(asset);
-                refreshBlocklyEnv(); renderAssetList();
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // 1. Comprobar si ya existe un fondo con ese nombre
+        const existingIndex = assetState.backgrounds.findIndex(b => b.name === file.name);
+        
+        if (existingIndex !== -1) {
+            if (!confirm(`⚠️ Ya existe un fondo llamado "${file.name}". ¿Quieres reemplazarlo por este nuevo?`)) {
+                e.target.value = ''; // Limpiar el input si cancela
+                return; 
             }
         }
+
+        // 2. Subir a la nube
+        const asset = await uploadAssetToCloud(file, 'backgrounds');
+        
+        if (asset) {
+            if (existingIndex !== -1) {
+                // Si existía, lo reemplazamos (actualiza la URL)
+                assetState.backgrounds[existingIndex] = asset;
+            } else {
+                // Si es nuevo, lo añadimos
+                assetState.backgrounds.push(asset);
+            }
+            refreshBlocklyEnv(); 
+            renderAssetList();
+        }
+        e.target.value = ''; // Limpiar el input para poder subir otro igual luego
     });
 
     document.getElementById('spriteInput').addEventListener('change', async e => {
         const char = document.getElementById('charSelector').value;
         const file = e.target.files[0];
-        if(char && file) {
-            const asset = await uploadAssetToCloud(file, 'characters');
-            if(asset) {
-                if(!assetState.characters[char]) assetState.characters[char] = [];
-                assetState.characters[char].push(asset);
-                refreshBlocklyEnv(); renderAssetList();
+        
+        if (!char || !file) return;
+
+        // 1. Comprobar si ya existe un sprite con ese nombre para este personaje
+        const existingIndex = assetState.characters[char].findIndex(s => s.name === file.name);
+        
+        if (existingIndex !== -1) {
+            if (!confirm(`⚠️ Ya existe un sprite llamado "${file.name}" para ${char}. ¿Quieres reemplazarlo?`)) {
+                e.target.value = '';
+                return;
             }
         }
+
+        // 2. Subir a la nube
+        const asset = await uploadAssetToCloud(file, 'characters');
+        
+        if (asset) {
+            if (existingIndex !== -1) {
+                // Reemplazamos
+                assetState.characters[char][existingIndex] = asset;
+            } else {
+                // Añadimos
+                assetState.characters[char].push(asset);
+            }
+            refreshBlocklyEnv(); 
+            renderAssetList();
+        }
+        e.target.value = '';
     });
 
     document.getElementById('addCharBtn').addEventListener('click', () => {
@@ -363,7 +404,7 @@ async function generateStoryTree() {
                             let label = opt.text.substring(0, 15) + (opt.text.length>15?"...":"");
                             if(opt.varVal && opt.varVal != 0) label += ` [${opt.varName} +${opt.varVal}]`;
                             // Limpiar comillas en la etiqueta
-                            label = label.replace(/"/g, "'");
+                            label = label.replace(/"/g, "'") + " ";
                             graphDefinition += `${safeId} -->|"${label}"| ${safeDest};\n`;
                         }
                     });
@@ -424,19 +465,91 @@ function renderSceneList() {
 }
 
 function renderAssetList() {
-    const div = document.getElementById('assetList'); div.innerHTML = '';
-    if(assetState.backgrounds.length){
-        const d=document.createElement('div'); d.className='tree-category'; d.innerHTML='<b>🖼️ Fondos</b>';
-        assetState.backgrounds.forEach(f=> d.innerHTML+=`<div class="tree-item">${f.name}</div>`);
+    const div = document.getElementById('assetList');
+    div.innerHTML = ''; 
+
+    // --- RENDERIZAR FONDOS ---
+    if(assetState.backgrounds.length > 0){
+        const d = document.createElement('div'); 
+        d.className = 'tree-category'; 
+        d.innerHTML = '<b>🖼️ Fondos</b>';
+        
+        const ul = document.createElement('ul'); 
+        ul.className = 'tree-list';
+
+        assetState.backgrounds.forEach((f, i) => {
+            const li = document.createElement('li'); 
+            li.className = 'tree-item';
+            
+            // Nombre del fondo y botón X
+            li.innerHTML = `<span>${f.name}</span><button class="delete-btn" onclick="deleteAsset('bg', null, ${i})">✕</button>`;
+            ul.appendChild(li);
+        });
+        
+        d.appendChild(ul); 
         div.appendChild(d);
     }
-    Object.keys(assetState.characters).forEach(k=>{
-        const d=document.createElement('div'); d.className='tree-category'; 
-        d.innerHTML=`<b>👤 ${k}</b>`;
-        assetState.characters[k].forEach(f=> d.innerHTML+=`<div class="tree-item" style="padding-left:15px">${f.name}</div>`);
+
+    // --- RENDERIZAR PERSONAJES Y SUS SPRITES ---
+    const charNames = Object.keys(assetState.characters);
+    if (charNames.length > 0) {
+        const d = document.createElement('div'); 
+        d.className = 'tree-category'; 
+        d.innerHTML = '<b>👤 Personajes</b>';
+        
+        charNames.forEach(charName => {
+            const charFolder = document.createElement('div'); 
+            charFolder.className = 'char-folder';
+            
+            // Nombre del Personaje y botón X para borrar todo el personaje
+            charFolder.innerHTML = `<div class="char-name">📂 ${charName} <button class="delete-btn" onclick="deleteAsset('char', '${charName}', null)">✕</button></div>`;
+            
+            const ul = document.createElement('ul'); 
+            ul.className = 'tree-list';
+            
+            assetState.characters[charName].forEach((f, i) => {
+                const li = document.createElement('li'); 
+                li.className = 'tree-item';
+                
+                // Nombre del Sprite y botón X para borrar solo el sprite
+                li.innerHTML = `<span>${f.name}</span><button class="delete-btn" onclick="deleteAsset('sprite', '${charName}', ${i})">✕</button>`;
+                ul.appendChild(li);
+            });
+            
+            charFolder.appendChild(ul); 
+            d.appendChild(charFolder);
+        });
+        
         div.appendChild(d);
-    });
+    }
 }
+
+// ============================================================
+//               BORRAR ASSETS (IMÁGENES Y PERSONAJES)
+// ============================================================
+window.deleteAsset = function(type, parentName, index) {
+    if(!confirm("¿Seguro que quieres borrar este elemento? Los bloques que lo usen dejarán de funcionar correctamente.")) {
+        return;
+    }
+
+    if (type === 'bg') {
+        // Borrar fondo
+        assetState.backgrounds.splice(index, 1);
+    } 
+    else if (type === 'char') {
+        // Borrar personaje completo (carpeta y todos sus sprites)
+        delete assetState.characters[parentName];
+        updateCharDropdown(null); // Actualizar selector izquierdo
+    } 
+    else if (type === 'sprite') {
+        // Borrar un sprite específico dentro de un personaje
+        assetState.characters[parentName].splice(index, 1);
+    }
+
+    // Al borrar algo, hay que actualizar el menú de Blockly y la lista visual
+    refreshBlocklyEnv(); 
+    renderAssetList();
+};
 
 function updateCharDropdown(sel) {
     const s = document.getElementById('charSelector'); s.innerHTML = '<option disabled>--</option>';
