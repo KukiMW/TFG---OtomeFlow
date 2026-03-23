@@ -88,22 +88,18 @@ body, html {
 /* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    
-    /* 1. ELEVAR EL SUELO*/
-    bottom: 140px; 
-
-    /* 2. ALTURA MÁXIMA: La pantalla entera (100vh) menos el hueco de abajo */
-    max-height: calc(100vh - 150px); 
-    height: auto;    
-    max-width: 100%; 
+    bottom: 0;
+    height: 85%; /* Altura relativa a la pantalla */
     width: auto;
-
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
-    pointer-events: none; /* Para no bloquear clics */
+    pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
+
+    left: 50%;
+    transform: translateX(-50%); /* Centrado horizontal */
+    width: auto; /* Ancho automático para mantener proporción */
     z-index: 2; /* Encima del fondo */
-    left: 5%; 
 }
 
 /* -------------------- Caja de texto ---------------------- */
@@ -130,20 +126,6 @@ body, html {
     z-index: 10; /* Muy por encima */
     flex-direction: column;
     cursor: pointer; /* Indica que se puede clicar */
-}
-
-.speaker-name {
-    position: absolute;
-    top: -30px; /* Lo saca por encima de la caja */
-    left: 20px;
-    background: #d8a4ff;
-    color: #2b1029;
-    padding: 5px 20px;
-    border-radius: 10px 10px 0 0;
-    font-weight: bold;
-    font-size: 1rem;
-    border: 2px solid #d8a4ff;
-    border-bottom: none;
 }
 
 /* Texto dentro de la caja */
