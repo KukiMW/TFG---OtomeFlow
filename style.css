@@ -89,11 +89,13 @@ body, html {
 .character {
     position: absolute;
     bottom: 0;
+    height: 90%; /* Ajustado para que se vean grandes */
     height: 85%; /* Altura relativa a la pantalla */
     width: auto;
     object-fit: contain;
     transition: opacity 0.3s;
     opacity: 0;
+    pointer-events: none; /* Para que no bloqueen clics */
     pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
 
     left: 50%;
