@@ -140,13 +140,31 @@
             }
         }
 
-        // LOGIN CON GOOGLE
+        // // LOGIN CON GOOGLE
+        // async function doGoogleLogin() {
+        //     const { error } = await window.sb.auth.signInWithOAuth({
+        //         provider: 'google',
+        //         options: { redirectTo: window.location.origin + '/dashboard.html' }
+        //     });
+        //     if (error) alert("Error con Google: " + error.message);
+        // }
+        // --- LOGIN CON GOOGLE ---
         async function doGoogleLogin() {
+            msgBox.style.color = "#333"; 
+            msgBox.innerText = "Redirigiendo a Google...";
+            
             const { error } = await window.sb.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: window.location.origin + '/dashboard.html' }
+                provider: 'google'
+                // ⚠️ HEMOS BORRADO EL 'redirectTo'. 
+                // Ahora Supabase te devolverá a index.html por defecto, 
+                // procesará el token invisiblemente y el evento 'onAuthStateChange' 
+                // te saltará automáticamente al dashboard de forma segura.
             });
-            if (error) alert("Error con Google: " + error.message);
+            
+            if (error) {
+                msgBox.style.color = "#d32f2f";
+                msgBox.innerText = "Error con Google: " + error.message;
+            }
         }
     </script>
 </body>
