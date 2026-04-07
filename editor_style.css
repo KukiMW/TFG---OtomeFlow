@@ -5,14 +5,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+    margin: 0; padding: 0; height: 100%;
     font-family: "Poppins", sans-serif;
     background: #f6ebff;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column; /* Para la barra superior */
+    min-width: 1024px; /* Fuerza el tamaño de una pantalla de PC o Tablet grande */
+    overflow-x: auto;  /* Permite desplazarse hacia los lados en el móvil */
+    overflow-y: hidden;
+    display: flex; flex-direction: column;
 }
 
 /* ============================================================
