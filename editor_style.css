@@ -5,13 +5,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 body, html {
-    margin: 0; padding: 0; height: 100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
     font-family: "Poppins", sans-serif;
     background: #f6ebff;
-    min-width: 1024px; /* Fuerza el tamaño de una pantalla de PC o Tablet grande */
-    overflow-x: auto;  /* Permite desplazarse hacia los lados en el móvil */
-    overflow-y: hidden;
-    display: flex; flex-direction: column;
+    overflow: hidden; /* Volvemos a evitar barras de scroll generales por defecto */
+    display: flex;
+    flex-direction: column;
 }
 
 /* ============================================================
@@ -54,28 +55,32 @@ body, html {
 ============================================================ */
 #main-wrapper {
     display: flex;
-    flex: 1; /* Ocupa el resto de la altura */
+    flex: 1; 
     position: relative;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 /* ============================================================
    3. BARRA LATERAL IZQUIERDA (CONTROLES)
 ============================================================ */
 #sidebar-left {
-    width: 280px; /* Ancho fijo inicial */
+    flex: 0 0 280px; /* Tamaño ideal: 280px. No crece (0), no se encoge por defecto (0) */
+    min-width: 220px;
+    
     background: #c8a4ff;
     overflow-y: auto;
     padding: 15px;
     box-sizing: border-box;
-    transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    transition: flex-basis 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
     border-right: 1px solid rgba(255,255,255,0.3);
     z-index: 10;
 }
 
 /* Estado Cerrado (Colapsado) */
 #sidebar-left.closed {
-    width: 0;
+    flex-basis: 0 !important; /* En lugar de width: 0, usamos flex-basis: 0 */
+    min-width: 0 !important;
     padding: 0;
     overflow: hidden;
     opacity: 0;
@@ -177,31 +182,34 @@ button:active {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 0 10px 10px 0; /* Borde redondeado a la derecha */
-    align-self: center; /* Centrado verticalmente */
-    position: absolute;
-    left: 280px; /* Pegado al borde de la barra */
-    top: 50%;
-    transform: translateY(-50%);
+    border-radius: 0 10px 10px 0; 
+    align-self: center;
+    
+    /* CAMBIO CLAVE: Ya no usamos position: absolute, sino flex normal */
+    position: relative; 
+    left: 0; /* Ya no necesitamos moverlo con left, flex lo empuja */
+    
     z-index: 100;
-    transition: left 0.3s ease;
+    transition: transform 0.3s ease;
     box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+    flex-shrink: 0; /* La pestaña nunca se encoge */
 }
 
 #sidebarToggle:hover {
     background: #9c27b0;
 }
 
-/* Cuando la barra se cierra, la pestaña se mueve a la izquierda */
-#sidebar-left.closed + #sidebarToggle {
-    left: 0;
+/* Cuando la barra se cierra, giramos la flecha por CSS (opcional) */
+#sidebar-left.closed + #sidebarToggle .material-icons {
+    transform: rotate(180deg);
 }
 
 /* ============================================================
    5. ÁREA CENTRAL (BLOCKLY)
 ============================================================ */
 #blocklyArea {
-    flex: 1; /* Ocupa todo el espacio disponible */
+    flex: 1 1 400px; /* Crece (1), se encoge (1), tamaño ideal 400px */
+    min-width: 300px;
     position: relative;
     height: 100%;
     background: #fff;
@@ -216,7 +224,8 @@ button:active {
    6. BARRA LATERAL DERECHA (ESCENAS Y ARBOL)
 ============================================================ */
 #sidebar-right {
-    width: 260px; /* Un poco más ancha para nombres largos */
+    flex: 0 0 250px; /* Tamaño ideal: 250px */
+    min-width: 200px; /* Límite mínimo */
     background: #e0c3fc;
     padding: 15px;
     box-sizing: border-box;
