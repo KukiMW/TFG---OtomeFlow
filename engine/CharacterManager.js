@@ -1,4 +1,3 @@
-
 // ============================================================
 //               OTOME ENGINE - CHARACTERS
 // ============================================================
@@ -10,9 +9,8 @@ export class CharacterManager {
     }
 
     /**
-     * Calcula las dimensiones y posición reales de la imagen de fondo
-     * cuando se usa `object-fit: contain`.
-     * @returns {{x: number, y: number, width: number, height: number}}
+     * Calcula las dimensiones y posición reales de la imagen de fondo visible
+     * ignorando las franjas negras (letterboxing/pillarboxing).
      */
     getRenderedBackgroundRect() {
         const containerWidth = this.bgElement.clientWidth;
@@ -21,7 +19,6 @@ export class CharacterManager {
         const naturalHeight = this.bgElement.naturalHeight;
 
         if (naturalWidth === 0 || naturalHeight === 0) {
-            // Si la imagen no ha cargado, devuelve las dimensiones del contenedor
             return { x: 0, y: 0, width: containerWidth, height: containerHeight };
         }
 
@@ -31,13 +28,11 @@ export class CharacterManager {
         let renderedWidth, renderedHeight, x, y;
 
         if (containerAspectRatio > imageAspectRatio) {
-            // El contenedor es más ancho que la imagen (pillarboxing)
             renderedHeight = containerHeight;
             renderedWidth = renderedHeight * imageAspectRatio;
             x = (containerWidth - renderedWidth) / 2;
             y = 0;
         } else {
-            // El contenedor es más alto que la imagen (letterboxing)
             renderedWidth = containerWidth;
             renderedHeight = renderedWidth / imageAspectRatio;
             x = 0;
@@ -47,48 +42,72 @@ export class CharacterManager {
         return { x, y, width: renderedWidth, height: renderedHeight };
     }
 
-
     show(action) {
         return new Promise(resolve => {
-            this.charElement.style.opacity = '0';
+            // Caso Narrador (Sin sprite)
+            if (!action.sprite || action.sprite.trim() === "") {
+                this.charElement.style.opacity = '0';
+                resolve(); 
+                return;
+            }
+
+            this.charElement.style.opacity = '0'; 
             this.charElement.src = action.sprite;
 
             this.charElement.onload = () => {
-                // Obtenemos el rectángulo del CONTENEDOR del fondo para su posición absoluta
                 const containerRect = this.bgElement.getBoundingClientRect();
-
-                // ¡LA MAGIA OCURRE AQUÍ!
-                // Calculamos las dimensiones reales de la IMAGEN visible
                 const renderedBg = this.getRenderedBackgroundRect();
 
-                const charWidth = this.charElement.width;
+                // --- 1. ESCALADO INTELIGENTE (RESPONSIVE) ---
+                // Limitamos el personaje al tamaño del fondo REAL visible
+                this.charElement.style.maxHeight = `${renderedBg.height * 0.9}px`;
+                this.charElement.style.maxWidth = `${renderedBg.width * 0.6}px`;
 
-                // Ahora, calculamos la posición del personaje relativa a la imagen renderizada
+                // Forzamos al navegador a aplicar el tamaño para poder leer su anchura real
+                void this.charElement.offsetHeight; 
+                const charWidth = this.charElement.getBoundingClientRect().width;
+
+                // --- 2. POSICIÓN HORIZONTAL (Ajustada al fondo) ---
                 let targetLeft;
-
                 switch(action.position) {
                     case "left":
-                        // Posición = inicio del contenedor + offset de la imagen + 5% del ANCHO de la imagen
-                        targetLeft = containerRect.left + renderedBg.x + 0.05 * renderedBg.width;
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.1);
                         break;
                     case "center":
-                        // Posición = inicio del contenedor + offset de la imagen + 50% del ANCHO de la imagen - mitad del personaje
-                        targetLeft = containerRect.left + renderedBg.x + 0.5 * renderedBg.width - charWidth / 2;
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.5) - (charWidth / 2);
                         break;
                     case "right":
-                        // Posición = inicio del contenedor + offset de la imagen + 95% del ANCHO de la imagen - ancho del personaje
-                        targetLeft = containerRect.left + renderedBg.x + 0.95 * renderedBg.width - charWidth;
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.9) - charWidth;
                         break;
                     default:
-                        targetLeft = containerRect.left + renderedBg.x + 0.5 * renderedBg.width - charWidth / 2;
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.5) - (charWidth / 2);
                 }
-
                 this.charElement.style.left = `${targetLeft}px`;
 
+                // --- 3. POSICIÓN VERTICAL (El suelo) ---
+                const windowHeight = window.innerHeight;
+                // Calculamos dónde termina el fondo dibujado
+                const bgBottomEdge = containerRect.top + renderedBg.y + renderedBg.height;
+                // Espacio negro que queda por debajo del fondo
+                const spaceBelowBg = windowHeight - bgBottomEdge;
+
+                // La caja de texto ocupa aprox 150px. 
+                // Elevamos al personaje lo necesario para que no lo tape la caja (150)
+                // O lo elevamos para que pise el fondo visible si la franja negra es muy grande.
+                const targetBottom = Math.max(150, spaceBelowBg);
+                
+                this.charElement.style.bottom = `${targetBottom}px`;
+
+                // Animación y resolución
                 this.charElement.style.transition = "opacity 0.3s";
                 this.charElement.style.opacity = '1';
 
                 setTimeout(resolve, 300);
+            };
+
+            this.charElement.onerror = () => {
+                console.warn("No se pudo cargar la imagen:", action.sprite);
+                resolve(); 
             };
         });
     }
