@@ -265,15 +265,18 @@ function setupEventListeners() {
     const sidebarLeft = document.getElementById('sidebar-left');
     const toggleLeftBtn = document.getElementById('sidebarToggle');
     
-    if(toggleLeftBtn) {
+    if (toggleLeftBtn) {
         const toggleLeftIcon = toggleLeftBtn.querySelector('.material-icons');
         toggleLeftBtn.addEventListener('click', () => {
             sidebarLeft.classList.toggle('closed');
+            
+            // Lógica simétrica:
             if (sidebarLeft.classList.contains('closed')) {
-                toggleLeftIcon.innerText = 'chevron_right'; // Apunta a la der para abrir
+                toggleLeftIcon.innerText = 'chevron_right'; // Si está cerrada, apunta a la derecha para "tirar" de ella
             } else {
-                toggleLeftIcon.innerText = 'chevron_left'; // Apunta a la izq para cerrar
+                toggleLeftIcon.innerText = 'chevron_left';  // Si está abierta, apunta a la izquierda para "empujarla"
             }
+            
             setTimeout(() => Blockly.svgResize(workspace), 350);
         });
     }
@@ -282,21 +285,18 @@ function setupEventListeners() {
     const sidebarRight = document.getElementById('sidebar-right');
     const toggleRightBtn = document.getElementById('sidebarRightToggle');
     
-    if(toggleRightBtn) {
+    if (toggleRightBtn) {
         const toggleRightIcon = toggleRightBtn.querySelector('.material-icons');
-        
         toggleRightBtn.addEventListener('click', () => {
-            // Alternamos la clase closed
             sidebarRight.classList.toggle('closed');
             
-            // Cambiamos el icono de la flecha mediante JS para asegurar compatibilidad
+            // Lógica simétrica:
             if (sidebarRight.classList.contains('closed')) {
-                toggleRightIcon.innerText = 'chevron_left'; // Apunta a la izq para pedir que se abra
+                toggleRightIcon.innerText = 'chevron_left';  // Si está cerrada, apunta a la izquierda para "tirar" de ella
             } else {
-                toggleRightIcon.innerText = 'chevron_right'; // Apunta a la der para pedir que se cierre
+                toggleRightIcon.innerText = 'chevron_right'; // Si está abierta, apunta a la derecha para "empujarla"
             }
             
-            // Redimensionar Blockly (Muy importante para que ocupe el nuevo espacio)
             setTimeout(() => Blockly.svgResize(workspace), 350);
         });
     }

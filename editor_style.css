@@ -199,11 +199,6 @@ button:active {
     background: #9c27b0;
 }
 
-/* Cuando la barra se cierra, giramos la flecha por CSS */
-#sidebar-left.closed + #sidebarToggle .material-icons {
-    transform: rotate(180deg);
-}
-
 /* ============================================================
    5. ÁREA CENTRAL (BLOCKLY)
 ============================================================ */
