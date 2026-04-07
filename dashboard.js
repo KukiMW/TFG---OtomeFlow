@@ -137,7 +137,7 @@ function renderGrid(projects, myProgress =[]) {
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
                         <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
-                        <a onclick="shareProject(${proj.id})">🤝 Compartir con Profe</a>
+                        <a onclick="openShareModal(${proj.id})">🤝 Compartir con Profe</a>
                         <a onclick="cloneProject(${proj.id})">📑 Duplicar</a>
                         <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
                     </div>
@@ -408,45 +408,60 @@ window.cloneProject = async (id) => {
 // ============================================================
 //               COMPARTIR PROYECTO CON OTRO PROFESOR
 // ============================================================
-window.shareProject = async (projectId) => {
-    const emailToShare = prompt("Introduce el correo electrónico del profesor al que deseas enviar una copia de este proyecto:");
-    if (!emailToShare) return;
+let currentShareId = null;
 
-    // 1. Buscar al profesor por email en la tabla profiles
-    const { data: targetProfile, error: searchError } = await window.sb
-        .from('profiles')
-        .select('id, role')
-        .eq('email', emailToShare.toLowerCase())
-        .single();
-
-    if (searchError || !targetProfile) {
-        alert("❌ No se encontró ningún usuario con ese correo registrado en la plataforma.");
-        return;
-    }
-    if (targetProfile.role !== 'teacher') {
-        alert("⚠️ El usuario encontrado es un Alumno. Solo puedes compartir proyectos de edición con otros Profesores.");
-        return;
-    }
-
-    // 2. Obtener el proyecto original
-    const { data: original } = await window.sb.from('projects').select('*').eq('id', projectId).single();
-    if (!original) return;
-
-    // 3. Crear una copia exacta pero asignando el user_id al nuevo profesor
-    const { error: cloneError } = await window.sb.from('projects').insert([{
-        title: original.title + " (Compartido por " + currentUser.email + ")",
-        description: original.description,
-        user_id: targetProfile.id,
-        project_data: original.project_data,
-        story_data: original.story_data
-    }]);
-
-    if (cloneError) {
-        alert("Error al compartir: " + cloneError.message);
-    } else {
-        alert("✅ ¡Proyecto enviado con éxito! A " + emailToShare + " le aparecerá en su Dashboard.");
-    }
+// Abrir el Modal
+window.openShareModal = (id) => {
+    currentShareId = id;
+    document.getElementById('shareModal').style.display = 'flex';
+    document.getElementById('teacherEmail').value = ''; // Limpiar input
 };
+
+// Evento del formulario de compartir
+const shareForm = document.getElementById('shareForm');
+if (shareForm) {
+    shareForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailToShare = document.getElementById('teacherEmail').value.trim();
+        if (!emailToShare) return;
+
+        // 1. Buscar al profesor por email
+        const { data: targetProfile, error: searchError } = await window.sb
+            .from('profiles')
+            .select('id, role')
+            .eq('email', emailToShare.toLowerCase())
+            .single();
+
+        if (searchError || !targetProfile) {
+            alert("❌ No se encontró ningún usuario con ese correo registrado.");
+            return;
+        }
+        if (targetProfile.role !== 'teacher') {
+            alert("⚠️ El usuario encontrado es un Alumno. Solo puedes compartir con Profesores.");
+            return;
+        }
+
+        // 2. Obtener el proyecto original
+        const { data: original } = await window.sb.from('projects').select('*').eq('id', currentShareId).single();
+        if (!original) return;
+
+        // 3. Crear copia para el nuevo profesor (Bypass de RLS con la nueva regla)
+        const { error: cloneError } = await window.sb.from('projects').insert([{
+            title: original.title + " (Compartido)",
+            description: original.description,
+            user_id: targetProfile.id, // Asignado al profesor nuevo
+            project_data: original.project_data,
+            story_data: original.story_data
+        }]);
+
+        if (cloneError) {
+            alert("Error al compartir: " + cloneError.message);
+        } else {
+            alert("✅ ¡Proyecto enviado con éxito a " + emailToShare + "!");
+            document.getElementById('shareModal').style.display = 'none';
+        }
+    });
+}
 
 window.deleteProject = async (id) => {
     if(confirm("¿Seguro? Se borrará todo.")) {

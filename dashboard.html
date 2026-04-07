@@ -93,6 +93,23 @@
         </div>
     </div>
 
+    <!-- MODAL COMPARTIR CON PROFESOR -->
+    <div id="shareModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <h2>🤝 Compartir Proyecto</h2>
+            <p style="font-size: 0.9rem; color: #555;">Escribe el correo del profesor al que deseas enviar una copia exacta de esta historia.</p>
+            <form id="shareForm">
+                <div style="display: flex; gap:10px;">
+                    <input type="email" id="teacherEmail" placeholder="profesor@ejemplo.com" required style="margin:0;">
+                    <button type="submit" class="btn-primary" style="margin:0;">Enviar Copia</button>
+                </div>
+            </form>
+            <div class="modal-actions">
+                <button type="button" onclick="document.getElementById('shareModal').style.display='none'" class="btn-text">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL VER NOTAS -->
     <div id="scoresModal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
