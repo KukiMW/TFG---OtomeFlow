@@ -8,10 +8,6 @@ export class CharacterManager {
         this.bgElement = backgroundElement;
     }
 
-    /**
-     * Calcula las dimensiones y posición reales de la imagen de fondo visible
-     * ignorando las franjas negras (letterboxing/pillarboxing).
-     */
     getRenderedBackgroundRect() {
         const containerWidth = this.bgElement.clientWidth;
         const containerHeight = this.bgElement.clientHeight;
@@ -44,7 +40,6 @@ export class CharacterManager {
 
     show(action) {
         return new Promise(resolve => {
-            // Caso Narrador (Sin sprite)
             if (!action.sprite || action.sprite.trim() === "") {
                 this.charElement.style.opacity = '0';
                 resolve(); 
@@ -58,50 +53,53 @@ export class CharacterManager {
                 const containerRect = this.bgElement.getBoundingClientRect();
                 const renderedBg = this.getRenderedBackgroundRect();
 
-                // --- 1. ESCALADO INTELIGENTE (RESPONSIVE) ---
-                // Limitamos el personaje al tamaño del fondo REAL visible
-                this.charElement.style.maxHeight = `${renderedBg.height * 0.9}px`;
+                // --- 1. ESCALADO (RESPONSIVE) ---
+                // Nunca será más alto que el 95% del fondo, ni más ancho que el 60%
+                this.charElement.style.maxHeight = `${renderedBg.height * 0.95}px`;
                 this.charElement.style.maxWidth = `${renderedBg.width * 0.6}px`;
 
-                // Forzamos al navegador a aplicar el tamaño para poder leer su anchura real
-                void this.charElement.offsetHeight; 
-                const charWidth = this.charElement.getBoundingClientRect().width;
+                // Obligamos al navegador a recalcular el tamaño real de la imagen ahora mismo
+                const charRect = this.charElement.getBoundingClientRect();
+                const charHeight = charRect.height;
 
-                // --- 2. POSICIÓN HORIZONTAL (Ajustada al fondo) ---
+                // --- 2. POSICIÓN HORIZONTAL ---
+                // Como en CSS pusimos translateX(-50%), el 'left' marca el centro exacto del personaje.
                 let targetLeft;
                 switch(action.position) {
                     case "left":
-                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.1);
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.20); // 20%
                         break;
                     case "center":
-                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.5) - (charWidth / 2);
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.50); // 50%
                         break;
                     case "right":
-                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.9) - charWidth;
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.80); // 80%
                         break;
                     default:
-                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.5) - (charWidth / 2);
+                        targetLeft = containerRect.left + renderedBg.x + (renderedBg.width * 0.50);
                 }
                 this.charElement.style.left = `${targetLeft}px`;
 
-                // --- 3. POSICIÓN VERTICAL (El suelo) ---
+                // --- 3. POSICIÓN VERTICAL (INTELIGENCIA DE SUELO) ---
                 const windowHeight = window.innerHeight;
-                // Calculamos dónde termina el fondo dibujado
                 const bgBottomEdge = containerRect.top + renderedBg.y + renderedBg.height;
-                // Espacio negro que queda por debajo del fondo
+                
+                // Distancia desde el borde inferior de la ventana hasta el borde inferior de la imagen de fondo
                 const spaceBelowBg = windowHeight - bgBottomEdge;
 
-                // La caja de texto ocupa aprox 150px. 
-                // Elevamos al personaje lo necesario para que no lo tape la caja (150)
-                // O lo elevamos para que pise el fondo visible si la franja negra es muy grande.
-                const targetBottom = Math.max(150, spaceBelowBg);
-                
+                let targetBottom = spaceBelowBg;
+
+                // LÓGICA: Si la imagen es bajita (mide menos del 45% de la pantalla),
+                // la subimos unos 150px para que se apoye en la caja de diálogo y no se tape.
+                // Si es alta (cuerpo entero), la dejamos tocando el suelo del fondo para que no flote.
+                if (charHeight < (windowHeight * 0.45)) {
+                    targetBottom = Math.max(spaceBelowBg, 150);
+                }
+
                 this.charElement.style.bottom = `${targetBottom}px`;
 
-                // Animación y resolución
-                this.charElement.style.transition = "opacity 0.3s";
+                // Animación final
                 this.charElement.style.opacity = '1';
-
                 setTimeout(resolve, 300);
             };
 

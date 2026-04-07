@@ -87,20 +87,21 @@ body, html {
 }
 
 /* -------------------- Personajes ------------------------- */
+/* -------------------- Personajes ------------------------- */
 .character {
     position: absolute;
-    bottom: 0;
-    height: 85%; /* Altura relativa a la pantalla */
+    height: auto;
     width: auto;
     object-fit: contain;
-    transition: opacity 0.3s;
     opacity: 0;
-    pointer-events: none; /* Para que no bloqueen clics. Permite hacer clic "a través" del personaje */
-
-    left: 50%;
-    transform: translateX(-50%); /* Centrado horizontal */
-    width: auto; /* Ancho automático para mantener proporción */
+    pointer-events: none; /* Para que no bloqueen clics de la caja de diálogo */
     z-index: 2; /* Encima del fondo */
+    
+    /* Centramos el eje de la imagen */
+    transform: translateX(-50%);
+    
+    /* Transiciones suaves al cambiar de pose o de posición */
+    transition: opacity 0.3s ease, left 0.3s ease, bottom 0.3s ease;
 }
 
 /* -------------------- Caja de texto ---------------------- */
