@@ -48,6 +48,9 @@
                 <input type="text" id="newTitle" required placeholder="Ej: La Revolución Francesa">
                 <label>Descripción:</label>
                 <textarea id="newDesc" placeholder="Breve descripción..."></textarea>
+                <label>Límite de intentos permitidos:</label>
+                <input type="number" id="newMaxAttempts" value="0" min="0" placeholder="0 = Sin límite">
+                <small style="color:#666; font-size:0.8rem;">(Pon 0 para intentos infinitos)</small>
                 <div class="modal-actions">
                     <button type="button" id="closeModal" class="btn-text">Cancelar</button>
                     <button type="submit" class="btn-primary">Crear</button>

@@ -111,15 +111,12 @@ function renderGrid(projects, myProgress =[]) {
     
     grid.innerHTML = "";
 
-    // 2. SOLUCIÓN "CARGANDO...": Mostrar mensaje correcto si está vacío
     if (!projects || projects.length === 0) {
         grid.innerHTML = `<p style="text-align:center; width:100%; color:#666; font-style:italic;">
             ${currentProfile.role === 'teacher' ? 'Aún no has creado ninguna historia.' : 'No tienes tareas asignadas. ¡Tómate un respiro!'}
         </p>`;
         return;
     }
-
-    const completedIds = new Set(myProgress.map(p => p.project_id));
 
     projects.forEach(proj => {
         const card = document.createElement('div');
@@ -129,13 +126,18 @@ function renderGrid(projects, myProgress =[]) {
 
         const safeTitle = proj.title.replace(/'/g, "\\'");
         const safeDesc = (proj.description || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+        
+        // Obtenemos los intentos máximos (0 = sin límite)
+        const maxAttempts = (proj.project_data && proj.project_data.max_attempts) ? proj.project_data.max_attempts : 0;
 
         if (currentProfile.role === 'teacher') {
+            // VISTA PROFESOR (Añadido botón Compartir)
             headerExtra = `
                 <div class="dropdown">
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
-                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}')">✏️ Editar Info</a>
+                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
+                        <a onclick="shareProject(${proj.id})">🤝 Compartir con Profe</a>
                         <a onclick="cloneProject(${proj.id})">📑 Duplicar</a>
                         <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
                     </div>
@@ -149,14 +151,28 @@ function renderGrid(projects, myProgress =[]) {
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
         } else {
-            if (completedIds.has(proj.id)) {
+            // VISTA ALUMNO (Lógica de intentos)
+            const attemptsCount = myProgress.filter(p => p.project_id === proj.id).length;
+            const hasLimit = maxAttempts > 0;
+            const reachedLimit = hasLimit && attemptsCount >= maxAttempts;
+            const attemptsText = hasLimit ? `(Intentos: ${attemptsCount}/${maxAttempts})` : `(Intentos: ${attemptsCount})`;
+
+            if (reachedLimit) {
                  footerContent = `
-                    <div style="color: green; font-weight: bold; width: 100%; text-align: center;">✅ COMPLETADO</div>
+                    <div style="color: #d32f2f; font-weight: bold; width: 100%; text-align: center; font-size: 0.85rem;">
+                        ⛔ LÍMITE ALCANZADO ${attemptsText}
+                    </div>
+                `;
+            } else if (attemptsCount > 0) {
+                 footerContent = `
+                    <div style="color: green; font-weight: bold; font-size: 0.85rem; margin-right:auto;">
+                        ✅ COMPLETADO ${attemptsText}
+                    </div>
                     <button onclick="window.location.href='game.html?id=${proj.id}'" class="icon-btn" title="Repetir">🔄</button>
                 `;
             } else {
                  footerContent = `
-                    <div style="font-size:0.8rem; color:#d93025; font-weight:bold; margin-right:auto;">Pendiente</div>
+                    <div style="font-size:0.8rem; color:#d93025; font-weight:bold; margin-right:auto;">Pendiente ${hasLimit ? attemptsText : ''}</div>
                     <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">JUGAR</button>
                 `;
             }
@@ -176,7 +192,7 @@ function renderGrid(projects, myProgress =[]) {
 }
 
 // ============================================================
-//               SEGURIDAD CONTRA ERRORES (TRY/CATCH DE EVENTOS)
+//       SEGURIDAD CONTRA ERRORES (TRY/CATCH DE EVENTOS)
 // ============================================================
 
 // Asignar form
@@ -206,15 +222,31 @@ if (createForm) {
         e.preventDefault();
         const title = document.getElementById('newTitle').value;
         const desc = document.getElementById('newDesc').value;
+        
+        // LEER LOS INTENTOS DEL NUEVO INPUT (Si existe, si no, 0)
+        const maxAttInput = document.getElementById('newMaxAttempts');
+        const maxAttempts = maxAttInput ? (parseInt(maxAttInput.value) || 0) : 0;
 
         if (editingProjectId) {
-            const { error } = await window.sb.from('projects').update({ title: title, description: desc }).eq('id', editingProjectId);
+            // MODO EDICIÓN: Primero leemos project_data actual para no borrar las escenas guardadas
+            const { data: existing } = await window.sb.from('projects').select('project_data').eq('id', editingProjectId).single();
+            let pData = existing.project_data || {};
+            pData.max_attempts = maxAttempts; // Actualizamos los intentos
+
+            const { error } = await window.sb.from('projects').update({ title: title, description: desc, project_data: pData }).eq('id', editingProjectId);
+            
             if (error) alert("Error al editar: " + error.message);
             else { loadProjects(); document.getElementById('createModal').style.display = 'none'; }
         } else {
+            // MODO CREACIÓN
             const { data, error } = await window.sb.from('projects').insert([{ 
-                title: title, description: desc, user_id: currentUser.id, project_data: {}, story_data: {}    
+                title: title, 
+                description: desc, 
+                user_id: currentUser.id, 
+                project_data: { max_attempts: maxAttempts }, 
+                story_data: {}    
             }]).select();
+            
             if (error) alert("Error al crear: " + error.message);
             else window.location.href = `editor.html?id=${data[0].id}`; 
         }
@@ -226,6 +258,11 @@ const fabAdd = document.getElementById('fabAdd');
 if (fabAdd) fabAdd.onclick = () => {
     editingProjectId = null;
     document.getElementById('createForm').reset();
+    
+    // Resetear el campo de intentos
+    const maxAttInput = document.getElementById('newMaxAttempts');
+    if (maxAttInput) maxAttInput.value = 0; 
+
     document.querySelector('#createModal h2').innerText = "Nueva Historia";
     document.querySelector('#createForm button[type="submit"]').innerText = "Crear";
     document.getElementById('createModal').style.display = 'flex';
@@ -346,10 +383,12 @@ window.openScoresModal = async (id) => {
     list.innerHTML = html;
 };
 
-window.editProjectMetadata = (id, title, desc) => {
+window.editProjectMetadata = (id, title, desc, maxAtt) => {
     editingProjectId = id;
     document.getElementById('newTitle').value = title;
     document.getElementById('newDesc').value = desc === 'undefined' ? '' : desc; 
+    const maxAttInput = document.getElementById('newMaxAttempts');
+    if (maxAttInput) maxAttInput.value = maxAtt || 0;
     document.querySelector('#createModal h2').innerText = "Editar Información";
     document.querySelector('#createForm button[type="submit"]').innerText = "Guardar Cambios";
     document.getElementById('createModal').style.display = 'flex';
@@ -364,6 +403,49 @@ window.cloneProject = async (id) => {
     }]);
     if(error) alert("Error: " + error.message);
     else { alert("¡Duplicado!"); loadProjects(); }
+};
+
+// ============================================================
+//               COMPARTIR PROYECTO CON OTRO PROFESOR
+// ============================================================
+window.shareProject = async (projectId) => {
+    const emailToShare = prompt("Introduce el correo electrónico del profesor al que deseas enviar una copia de este proyecto:");
+    if (!emailToShare) return;
+
+    // 1. Buscar al profesor por email en la tabla profiles
+    const { data: targetProfile, error: searchError } = await window.sb
+        .from('profiles')
+        .select('id, role')
+        .eq('email', emailToShare.toLowerCase())
+        .single();
+
+    if (searchError || !targetProfile) {
+        alert("❌ No se encontró ningún usuario con ese correo registrado en la plataforma.");
+        return;
+    }
+    if (targetProfile.role !== 'teacher') {
+        alert("⚠️ El usuario encontrado es un Alumno. Solo puedes compartir proyectos de edición con otros Profesores.");
+        return;
+    }
+
+    // 2. Obtener el proyecto original
+    const { data: original } = await window.sb.from('projects').select('*').eq('id', projectId).single();
+    if (!original) return;
+
+    // 3. Crear una copia exacta pero asignando el user_id al nuevo profesor
+    const { error: cloneError } = await window.sb.from('projects').insert([{
+        title: original.title + " (Compartido por " + currentUser.email + ")",
+        description: original.description,
+        user_id: targetProfile.id,
+        project_data: original.project_data,
+        story_data: original.story_data
+    }]);
+
+    if (cloneError) {
+        alert("Error al compartir: " + cloneError.message);
+    } else {
+        alert("✅ ¡Proyecto enviado con éxito! A " + emailToShare + " le aparecerá en su Dashboard.");
+    }
 };
 
 window.deleteProject = async (id) => {
