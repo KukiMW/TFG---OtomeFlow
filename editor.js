@@ -261,11 +261,42 @@ function spawnDefaultBlock(id) {
 // ============================================================
 function setupEventListeners() {
     
-    const sidebar = document.getElementById('sidebar-left');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    if(toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('closed');
+    // --- COLAPSAR BARRA IZQUIERDA ---
+    const sidebarLeft = document.getElementById('sidebar-left');
+    const toggleLeftBtn = document.getElementById('sidebarToggle');
+    
+    if(toggleLeftBtn) {
+        const toggleLeftIcon = toggleLeftBtn.querySelector('.material-icons');
+        toggleLeftBtn.addEventListener('click', () => {
+            sidebarLeft.classList.toggle('closed');
+            if (sidebarLeft.classList.contains('closed')) {
+                toggleLeftIcon.innerText = 'chevron_right'; // Apunta a la der para abrir
+            } else {
+                toggleLeftIcon.innerText = 'chevron_left'; // Apunta a la izq para cerrar
+            }
+            setTimeout(() => Blockly.svgResize(workspace), 350);
+        });
+    }
+
+    // --- COLAPSAR BARRA DERECHA ---
+    const sidebarRight = document.getElementById('sidebar-right');
+    const toggleRightBtn = document.getElementById('sidebarRightToggle');
+    
+    if(toggleRightBtn) {
+        const toggleRightIcon = toggleRightBtn.querySelector('.material-icons');
+        
+        toggleRightBtn.addEventListener('click', () => {
+            // Alternamos la clase closed
+            sidebarRight.classList.toggle('closed');
+            
+            // Cambiamos el icono de la flecha mediante JS para asegurar compatibilidad
+            if (sidebarRight.classList.contains('closed')) {
+                toggleRightIcon.innerText = 'chevron_left'; // Apunta a la izq para pedir que se abra
+            } else {
+                toggleRightIcon.innerText = 'chevron_right'; // Apunta a la der para pedir que se cierre
+            }
+            
+            // Redimensionar Blockly (Muy importante para que ocupe el nuevo espacio)
             setTimeout(() => Blockly.svgResize(workspace), 350);
         });
     }

@@ -199,7 +199,7 @@ button:active {
     background: #9c27b0;
 }
 
-/* Cuando la barra se cierra, giramos la flecha por CSS (opcional) */
+/* Cuando la barra se cierra, giramos la flecha por CSS */
 #sidebar-left.closed + #sidebarToggle .material-icons {
     transform: rotate(180deg);
 }
@@ -232,6 +232,48 @@ button:active {
     overflow-y: auto;
     border-left: 2px solid white;
     z-index: 10;
+}
+
+/* ============================================================
+   NUEVO: PESTAÑA Y COLAPSO DE LA BARRA DERECHA
+============================================================ */
+
+/* Estilo del botón (Simétrico al izquierdo) */
+#sidebarRightToggle {
+    width: 20px;
+    height: 50px;
+    background: #711651;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 0 0 10px; /* Borde redondeado a la izquierda */
+    align-self: center; /* Centrado verticalmente */
+    position: relative;
+    z-index: 100;
+    transition: transform 0.3s ease, background 0.3s ease;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+    flex-shrink: 0; /* Nunca se encoge */
+}
+
+#sidebarRightToggle:hover {
+    background: #9c27b0;
+}
+
+/* Transiciones para la barra derecha */
+#sidebar-right {
+    transition: flex-basis 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+}
+
+/* Estado Cerrado de la barra derecha */
+#sidebar-right.closed {
+    flex-basis: 0 !important;
+    min-width: 0 !important;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    border: none;
 }
 
 .scene-section {
