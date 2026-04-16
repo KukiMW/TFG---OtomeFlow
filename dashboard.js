@@ -162,6 +162,7 @@ function renderGrid(projects, myProgress =[]) {
                         <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
                         <a onclick="openShareModal(${proj.id})">🤝 Compartir con Profe</a>
                         <a onclick="cloneProject(${proj.id})">📑 Duplicar</a>
+                        <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">📦 Exportar ZIP</a>
                         <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
                     </div>
                 </div>`;
