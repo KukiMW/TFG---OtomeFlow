@@ -570,6 +570,94 @@ if (shareForm) {
     });
 }
 
+// ============================================================
+//               EXPORTAR PROYECTO A ZIP DESDE DASHBOARD
+// ============================================================
+window.exportZip = async (id) => {
+    // 1. Mostrar estado de carga
+    const btn = document.querySelector(`#menu-${id} a:first-child`); // El botón del menú
+    const originalText = btn.innerText;
+    btn.innerText = "⏳ Empaquetando...";
+    btn.style.pointerEvents = "none";
+
+    try {
+        // 2. Obtener los datos del proyecto de Supabase
+        const { data: project, error } = await window.sb
+            .from('projects')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error || !project) throw new Error("No se encontró el proyecto.");
+
+        const zip = new JSZip();
+        const pData = project.project_data || {};
+
+        // 3. Añadir los JSON al ZIP
+        zip.file("story.json", JSON.stringify(project.story_data, null, 2));
+        zip.file("project_data.json", JSON.stringify(pData, null, 2));
+
+        // 4. Función auxiliar para descargar una imagen de una URL y meterla al ZIP
+        const bgFolder = zip.folder("assets").folder("backgrounds");
+        const charFolder = zip.folder("assets").folder("characters");
+
+        // Descargar Fondos
+        const backgrounds = pData.assets?.backgrounds ||[];
+        for (const bg of backgrounds) {
+            try {
+                const response = await fetch(bg.url);
+                const blob = await response.blob();
+                bgFolder.file(bg.name, blob);
+            } catch (err) {
+                console.warn("No se pudo empaquetar el fondo:", bg.name);
+            }
+        }
+
+        // Descargar Personajes
+        const characters = pData.assets?.characters || {};
+        for (const charName of Object.keys(characters)) {
+            const sprites = characters[charName];
+            const specificCharFolder = charFolder.folder(charName);
+            
+            for (const sprite of sprites) {
+                try {
+                    const response = await fetch(sprite.url);
+                    const blob = await response.blob();
+                    specificCharFolder.file(sprite.name, blob);
+                } catch (err) {
+                    console.warn("No se pudo empaquetar el sprite:", sprite.name);
+                }
+            }
+        }
+
+        // 5. Generar y Descargar el ZIP
+        const blob = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        
+        // Limpiar título para el nombre del archivo
+        const safeTitle = project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        a.download = `otome_${safeTitle}.zip`;
+        
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        // Restaurar botón
+        btn.innerText = "✅ ¡Descargado!";
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.pointerEvents = "auto";
+        }, 2000);
+
+    } catch (error) {
+        console.error(error);
+        alert("Error al exportar el ZIP: " + error.message);
+        btn.innerText = originalText;
+        btn.style.pointerEvents = "auto";
+    }
+};
+
 window.deleteProject = async (id) => {
     if(confirm("¿Seguro? Se borrará todo.")) {
         await window.sb.from('assignments').delete().eq('project_id', id);
