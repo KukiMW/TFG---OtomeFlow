@@ -59,6 +59,7 @@ function setupUIByRole() {
 }
 
 // 2. CARGAR PROYECTOS
+// 2. CARGAR PROYECTOS
 async function loadProjects() {
     const grid = document.getElementById('gamesGrid');
     if (grid) grid.innerHTML = '<p style="text-align:center; width:100%;">Cargando...</p>';
@@ -67,40 +68,62 @@ async function loadProjects() {
     let myProgress =[];
 
     try {
+        // --- PROFESOR: Sus proyectos ---
         if (currentProfile.role === 'teacher') {
-            const { data } = await window.sb
+            console.log("Cargando proyectos como Profesor...");
+            const { data, error } = await window.sb
                 .from('projects')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .order('created_at', { ascending: false });
+            
+            if (error) throw error;
             projects = data ||[];
         } 
+        
+        // --- ALUMNO: Proyectos asignados ---
         else {
-            const { data: assignments } = await window.sb
+            console.log("Cargando asignaciones como Alumno para:", currentUser.email);
+            
+            // 1. Buscar asignaciones para mi email
+            const { data: assignments, error: assignError } = await window.sb
                 .from('assignments')
-                .select('project_id, score')
+                .select('project_id')
                 .eq('student_email', currentUser.email);
             
+            if (assignError) throw assignError;
+            console.log("Asignaciones encontradas:", assignments);
+
             if (assignments && assignments.length > 0) {
+                // 2. Extraer solo los IDs de los proyectos
                 const projectIds = assignments.map(a => a.project_id);
-                const { data } = await window.sb
+                
+                // 3. Cargar los detalles de esos proyectos
+                const { data: projData, error: projError } = await window.sb
                     .from('projects')
                     .select('*')
                     .in('id', projectIds);
-                projects = data ||[];
+                
+                if (projError) throw projError;
+                projects = projData ||[];
             }
 
-            const { data: progress } = await window.sb
+            // 4. Cargar mi progreso (Importante: pedir project_id y score)
+            const { data: progress, error: progError } = await window.sb
                 .from('student_progress')
-                .select('project_id')
+                .select('project_id, score')
                 .eq('user_id', currentUser.id);
+            
+            if (progError) throw progError;
             myProgress = progress ||[];
+            console.log("Mi progreso cargado:", myProgress);
         }
 
         renderGrid(projects, myProgress);
+
     } catch (error) {
-        console.error("Error al cargar datos:", error);
-        if (grid) grid.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error al cargar.</p>';
+        console.error("❌ Error al cargar datos:", error);
+        if (grid) grid.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error al cargar las historias. Revisa la consola.</p>';
     }
 }
 
