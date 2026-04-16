@@ -68,7 +68,7 @@
     background: white;
     border: 1px solid #dadce0;
     border-radius: 8px;
-    overflow: hidden;
+    /*overflow: hidden;*/
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s, transform 0.2s;
@@ -86,6 +86,7 @@
     color: white;
     height: 80px;
     position: relative;
+    border-radius: 8px 8px 0 0; 
 }
 
 .card-title {
