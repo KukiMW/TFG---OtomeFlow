@@ -78,7 +78,7 @@ async function loadProjects() {
         else {
             const { data: assignments } = await window.sb
                 .from('assignments')
-                .select('project_id')
+                .select('project_id, score')
                 .eq('student_email', currentUser.email);
             
             if (assignments && assignments.length > 0) {
@@ -151,26 +151,33 @@ function renderGrid(projects, myProgress =[]) {
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
         } else {
-            // VISTA ALUMNO (Lógica de intentos)
-            const attemptsCount = myProgress.filter(p => p.project_id === proj.id).length;
+            // --- VISTA ALUMNO ---
+            // 1. Buscamos todas las partidas que ha jugado este alumno en este proyecto
+            const myAttempts = myProgress.filter(p => p.project_id === proj.id);
+            const attemptsCount = myAttempts.length;
             const hasLimit = maxAttempts > 0;
             const reachedLimit = hasLimit && attemptsCount >= maxAttempts;
             const attemptsText = hasLimit ? `(Intentos: ${attemptsCount}/${maxAttempts})` : `(Intentos: ${attemptsCount})`;
 
             if (reachedLimit) {
+                 // Si alcanzó el límite, buscamos su nota más alta
+                 const maxScore = Math.max(...myAttempts.map(a => a.score || 0));
                  footerContent = `
                     <div style="color: #d32f2f; font-weight: bold; width: 100%; text-align: center; font-size: 0.85rem;">
-                        ⛔ LÍMITE ALCANZADO ${attemptsText}
+                        ⛔ LÍMITE ALCANZADO ${attemptsText} <br> Nota: ${maxScore}
                     </div>
                 `;
             } else if (attemptsCount > 0) {
+                 // Si lo ha completado pero aún puede repetir, le enseñamos su nota más alta
+                 const maxScore = Math.max(...myAttempts.map(a => a.score || 0));
                  footerContent = `
                     <div style="color: green; font-weight: bold; font-size: 0.85rem; margin-right:auto;">
-                        ✅ COMPLETADO ${attemptsText}
+                        ✅ COMPLETADO ${attemptsText} <br> Nota más alta: ${maxScore}
                     </div>
                     <button onclick="window.location.href='game.html?id=${proj.id}'" class="icon-btn" title="Repetir">🔄</button>
                 `;
             } else {
+                 // Si no lo ha hecho nunca
                  footerContent = `
                     <div style="font-size:0.8rem; color:#d93025; font-weight:bold; margin-right:auto;">Pendiente ${hasLimit ? attemptsText : ''}</div>
                     <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">JUGAR</button>
@@ -279,22 +286,34 @@ if (logoutBtn) {
     });
 }
 
-// Botón CSV (Si existe)
+// ============================================================
+//                   DESCARGAR CSV DE NOTAS
+// ============================================================
 const downloadCsvBtn = document.getElementById('downloadCsvBtn');
 if (downloadCsvBtn) {
     downloadCsvBtn.addEventListener('click', () => {
         if (!window.currentScoresData || window.currentScoresData.length === 0) return;
-        let csvContent = "DNI,Nombre,Apellidos,Email,Clase,Puntuacion,Fecha_Completado\n";
+
+        // Crear cabecera CSV
+        let csvContent = "DNI,Nombre,Apellidos,Email,Clase,Puntuacion_Maxima,Fecha\n";
+
+        // Añadir filas
         window.currentScoresData.forEach(s => {
-            const p = s.profiles || {};
-            const date = new Date(s.completed_at).toLocaleDateString();
-            csvContent += `"${p.dni || ''}","${p.first_name || ''}","${p.last_name || ''}","${s.user_email}","${p.class_name || ''}",${s.score},"${date}"\n`;
+            // Transformar el -1 a texto "Pendiente" para el Excel
+            const scoreStr = s.score === -1 ? 'Pendiente' : s.score;
+            
+            csvContent += `"${s.dni}","${s.first_name}","${s.last_name}","${s.email}","${s.class_name}","${scoreStr}","${s.date}"\n`;
         });
+
+        // Descargar archivo
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", URL.createObjectURL(blob));
+        link.setAttribute("href", url);
         link.setAttribute("download", "calificaciones_otomeflow.csv");
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     });
 }
 
@@ -353,31 +372,96 @@ async function loadAssignedStudents(projectId) {
     });
 }
 
+// ============================================================
+//                          VER NOTAS
+// ============================================================
+
 window.openScoresModal = async (id) => {
     document.getElementById('scoresModal').style.display = 'flex';
     const list = document.getElementById('scoresList');
-    list.innerHTML = "Cargando...";
+    list.innerHTML = "Cargando datos...";
 
-    const { data: scores } = await window.sb
-        .from('student_progress')
-        .select(`score, completed_at, user_email, profiles (first_name, last_name, dni, class_name)`)
-        .eq('project_id', id)
-        .order('score', { ascending: false });
+    // 1. Obtener a TODOS los alumnos asignados a este proyecto
+    const { data: assignments } = await window.sb
+        .from('assignments')
+        .select('student_email')
+        .eq('project_id', id);
 
-    window.currentScoresData = scores ||[];
-
-    if(!scores || scores.length === 0) {
-        list.innerHTML = "<p>Nadie ha completado esta historia aún.</p>";
+    if (!assignments || assignments.length === 0) {
+        list.innerHTML = "<p>No has asignado esta historia a ningún alumno aún.</p>";
         return;
     }
 
+    const assignedEmails = assignments.map(a => a.student_email);
+
+    // 2. Obtener los datos personales de esos alumnos (Nombre, DNI, Clase)
+    const { data: profiles } = await window.sb
+        .from('profiles')
+        .select('email, first_name, last_name, dni, class_name')
+        .in('email', assignedEmails);
+
+    // 3. Obtener todo el progreso guardado para este proyecto
+    const { data: progress } = await window.sb
+        .from('student_progress')
+        .select('user_email, score, completed_at')
+        .eq('project_id', id);
+
+    // 4. Cruzar datos: Crear un mapa con todos los alumnos asignados
+    const studentDataMap = {};
+    
+    // Inicializamos a todos con nota "-1" (Pendiente)
+    if (profiles) {
+        profiles.forEach(p => {
+            studentDataMap[p.email] = {
+                email: p.email,
+                first_name: p.first_name || '',
+                last_name: p.last_name || '',
+                dni: p.dni || '-',
+                class_name: p.class_name || '-',
+                score: -1, // -1 significa "No completado"
+                date: '-'
+            };
+        });
+    }
+
+    // Buscamos la NOTA MÁS ALTA de cada alumno que haya jugado
+    if (progress) {
+        progress.forEach(p => {
+            const email = p.user_email;
+            if (studentDataMap[email]) {
+                // Si la nota guardada es mayor que la que teníamos registrada, la actualizamos
+                if (p.score > studentDataMap[email].score) {
+                    studentDataMap[email].score = p.score;
+                    studentDataMap[email].date = new Date(p.completed_at).toLocaleDateString();
+                }
+            }
+        });
+    }
+
+    // Convertir el mapa a un array para poder ordenarlo
+    let finalScores = Object.values(studentDataMap);
+    
+    // Ordenar: Primero los que tienen nota (de mayor a menor), luego los pendientes (-1)
+    finalScores.sort((a, b) => b.score - a.score);
+
+    // Guardar globalmente para poder exportarlo a CSV luego
+    window.currentScoresData = finalScores;
+
+    // 5. Dibujar la tabla HTML
     let html = '<table style="width:100%; text-align:left; border-collapse: collapse;">';
-    html += '<tr style="border-bottom:2px solid #ddd;"><th>Alumno</th><th>Nota</th><th>Fecha</th></tr>';
-    scores.forEach(s => {
-        const p = s.profiles || {};
-        const name = p.first_name ? `${p.first_name} ${p.last_name}` : s.user_email;
-        const date = new Date(s.completed_at).toLocaleDateString();
-        html += `<tr style="border-bottom:1px solid #eee;"><td style="padding:8px;">${name}</td><td style="padding:8px; font-weight:bold; color:#711651;">${s.score}</td><td style="padding:8px; color:#666;">${date}</td></tr>`;
+    html += '<tr style="border-bottom:2px solid #ddd;"><th>Alumno</th><th>Clase</th><th>Nota</th><th>Fecha</th></tr>';
+    
+    finalScores.forEach(s => {
+        const name = s.first_name ? `${s.first_name} ${s.last_name}` : s.email;
+        // Si la nota es -1, mostramos un guion "-"
+        const displayScore = s.score === -1 ? '<span style="color:#888; font-weight:normal;">-</span>' : s.score;
+        
+        html += `<tr style="border-bottom:1px solid #eee;">
+            <td style="padding:8px;">${name}</td>
+            <td style="padding:8px; font-size:0.85rem; color:#666;">${s.class_name}</td>
+            <td style="padding:8px; font-weight:bold; color:#711651;">${displayScore}</td>
+            <td style="padding:8px; color:#666; font-size:0.85rem;">${s.date}</td>
+        </tr>`;
     });
     html += '</table>';
     list.innerHTML = html;
