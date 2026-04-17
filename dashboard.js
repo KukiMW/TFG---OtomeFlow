@@ -159,7 +159,7 @@ function renderGrid(projects, myProgress =[]) {
             // VISTA PROFESOR (Añadido botón Compartir)
             headerExtra = `
                 <div class="dropdown">
-                    <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
+                    <span class="material-icons dropbtn notranslate" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
                         <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">Editar Info</a>
                         <a onclick="openShareModal(${proj.id})">Compartir con Profe</a>
@@ -170,10 +170,10 @@ function renderGrid(projects, myProgress =[]) {
                 </div>`;
             
             footerContent = `
-                <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons">group_add</span></button>
-                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons">analytics</span></button>
+                <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons notranslate">group_add</span></button>
+                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons notranslate">analytics</span></button>
                     <div class="footer-spacer"></div> <!-- Empuja los siguientes botones a la derecha -->
-                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar Bloques"><span class="material-icons">edit_note</span></button>
+                <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar Bloques"><span class="material-icons notranslate">edit_note</span></button>
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
         } else {
