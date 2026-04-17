@@ -111,24 +111,35 @@
 
 .card-footer {
     border-top: 1px solid #dadce0;
-    padding: 8px 16px;
+    padding: 10px 15px;
     display: flex;
-    justify-content: flex-end; /* Botones a la derecha */
+    flex-wrap: wrap;
+    justify-content: flex-end; /* Alineados a la derecha */
     align-items: center;
-    gap: 10px;
+    gap: 8px; /* Espaciado uniforme entre botones */
     background: #f8f9fa;
+    min-height: 50px; /* Altura mínima*/
 }
+
+.footer-spacer {
+    flex-grow: 1;
+    min-width: 10px; /* Evita que desaparezca del todo */
+}
+
 
 /* BOTONES EN TARJETA */
 .icon-btn {
     background: transparent;
     border: none;
     color: #5f6368;
-    display: flex; align-items: center; gap: 5px;
-    padding: 8px;
+    display: flex; 
+    align-items: center; 
+    gap: 5px;
+    padding: 6px 10px;
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 .icon-btn:hover { background: rgba(0,0,0,0.05); color: #202124; }
 
@@ -136,12 +147,15 @@
     background-color: var(--primary);
     color: white;
     border: none;
-    padding: 8px 20px;
+    padding: 8px 16px;
     border-radius: 20px;
     font-weight: 600;
     text-decoration: none;
-    display: inline-flex; align-items: center;
+    display: inline-flex; 
+    align-items: center;
+    justify-content: center;
     transition: background 0.2s;
+    white-space: nowrap;
 }
 .btn-play:hover { background-color: #5a1040; }
 
