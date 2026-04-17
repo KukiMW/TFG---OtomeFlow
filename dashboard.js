@@ -29,7 +29,7 @@ async function initDashboard() {
 }
 
 function setupUIByRole() {
-    // 1. SOLUCIÓN AL AVATAR: Coger iniciales del nombre o del email
+    // Avatar: Coger iniciales del nombre o del email
     let initials = "U";
     if (currentProfile.first_name && currentProfile.last_name) {
         initials = currentProfile.first_name[0].toUpperCase() + currentProfile.last_name[0].toUpperCase();
@@ -45,15 +45,18 @@ function setupUIByRole() {
     // Etiqueta de Rol
     const roleLabel = document.getElementById('roleLabel');
     const fabAdd = document.getElementById('fabAdd');
+    const btnImport = document.getElementById('btnImportDash');
     const headerTitle = document.getElementById('headerTitle');
 
     if (currentProfile.role === 'teacher') {
         if (roleLabel) roleLabel.innerText = "👨‍🏫 Profesor";
         if (fabAdd) fabAdd.style.display = 'flex';
+        if (btnImport) btnImport.style.display = 'inline-block';
         if (headerTitle) headerTitle.innerText = "Gestión de Clases";
     } else {
         if (roleLabel) roleLabel.innerText = "🎓 Alumno";
         if (fabAdd) fabAdd.style.display = 'none';
+        if (btnImport) btnImport.style.display = 'none';
         if (headerTitle) headerTitle.innerText = "Mis Tareas";
     }
 }
@@ -677,6 +680,109 @@ window.onclick = function(event) {
             if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
         }
     }
+}
+
+// ============================================================
+//               IMPORTAR ZIP COMO PROYECTO NUEVO
+// ============================================================
+const btnImportDash = document.getElementById('btnImportDash');
+const importInput = document.getElementById('importInput'); // El input file invisible que ya tenías
+
+if (btnImportDash && importInput) {
+    btnImportDash.addEventListener('click', () => importInput.click());
+
+    importInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const oldText = btnImportDash.innerText;
+        btnImportDash.innerText = "⏳ Importando e instalando...";
+        btnImportDash.disabled = true;
+
+        try {
+            const zip = await JSZip.loadAsync(file);
+
+            // 1. Leer los archivos JSON del ZIP
+            const pDataFile = zip.file("project_data.json");
+            const sDataFile = zip.file("story.json");
+
+            if (!pDataFile || !sDataFile) {
+                throw new Error("El ZIP no es válido o no fue generado por Otome Flow.");
+            }
+
+            let pDataStr = await pDataFile.async("string");
+            let sDataStr = await sDataFile.async("string");
+            const pDataObj = JSON.parse(pDataStr);
+
+            // 2. Extraer imágenes y re-subirlas a la nube de Supabase
+            // FONDOS
+            const backgrounds = pDataObj.assets?.backgrounds ||[];
+            for (let bg of backgrounds) {
+                const zipFile = zip.file(`assets/backgrounds/${bg.name}`);
+                if (zipFile && bg.url) {
+                    const blob = await zipFile.async("blob");
+                    const cleanName = bg.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+                    const newPath = `backgrounds/${Date.now()}_${cleanName}`;
+                    
+                    // Subir
+                    await window.sb.storage.from('otome-assets').upload(newPath, blob);
+                    const { data: pubData } = window.sb.storage.from('otome-assets').getPublicUrl(newPath);
+                    
+                    // TRUCO MAGIA: Reemplazar texto. Cambiamos la URL vieja por la URL nueva generada
+                    pDataStr = pDataStr.split(bg.url).join(pubData.publicUrl);
+                    sDataStr = sDataStr.split(bg.url).join(pubData.publicUrl);
+                }
+            }
+
+            // PERSONAJES
+            const characters = pDataObj.assets?.characters || {};
+            for (let charName of Object.keys(characters)) {
+                for (let sp of characters[charName]) {
+                    const zipFile = zip.file(`assets/characters/${charName}/${sp.name}`);
+                    if (zipFile && sp.url) {
+                        const blob = await zipFile.async("blob");
+                        const cleanName = sp.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+                        const newPath = `characters/${Date.now()}_${cleanName}`;
+                        
+                        // Subir
+                        await window.sb.storage.from('otome-assets').upload(newPath, blob);
+                        const { data: pubData } = window.sb.storage.from('otome-assets').getPublicUrl(newPath);
+                        
+                        // Reemplazar
+                        pDataStr = pDataStr.split(sp.url).join(pubData.publicUrl);
+                        sDataStr = sDataStr.split(sp.url).join(pubData.publicUrl);
+                    }
+                }
+            }
+
+            // 3. Crear Proyecto en Base de Datos
+            const newTitle = prompt("Nombre para la copia importada:", "Copia - " + (pDataObj.startScene || "Proyecto"));
+            if (!newTitle) throw new Error("Cancelado");
+
+            const { error } = await window.sb.from('projects').insert([{
+                title: newTitle,
+                description: "Restaurado desde copia de seguridad ZIP",
+                user_id: currentUser.id,
+                project_data: JSON.parse(pDataStr),
+                story_data: JSON.parse(sDataStr)
+            }]);
+
+            if (error) throw error;
+
+            alert("✅ ¡Proyecto importado y guardado en la nube con éxito!");
+            loadProjects(); // Refrescar la pantalla
+
+        } catch (error) {
+            if (error.message !== "Cancelado") {
+                alert("❌ Error al importar: " + error.message);
+            }
+        }
+
+        // Restaurar botón
+        btnImportDash.innerText = oldText;
+        btnImportDash.disabled = false;
+        e.target.value = ''; // Limpiar input
+    });
 }
 
 // Arrancar

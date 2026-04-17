@@ -26,9 +26,14 @@
     </nav>
 
     <div class="main-container">
-        <header class="dashboard-header">
-            <h1 id="headerTitle">Mis Proyectos</h1>
-            <p id="headerSubtitle">Gestiona tus historias interactivas</p>
+        <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 id="headerTitle">Mis Proyectos</h1>
+                <p id="headerSubtitle">Gestiona tus historias interactivas</p>
+            </div>
+            <button id="btnImportDash" style="display:none; background-color: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                📥 Importar ZIP
+            </button>
         </header>
 
         <div id="gamesGrid" class="games-grid">
