@@ -170,12 +170,9 @@ function renderGrid(projects, myProgress =[]) {
                 </div>`;
             
             footerContent = `
-                <button onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})" class="icon-btn" title="Editar Info" style="background:#e0c3fc; color:#4a148c; border-radius:15px;">
-                    Ajustes
-                </button>
                 <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons">group_add</span></button>
                 <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons">analytics</span></button>
-                <div class="footer-spacer"></div> <!-- <<--- ESTO EMPUJA LOS BOTONES DE EDICIÓN Y PLAY A LA DERECHA -->
+                    <div class="footer-spacer"></div> <!-- Empuja los siguientes botones a la derecha -->
                 <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar Bloques"><span class="material-icons">edit_note</span></button>
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
