@@ -49,19 +49,18 @@ function setupUIByRole() {
     const headerTitle = document.getElementById('headerTitle');
 
     if (currentProfile.role === 'teacher') {
-        if (roleLabel) roleLabel.innerText = "👨‍🏫 Profesor";
+        if (roleLabel) roleLabel.innerText = "Profesor";
         if (fabAdd) fabAdd.style.display = 'flex';
         if (btnImport) btnImport.style.display = 'inline-block';
         if (headerTitle) headerTitle.innerText = "Gestión de Clases";
     } else {
-        if (roleLabel) roleLabel.innerText = "🎓 Alumno";
+        if (roleLabel) roleLabel.innerText = "Alumno";
         if (fabAdd) fabAdd.style.display = 'none';
         if (btnImport) btnImport.style.display = 'none';
         if (headerTitle) headerTitle.innerText = "Mis Tareas";
     }
 }
 
-// 2. CARGAR PROYECTOS
 // 2. CARGAR PROYECTOS
 async function loadProjects() {
     const grid = document.getElementById('gamesGrid');
@@ -163,10 +162,10 @@ function renderGrid(projects, myProgress =[]) {
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
                         <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
-                        <a onclick="openShareModal(${proj.id})">🤝 Compartir con Profe</a>
-                        <a onclick="cloneProject(${proj.id})">📑 Duplicar</a>
-                        <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">📦 Exportar ZIP</a>
-                        <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
+                        <a onclick="openShareModal(${proj.id})">Compartir con Profe</a>
+                        <a onclick="cloneProject(${proj.id})">Duplicar</a>
+                        <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">Exportar Proyecto</a>
+                        <a onclick="deleteProject(${proj.id})" style="color:red;">Borrar</a>
                     </div>
                 </div>`;
             
@@ -685,24 +684,33 @@ window.onclick = function(event) {
 // ============================================================
 //               IMPORTAR ZIP COMO PROYECTO NUEVO
 // ============================================================
-const btnImportDash = document.getElementById('btnImportDash');
-const importInput = document.getElementById('importInput'); // El input file invisible que ya tenías
 
-if (btnImportDash && importInput) {
-    btnImportDash.addEventListener('click', () => importInput.click());
+function setupImportButton() {
+    const btnImportDash = document.getElementById('btnImportDash');
+    const importInput = document.getElementById('importInput');
 
+    if (!btnImportDash || !importInput) {
+        console.error("❌ No se encontraron los elementos para importar ZIP en el HTML.");
+        return;
+    }
+
+    // 1. Al hacer clic en el botón naranja, hacemos clic falso en el input invisible
+    btnImportDash.addEventListener('click', () => {
+        importInput.click();
+    });
+
+    // 2. Cuando el usuario selecciona un archivo, arranca la magia
     importInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         const oldText = btnImportDash.innerText;
-        btnImportDash.innerText = "⏳ Importando e instalando...";
+        btnImportDash.innerText = "⏳ Importando...";
         btnImportDash.disabled = true;
 
         try {
             const zip = await JSZip.loadAsync(file);
 
-            // 1. Leer los archivos JSON del ZIP
             const pDataFile = zip.file("project_data.json");
             const sDataFile = zip.file("story.json");
 
@@ -714,8 +722,7 @@ if (btnImportDash && importInput) {
             let sDataStr = await sDataFile.async("string");
             const pDataObj = JSON.parse(pDataStr);
 
-            // 2. Extraer imágenes y re-subirlas a la nube de Supabase
-            // FONDOS
+            // Subir FONDOS
             const backgrounds = pDataObj.assets?.backgrounds ||[];
             for (let bg of backgrounds) {
                 const zipFile = zip.file(`assets/backgrounds/${bg.name}`);
@@ -724,17 +731,15 @@ if (btnImportDash && importInput) {
                     const cleanName = bg.name.replace(/[^a-zA-Z0-9.-]/g, "_");
                     const newPath = `backgrounds/${Date.now()}_${cleanName}`;
                     
-                    // Subir
                     await window.sb.storage.from('otome-assets').upload(newPath, blob);
                     const { data: pubData } = window.sb.storage.from('otome-assets').getPublicUrl(newPath);
                     
-                    // TRUCO MAGIA: Reemplazar texto. Cambiamos la URL vieja por la URL nueva generada
                     pDataStr = pDataStr.split(bg.url).join(pubData.publicUrl);
                     sDataStr = sDataStr.split(bg.url).join(pubData.publicUrl);
                 }
             }
 
-            // PERSONAJES
+            // Subir PERSONAJES
             const characters = pDataObj.assets?.characters || {};
             for (let charName of Object.keys(characters)) {
                 for (let sp of characters[charName]) {
@@ -744,18 +749,16 @@ if (btnImportDash && importInput) {
                         const cleanName = sp.name.replace(/[^a-zA-Z0-9.-]/g, "_");
                         const newPath = `characters/${Date.now()}_${cleanName}`;
                         
-                        // Subir
                         await window.sb.storage.from('otome-assets').upload(newPath, blob);
                         const { data: pubData } = window.sb.storage.from('otome-assets').getPublicUrl(newPath);
                         
-                        // Reemplazar
                         pDataStr = pDataStr.split(sp.url).join(pubData.publicUrl);
                         sDataStr = sDataStr.split(sp.url).join(pubData.publicUrl);
                     }
                 }
             }
 
-            // 3. Crear Proyecto en Base de Datos
+            // Crear el proyecto
             const newTitle = prompt("Nombre para la copia importada:", "Copia - " + (pDataObj.startScene || "Proyecto"));
             if (!newTitle) throw new Error("Cancelado");
 
@@ -770,7 +773,7 @@ if (btnImportDash && importInput) {
             if (error) throw error;
 
             alert("✅ ¡Proyecto importado y guardado en la nube con éxito!");
-            loadProjects(); // Refrescar la pantalla
+            loadProjects(); 
 
         } catch (error) {
             if (error.message !== "Cancelado") {
@@ -778,12 +781,14 @@ if (btnImportDash && importInput) {
             }
         }
 
-        // Restaurar botón
         btnImportDash.innerText = oldText;
         btnImportDash.disabled = false;
-        e.target.value = ''; // Limpiar input
+        e.target.value = ''; 
     });
 }
+
+// Arrancamos el listener del botón
+setupImportButton();
 
 // Arrancar
 initDashboard();
