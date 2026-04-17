@@ -161,7 +161,7 @@ function renderGrid(projects, myProgress =[]) {
                 <div class="dropdown">
                     <span class="material-icons dropbtn" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
-                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
+                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">Editar Info</a>
                         <a onclick="openShareModal(${proj.id})">Compartir con Profe</a>
                         <a onclick="cloneProject(${proj.id})">Duplicar</a>
                         <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">Exportar Proyecto</a>
