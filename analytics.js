@@ -109,7 +109,7 @@ function renderTable() {
         const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱️ ${mins}m ${secs}s</span>` : '-';
 
         // Estado y Nota
-        const statusStr = d.score >= 0 ? `<span class="status-done">✅ Completado (Nota: ${d.score})</span>` : `<span class="status-pending">⏳ Pendiente</span>`;
+        const statusStr = d.score >= 0 ? `<span class="status-done">✅ Completado (Nota: ${d.score})</span>` : `<span class="status-pending">Pendiente</span>`;
 
         tbody.innerHTML += `
             <tr>
