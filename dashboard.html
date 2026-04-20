@@ -13,15 +13,38 @@
 </head>
 <body>
 
+    <!-- NAVBAR SUPERIOR -->
     <nav class="navbar">
         <div class="nav-left">
             <span class="logo-text">Otome <b>Classroom</b></span>
         </div>
         <div class="nav-right">
-            <!-- Aquí se inyectará el rol automáticamente -->
             <span id="roleLabel" style="margin-right:15px; color:#5f6368; font-size:0.9rem; font-weight:bold;"></span>
-            <button id="logoutBtn" style="background:none; border:none; color:#5f6368; cursor:pointer;">Salir</button>
-            <div class="user-avatar" id="userAvatar">U</div>
+            
+            <!-- CONTENEDOR DEL PERFIL -->
+            <div class="user-profile-container">
+                <div class="user-avatar" id="userAvatar" onclick="toggleProfileMenu()">U</div>
+                
+                <!-- Menú Desplegable -->
+                <div id="profileMenu" class="profile-menu">
+                    <div class="profile-header">
+                        <span class="profile-name" id="menuUserName">Usuario</span>
+                        <span class="profile-email" id="menuUserEmail">correo@ejemplo.com</span>
+                    </div>
+                    
+                    <!-- Botón Analíticas (Solo se mostrará a profesores vía JS) -->
+                    <a href="analytics.html" id="menuAnalytics" class="profile-item" style="display: none;">
+                        <span class="material-icons">analytics</span>
+                        Cuaderno de Evaluación
+                    </a>
+                    
+                    <div class="profile-item logout" onclick="logout()">
+                        <span class="material-icons">logout</span>
+                        Cerrar Sesión
+                    </div>
+                </div>
+            </div>
+
         </div>
     </nav>
 
@@ -64,8 +87,6 @@
         </div>
     </div>
 
-    <!-- (Mantén tu Navbar y Grid igual, solo cambia los modales) -->
-    
     <!-- MODAL ASIGNAR TAREA -->
     <div id="assignModal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
@@ -116,10 +137,9 @@
     </div>
 
     <!-- MODAL VER NOTAS -->
-    <div id="scoresModal" class="modal-overlay" style="display: none;">
+    <!-- <div id="scoresModal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <h2>Calificaciones</h2>
-            <!-- NUEVO BOTÓN DESCARGAR CSV -->
             <button id="downloadCsvBtn" style="background:#4caf50; color:white; padding:5px 15px; border-radius:5px; border:none; float:right;">Descargar CSV</button>
             <div style="clear:both;"></div>
 
@@ -128,7 +148,7 @@
                 <button type="button" onclick="document.getElementById('scoresModal').style.display='none'" class="btn-primary">Cerrar</button>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <input type="file" id="importInput" accept=".zip" style="display: none;">
     <script src="supabaseClient.js"></script>

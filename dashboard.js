@@ -1,5 +1,5 @@
 // ============================================================
-//               DASHBOARD REAL FINAL (CORREGIDO)
+//                          DASHBOARD
 // ============================================================
 
 let currentUser = null;
@@ -7,7 +7,7 @@ let currentProfile = null;
 let editingProjectId = null;
 let currentAssignId = null;
 
-// 1. INICIO Y AUTENTICACIÓN
+// INICIO Y AUTENTICACIÓN
 async function initDashboard() {
     const { data: { session } } = await window.sb.auth.getSession();
     if (!session) {
@@ -28,40 +28,53 @@ async function initDashboard() {
     loadProjects();
 }
 
+// PERFIL USUARIO
 function setupUIByRole() {
-    // Avatar: Coger iniciales del nombre o del email
+    // 1. Configurar Avatar (Iniciales)
     let initials = "U";
-    if (currentProfile.first_name && currentProfile.last_name) {
-        initials = currentProfile.first_name[0].toUpperCase() + currentProfile.last_name[0].toUpperCase();
-    } else if (currentProfile.first_name) {
-        initials = currentProfile.first_name.substring(0, 2).toUpperCase();
-    } else if (currentUser.email) {
+    let fullName = currentUser.email; // Por defecto mostramos el email
+
+    if (currentProfile.first_name) {
+        initials = currentProfile.first_name[0].toUpperCase();
+        fullName = currentProfile.first_name;
+        if (currentProfile.last_name) {
+            initials += currentProfile.last_name[0].toUpperCase();
+            fullName += " " + currentProfile.last_name;
+        }
+    } else {
         initials = currentUser.email[0].toUpperCase();
     }
     
-    const avatarEl = document.getElementById('userAvatar');
-    if (avatarEl) avatarEl.innerText = initials;
+    document.getElementById('userAvatar').innerText = initials;
     
-    // Etiqueta de Rol
+    // 2. Rellenar datos en el Menú Desplegable
+    document.getElementById('menuUserName').innerText = fullName;
+    document.getElementById('menuUserEmail').innerText = currentUser.email;
+    
+    // 3. Etiqueta de Rol y Elementos de Interfaz
     const roleLabel = document.getElementById('roleLabel');
     const fabAdd = document.getElementById('fabAdd');
-    const btnImport = document.getElementById('btnImportDash');
     const headerTitle = document.getElementById('headerTitle');
+    const menuAnalytics = document.getElementById('menuAnalytics');
 
     if (currentProfile.role === 'teacher') {
-        if (roleLabel) roleLabel.innerText = "Profesor";
+        if (roleLabel) roleLabel.innerText = "👨‍🏫 Profesor";
         if (fabAdd) fabAdd.style.display = 'flex';
-        if (btnImport) btnImport.style.display = 'inline-block';
         if (headerTitle) headerTitle.innerText = "Gestión de Clases";
+        
+        // Mostrar opción de Analíticas en el menú SOLO a profesores
+        if (menuAnalytics) menuAnalytics.style.display = 'flex';
     } else {
-        if (roleLabel) roleLabel.innerText = "Alumno";
+        if (roleLabel) roleLabel.innerText = "🎓 Alumno";
         if (fabAdd) fabAdd.style.display = 'none';
-        if (btnImport) btnImport.style.display = 'none';
         if (headerTitle) headerTitle.innerText = "Mis Tareas";
+        
+        // Ocultar Analíticas a alumnos
+        if (menuAnalytics) menuAnalytics.style.display = 'none';
     }
 }
 
-// 2. CARGAR PROYECTOS
+// CARGAR PROYECTOS
 async function loadProjects() {
     const grid = document.getElementById('gamesGrid');
     if (grid) grid.innerHTML = '<p style="text-align:center; width:100%;">Cargando...</p>';
@@ -129,7 +142,7 @@ async function loadProjects() {
     }
 }
 
-// 3. RENDERIZAR TARJETAS
+// RENDERIZAR TARJETAS
 function renderGrid(projects, myProgress =[]) {
     const grid = document.getElementById('gamesGrid');
     if (!grid) return;
@@ -171,8 +184,8 @@ function renderGrid(projects, myProgress =[]) {
             
             footerContent = `
                 <button onclick="openAssignModal(${proj.id})" class="icon-btn" title="Asignar Alumnos"><span class="material-icons notranslate">group_add</span></button>
-                <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons notranslate">analytics</span></button>
-                    <div class="footer-spacer"></div> <!-- Empuja los siguientes botones a la derecha -->
+                <!-- <button onclick="openScoresModal(${proj.id})" class="icon-btn" title="Ver Notas"><span class="material-icons notranslate">analytics</span></button> -->
+                <div class="footer-spacer"></div> <!-- Empuja los siguientes botones a la derecha -->
                 <button onclick="window.location.href='editor.html?id=${proj.id}'" class="icon-btn" title="Editar Bloques"><span class="material-icons notranslate">edit_note</span></button>
                 <button onclick="window.location.href='game.html?id=${proj.id}'" class="btn-play">PROBAR</button>
             `;
@@ -402,96 +415,96 @@ async function loadAssignedStudents(projectId) {
 //                          VER NOTAS
 // ============================================================
 
-window.openScoresModal = async (id) => {
-    document.getElementById('scoresModal').style.display = 'flex';
-    const list = document.getElementById('scoresList');
-    list.innerHTML = "Cargando datos...";
+// window.openScoresModal = async (id) => {
+//     document.getElementById('scoresModal').style.display = 'flex';
+//     const list = document.getElementById('scoresList');
+//     list.innerHTML = "Cargando datos...";
 
-    // 1. Obtener a TODOS los alumnos asignados a este proyecto
-    const { data: assignments } = await window.sb
-        .from('assignments')
-        .select('student_email')
-        .eq('project_id', id);
+//     // 1. Obtener a TODOS los alumnos asignados a este proyecto
+//     const { data: assignments } = await window.sb
+//         .from('assignments')
+//         .select('student_email')
+//         .eq('project_id', id);
 
-    if (!assignments || assignments.length === 0) {
-        list.innerHTML = "<p>No has asignado esta historia a ningún alumno aún.</p>";
-        return;
-    }
+//     if (!assignments || assignments.length === 0) {
+//         list.innerHTML = "<p>No has asignado esta historia a ningún alumno aún.</p>";
+//         return;
+//     }
 
-    const assignedEmails = assignments.map(a => a.student_email);
+//     const assignedEmails = assignments.map(a => a.student_email);
 
-    // 2. Obtener los datos personales de esos alumnos (Nombre, DNI, Clase)
-    const { data: profiles } = await window.sb
-        .from('profiles')
-        .select('email, first_name, last_name, dni, class_name')
-        .in('email', assignedEmails);
+//     // 2. Obtener los datos personales de esos alumnos (Nombre, DNI, Clase)
+//     const { data: profiles } = await window.sb
+//         .from('profiles')
+//         .select('email, first_name, last_name, dni, class_name')
+//         .in('email', assignedEmails);
 
-    // 3. Obtener todo el progreso guardado para este proyecto
-    const { data: progress } = await window.sb
-        .from('student_progress')
-        .select('user_email, score, completed_at')
-        .eq('project_id', id);
+//     // 3. Obtener todo el progreso guardado para este proyecto
+//     const { data: progress } = await window.sb
+//         .from('student_progress')
+//         .select('user_email, score, completed_at')
+//         .eq('project_id', id);
 
-    // 4. Cruzar datos: Crear un mapa con todos los alumnos asignados
-    const studentDataMap = {};
+//     // 4. Cruzar datos: Crear un mapa con todos los alumnos asignados
+//     const studentDataMap = {};
     
-    // Inicializamos a todos con nota "-1" (Pendiente)
-    if (profiles) {
-        profiles.forEach(p => {
-            studentDataMap[p.email] = {
-                email: p.email,
-                first_name: p.first_name || '',
-                last_name: p.last_name || '',
-                dni: p.dni || '-',
-                class_name: p.class_name || '-',
-                score: -1, // -1 significa "No completado"
-                date: '-'
-            };
-        });
-    }
+//     // Inicializamos a todos con nota "-1" (Pendiente)
+//     if (profiles) {
+//         profiles.forEach(p => {
+//             studentDataMap[p.email] = {
+//                 email: p.email,
+//                 first_name: p.first_name || '',
+//                 last_name: p.last_name || '',
+//                 dni: p.dni || '-',
+//                 class_name: p.class_name || '-',
+//                 score: -1, // -1 significa "No completado"
+//                 date: '-'
+//             };
+//         });
+//     }
 
-    // Buscamos la NOTA MÁS ALTA de cada alumno que haya jugado
-    if (progress) {
-        progress.forEach(p => {
-            const email = p.user_email;
-            if (studentDataMap[email]) {
-                // Si la nota guardada es mayor que la que teníamos registrada, la actualizamos
-                if (p.score > studentDataMap[email].score) {
-                    studentDataMap[email].score = p.score;
-                    studentDataMap[email].date = new Date(p.completed_at).toLocaleDateString();
-                }
-            }
-        });
-    }
+//     // Buscamos la NOTA MÁS ALTA de cada alumno que haya jugado
+//     if (progress) {
+//         progress.forEach(p => {
+//             const email = p.user_email;
+//             if (studentDataMap[email]) {
+//                 // Si la nota guardada es mayor que la que teníamos registrada, la actualizamos
+//                 if (p.score > studentDataMap[email].score) {
+//                     studentDataMap[email].score = p.score;
+//                     studentDataMap[email].date = new Date(p.completed_at).toLocaleDateString();
+//                 }
+//             }
+//         });
+//     }
 
-    // Convertir el mapa a un array para poder ordenarlo
-    let finalScores = Object.values(studentDataMap);
+//     // Convertir el mapa a un array para poder ordenarlo
+//     let finalScores = Object.values(studentDataMap);
     
-    // Ordenar: Primero los que tienen nota (de mayor a menor), luego los pendientes (-1)
-    finalScores.sort((a, b) => b.score - a.score);
+//     // Ordenar: Primero los que tienen nota (de mayor a menor), luego los pendientes (-1)
+//     finalScores.sort((a, b) => b.score - a.score);
 
-    // Guardar globalmente para poder exportarlo a CSV luego
-    window.currentScoresData = finalScores;
+//     // Guardar globalmente para poder exportarlo a CSV luego
+//     window.currentScoresData = finalScores;
 
-    // 5. Dibujar la tabla HTML
-    let html = '<table style="width:100%; text-align:left; border-collapse: collapse;">';
-    html += '<tr style="border-bottom:2px solid #ddd;"><th>Alumno</th><th>Clase</th><th>Nota</th><th>Fecha</th></tr>';
+//     // 5. Dibujar la tabla HTML
+//     let html = '<table style="width:100%; text-align:left; border-collapse: collapse;">';
+//     html += '<tr style="border-bottom:2px solid #ddd;"><th>Alumno</th><th>Clase</th><th>Nota</th><th>Fecha</th></tr>';
     
-    finalScores.forEach(s => {
-        const name = s.first_name ? `${s.first_name} ${s.last_name}` : s.email;
-        // Si la nota es -1, mostramos un guion "-"
-        const displayScore = s.score === -1 ? '<span style="color:#888; font-weight:normal;">-</span>' : s.score;
+//     finalScores.forEach(s => {
+//         const name = s.first_name ? `${s.first_name} ${s.last_name}` : s.email;
+//         // Si la nota es -1, mostramos un guion "-"
+//         const displayScore = s.score === -1 ? '<span style="color:#888; font-weight:normal;">-</span>' : s.score;
         
-        html += `<tr style="border-bottom:1px solid #eee;">
-            <td style="padding:8px;">${name}</td>
-            <td style="padding:8px; font-size:0.85rem; color:#666;">${s.class_name}</td>
-            <td style="padding:8px; font-weight:bold; color:#711651;">${displayScore}</td>
-            <td style="padding:8px; color:#666; font-size:0.85rem;">${s.date}</td>
-        </tr>`;
-    });
-    html += '</table>';
-    list.innerHTML = html;
-};
+//         html += `<tr style="border-bottom:1px solid #eee;">
+//             <td style="padding:8px;">${name}</td>
+//             <td style="padding:8px; font-size:0.85rem; color:#666;">${s.class_name}</td>
+//             <td style="padding:8px; font-weight:bold; color:#711651;">${displayScore}</td>
+//             <td style="padding:8px; color:#666; font-size:0.85rem;">${s.date}</td>
+//         </tr>`;
+//     });
+//     html += '</table>';
+//     list.innerHTML = html;
+// };
 
 window.editProjectMetadata = (id, title, desc, maxAtt) => {
     editingProjectId = id;
@@ -786,6 +799,42 @@ function setupImportButton() {
         e.target.value = ''; 
     });
 }
+
+// ============================================================
+//               MENÚ DE PERFIL Y CIERRE DE SESIÓN
+// ============================================================
+
+window.toggleProfileMenu = () => {
+    document.getElementById('profileMenu').classList.toggle('show');
+};
+
+// Cerrar menús al hacer clic fuera (Asegúrate de reemplazar tu window.onclick antiguo por este)
+window.onclick = function(event) {
+    // Cerrar menú de 3 puntos de las tarjetas
+    if (!event.target.matches('.dropbtn')) {
+        const dropdowns = document.getElementsByClassName("dropdown-content");
+        for (let i = 0; i < dropdowns.length; i++) {
+            if (dropdowns[i].classList.contains('show')) dropdowns[i].classList.remove('show');
+        }
+    }
+    
+    // Cerrar menú del perfil (avatar)
+    if (!event.target.matches('#userAvatar') && !event.target.closest('#profileMenu')) {
+        const profileMenu = document.getElementById('profileMenu');
+        if (profileMenu && profileMenu.classList.contains('show')) {
+            profileMenu.classList.remove('show');
+        }
+    }
+};
+
+window.logout = async () => {
+    await window.sb.auth.signOut();
+    window.location.href = 'index.html';
+};
+
+// -------------------------------------------- //
+// -------------------------------------------- //
+// -------------------------------------------- //
 
 // Arrancamos el listener del botón
 setupImportButton();

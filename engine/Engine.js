@@ -41,6 +41,7 @@ export class Engine {
     start() {
         if (!this.story) return;
         this.gameState.variables = {};
+        this.startTime = Date.now(); 
         this.startScene(this.story.start);
     }
 
@@ -103,6 +104,12 @@ export class Engine {
     async finishGame() {
         // 1. Mostrar pantalla de fin (HTML inyectado)
         const gameDiv = document.getElementById('game');
+
+        // Calcular tiempo invertido en segundos
+        const timeSpentSeconds = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(timeSpentSeconds / 60);
+        const seconds = timeSpentSeconds % 60;
+        const timeString = `${minutes}m ${seconds}s`;
         
         // Crear un overlay de fin
         const endScreen = document.createElement('div');
@@ -126,7 +133,7 @@ export class Engine {
 
         gameDiv.appendChild(endScreen);
 
-        // 2. Guardar progreso en Supabase (Si hay ID de proyecto y usuario logueado)
+        // 2. Guardar progreso en Supabase
         // Necesitamos leer el ID del proyecto de la URL de nuevo
         const projectId = new URLSearchParams(window.location.search).get('id');
         

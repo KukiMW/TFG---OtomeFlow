@@ -221,3 +221,99 @@ form input, form textarea {
     padding: 10px 24px; border-radius: 4px; font-weight: 600; 
 }
 .btn-primary:hover { background: #1557b0; }
+
+/*============================================================
+                MENÚ DEL AVATAR (PERFIL)
+============================================================*/
+
+.user-profile-container {
+    position: relative;
+    display: inline-block;
+}
+
+.user-avatar {
+    width: 40px; 
+    height: 40px;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.2s;
+}
+
+.user-avatar:hover {
+    transform: scale(1.05);
+}
+
+.profile-menu {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 50px; /* Debajo del avatar */
+    right: 0;
+    background-color: white;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: menuFadeIn 0.2s ease;
+}
+
+.profile-menu.show {
+    display: block;
+}
+
+@keyframes menuFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-header {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-name {
+    font-weight: bold;
+    color: #202124;
+    display: block;
+    font-size: 0.95rem;
+}
+
+.profile-email {
+    color: #5f6368;
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 2px;
+}
+
+.profile-item {
+    padding: 12px 20px;
+    color: #3c4043;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.95rem;
+}
+
+.profile-item:hover {
+    background-color: #f1f3f4;
+}
+
+.profile-item.logout {
+    border-top: 1px solid #e0e0e0;
+    color: #d32f2f;
+}
+.profile-item.logout:hover {
+    background-color: #fce8e6;
+}

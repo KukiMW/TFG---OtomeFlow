@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Otome Classroom - Calificaciones</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .analytics-container {
+            max-width: 1200px; margin: 80px auto 20px; padding: 20px;
+            background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .filters-bar {
+            display: flex; gap: 15px; margin-bottom: 20px; padding: 15px;
+            background: #f8f9fa; border-radius: 8px; align-items: center;
+        }
+        .filters-bar select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; flex: 1; }
+        
+        .styled-table {
+            width: 100%; border-collapse: collapse; margin: 25px 0;
+            font-size: 0.95em; font-family: sans-serif;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+        .styled-table thead tr { background-color: #711651; color: #ffffff; text-align: left; }
+        .styled-table th, .styled-table td { padding: 12px 15px; }
+        .styled-table tbody tr { border-bottom: 1px solid #dddddd; }
+        .styled-table tbody tr:nth-of-type(even) { background-color: #f3e5f5; }
+        .styled-table tbody tr:last-of-type { border-bottom: 2px solid #711651; }
+        
+        .status-done { color: green; font-weight: bold; }
+        .status-pending { color: #d32f2f; font-weight: bold; }
+        .time-badge { background: #e0c3fc; padding: 3px 8px; border-radius: 12px; font-size: 0.85rem; color: #4a148c; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="dashboard.html" class="back-link"><span class="material-icons">arrow_back</span></a>
+            <span class="logo-text">Otome <b>Analytics</b></span>
+        </div>
+        <div class="nav-right">
+            <button id="downloadCsvBtn" class="btn-play" style="background:#4caf50;">📥 Exportar a Excel (CSV)</button>
+        </div>
+    </nav>
+
+    <div class="analytics-container">
+        <h2>📊 Cuaderno de Evaluación</h2>
+        <p>Consulta el progreso, la dedicación y las calificaciones de tus alumnos.</p>
+
+        <!-- FILTROS -->
+        <div class="filters-bar">
+            <label><strong>Filtrar por:</strong></label>
+            <select id="filterProject"><option value="all">Todas las tareas (Juegos)</option></select>
+            <select id="filterClass"><option value="all">Todas las clases</option></select>
+        </div>
+
+        <!-- TABLA -->
+        <table class="styled-table" id="analyticsTable">
+            <thead>
+                <tr>
+                    <th>Alumno</th>
+                    <th>Clase</th>
+                    <th>Tarea (Juego)</th>
+                    <th>Estado / Nota</th>
+                    <th>Tiempo invertido</th>
+                    <th>Último Acceso</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="6" style="text-align: center;">Cargando datos...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script src="analytics.js"></script>
+</body>
+</html>
