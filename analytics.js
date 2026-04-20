@@ -2,7 +2,8 @@
 //               ANALÍTICAS Y CALIFICACIONES
 // ============================================================
 
-let allData =[]; // Guardará todas las filas combinadas para filtrar fácilmente
+let allData =[]; // Tabla resumen (1 fila por alumno/proyecto)
+let allProgressHistory =[]; // TODO el historial crudo de la BD
 
 async function initAnalytics() {
     const { data: { session } } = await window.sb.auth.getSession();
@@ -10,7 +11,7 @@ async function initAnalytics() {
 
     const teacherId = session.user.id;
 
-    // 1. Obtener los proyectos del profesor
+    // 1. Obtener proyectos
     const { data: myProjects } = await window.sb.from('projects').select('id, title').eq('user_id', teacherId);
     if (!myProjects || myProjects.length === 0) {
         document.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;">No has creado ningún proyecto aún.</td></tr>';
@@ -19,11 +20,10 @@ async function initAnalytics() {
     const projectMap = {};
     myProjects.forEach(p => projectMap[p.id] = p.title);
 
-    // Llenar selector de proyectos
     const filterProject = document.getElementById('filterProject');
     myProjects.forEach(p => filterProject.innerHTML += `<option value="${p.id}">${p.title}</option>`);
 
-    // 2. Obtener todas las asignaciones de esos proyectos
+    // 2. Obtener asignaciones
     const projectIds = myProjects.map(p => p.id);
     const { data: assignments } = await window.sb.from('assignments').select('*').in('project_id', projectIds);
 
@@ -32,8 +32,8 @@ async function initAnalytics() {
         return;
     }
 
-    // 3. Obtener perfiles de los alumnos asignados
-    const studentEmails =[...new Set(assignments.map(a => a.student_email))];
+    // 3. Obtener perfiles
+    const studentEmails = [...new Set(assignments.map(a => a.student_email))];
     const { data: profiles } = await window.sb.from('profiles').select('email, first_name, last_name, class_name').in('email', studentEmails);
     const profileMap = {};
     const classSet = new Set();
@@ -43,41 +43,48 @@ async function initAnalytics() {
         if (p.class_name) classSet.add(p.class_name);
     });
 
-    // Llenar selector de clases
     const filterClass = document.getElementById('filterClass');
     classSet.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
 
-    // 4. Obtener progresos (notas y tiempos)
-    const { data: progress } = await window.sb.from('student_progress').select('*, path').in('project_id', projectIds);
-    const progressMap = {}; // Clave: email_projectId
+    // 4. Obtener progresos (TODOS LOS INTENTOS)
+    // Asegurarnos de traer el 'path' de la base de datos
+    const { data: progress } = await window.sb
+        .from('student_progress')
+        .select('*, path')
+        .in('project_id', projectIds)
+        .order('completed_at', { ascending: false }); // Más recientes primero
     
-    // Agrupar buscando el mejor intento (mayor nota)
-    (progress ||[]).forEach(p => {
+    allProgressHistory = progress ||[]; // Guardamos globalmente
+    
+    const progressMap = {}; // Guardará solo el MEJOR intento para la tabla principal
+    
+    allProgressHistory.forEach(p => {
         const key = `${p.user_email}_${p.project_id}`;
+        // Si es la primera vez que lo vemos, o tiene mejor nota, lo guardamos como "el mejor"
         if (!progressMap[key] || p.score > progressMap[key].score) {
             progressMap[key] = p;
         }
     });
 
-    // 5. Construir la tabla cruzando los datos
+    // 5. Construir la tabla principal (Resumen)
     allData = assignments.map(assign => {
         const email = assign.student_email;
         const prof = profileMap[email] || {};
-        const prog = progressMap[`${email}_${assign.project_id}`];
+        const bestProg = progressMap[`${email}_${assign.project_id}`];
 
         return {
+            email: email,
             studentName: prof.first_name ? `${prof.first_name} ${prof.last_name || ''}` : email,
             className: prof.class_name || 'Sin clase',
             projectId: assign.project_id,
             projectName: projectMap[assign.project_id],
-            score: prog ? prog.score : -1,
-            time_spent: prog ? prog.time_spent : 0,
-            date: prog ? new Date(prog.completed_at).toLocaleDateString() : '-',
-            path: prog ? prog.path :[]
+            score: bestProg ? bestProg.score : -1,
+            time_spent: bestProg ? bestProg.time_spent : 0,
+            date: bestProg ? new Date(bestProg.completed_at).toLocaleDateString() : '-'
         };
     });
 
-    // Leer si venimos redirigidos desde un proyecto específico
+    // Aplicar filtro si venimos de la URL
     const urlParams = new URLSearchParams(window.location.search);
     const filterId = urlParams.get('project');
     if (filterId) filterProject.value = filterId;
@@ -104,92 +111,140 @@ function renderTable() {
     }
 
     filtered.forEach(d => {
-        // Formatear el tiempo (Ej: 1m 30s)
         const mins = Math.floor(d.time_spent / 60);
         const secs = d.time_spent % 60;
         const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱️ ${mins}m ${secs}s</span>` : '-';
 
-        // Estado, Nota y Ruta
-        let statusStr = `<span class="status-pending">Pendiente</span>`;
-        if (d.score >= 0) {
-            statusStr = `
-                <span class="status-done">✅ Completado (Nota: ${d.score})</span>
-                <br>
-                <button onclick="showStudentPath('${d.studentName}', ${allData.indexOf(d)})" style="margin-top:5px; background:none; border:1px solid #711651; color:#711651; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:0.8rem;">
-                    Ver Ruta Tomada
-                </button>
-            `;
-        }
+        const statusStr = d.score >= 0 
+            ? `<span class="status-done">✅ Completado (${d.score} pts)</span>` 
+            : `<span class="status-pending">Pendiente</span>`;
+
+        // Botón de Historial si ha jugado al menos una vez
+        const actionBtn = d.score >= 0 
+            ? `<button class="btn-history" onclick="openHistoryModal('${d.email}', ${d.projectId}, '${d.studentName}')">Ver Historial</button>`
+            : `-`;
 
         tbody.innerHTML += `
             <tr>
-                <td><b>${d.studentName}</b></td>
+                <td><b>${d.studentName}</b><br><small style="color:#888">${d.email}</small></td>
                 <td>${d.className}</td>
-                <td>📖 ${d.projectName}</td>
+                <td>Historial${d.projectName}</td>
                 <td>${statusStr}</td>
                 <td>${timeStr}</td>
-                <td>${d.date}</td>
+                <td>${actionBtn}</td>
             </tr>
         `;
     });
 }
 
 // ============================================================
-//               VER RUTA DEL ALUMNO (MERMAID)
+//               HISTORIAL Y RUTAS
 // ============================================================
-window.showStudentPath = async (studentName, dataIndex) => {
-    const data = allData[dataIndex];
+
+// 1. Abrir Modal de Historial
+window.openHistoryModal = (email, projectId, studentName) => {
+    document.getElementById('historyTitle').innerText = `Intentos de ${studentName}`;
+    const list = document.getElementById('historyList');
     
-    if (!data.path || data.path.length === 0) {
-        alert("No hay datos de ruta guardados para este intento (probablemente es una partida antigua).");
+    // Filtrar todos los intentos de este alumno para esta tarea
+    const attempts = allProgressHistory.filter(p => p.user_email === email && p.project_id === projectId);
+    
+    if (attempts.length === 0) {
+        list.innerHTML = "<p>No hay intentos registrados.</p>";
         return;
     }
 
-    // 1. Crear el texto de Mermaid (Diagrama lineal)
-    let graph = "graph TD;\n";
-    graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
+    let html = `<table class="styled-table" style="margin:0; box-shadow:none;">
+        <thead><tr><th>Fecha y Hora</th><th>Nota</th><th>Tiempo</th><th>Ruta</th></tr></thead><tbody>`;
     
-    for(let i = 0; i < data.path.length; i++) {
-        const safeId = data.path[i].replace(/[^a-zA-Z0-9]/g, '_');
-        // El nodo actual
-        graph += `S${i}["🎬 ${data.path[i]}"];\n`;
+    attempts.forEach((att, index) => {
+        const date = new Date(att.completed_at).toLocaleString();
+        const mins = Math.floor(att.time_spent / 60);
+        const secs = att.time_spent % 60;
         
-        // Si hay un nodo anterior, los conectamos
+        // Escapamos el array de la ruta para pasarlo al botón HTML de forma segura
+        const pathJson = att.path ? encodeURIComponent(JSON.stringify(att.path)) : null;
+
+        let pathBtn = "-";
+        if (pathJson && att.path.length > 0) {
+            pathBtn = `<button onclick="drawPath('${pathJson}')" style="background:none; border:1px solid #711651; color:#711651; padding:2px 8px; border-radius:4px; cursor:pointer;">🗺️ Ver</button>`;
+        }
+
+        html += `<tr>
+            <td>${date}</td>
+            <td><b>${att.score}</b></td>
+            <td>${mins}m ${secs}s</td>
+            <td>${pathBtn}</td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    list.innerHTML = html;
+    
+    document.getElementById('historyModal').style.display = 'flex';
+};
+
+// 2. Dibujar el Árbol del Intento con Mermaid
+window.drawPath = async (pathJsonEncoded) => {
+    const pathArray = JSON.parse(decodeURIComponent(pathJsonEncoded));
+    
+    let graph = "graph TD;\nclassDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
+    
+    for(let i = 0; i < pathArray.length; i++) {
+        // Limpiamos los IDs de espacios para Mermaid
+        const safeId = pathArray[i].replace(/[^a-zA-Z0-9]/g, '_');
+        
+        // Nodo (añadimos un índice i para evitar conflictos si pasa por la misma escena 2 veces)
+        graph += `S${i}["${pathArray[i]}"];\n`;
+        
+        // Conexión con el anterior
         if (i > 0) {
-            graph += `S${i-1} --> S${i};\n`;
+            graph += `S${i-1} -->|Paso ${i}| S${i};\n`;
         }
     }
 
-    // 2. Mostrar en el Modal
     const container = document.getElementById('mermaidPath');
     container.innerHTML = graph;
-    
-    // Cambiar el título para que ponga el nombre del alumno
-    document.querySelector('#pathModal h2').innerText = `🗺️ Ruta de ${studentName}`;
-    
     document.getElementById('pathModal').style.display = 'flex';
     
-    // 3. Renderizar
+    // Forzar el renderizado de Mermaid
     container.removeAttribute('data-processed');
     try {
         await mermaid.run({ nodes: [container] });
-    } catch(e) {
+    } catch (e) {
         console.error("Error Mermaid:", e);
+        container.innerHTML = "Error dibujando la ruta.";
     }
 };
 
-// Filtros
+// ============================================================
+//               FILTROS Y CSV
+// ============================================================
 document.getElementById('filterProject').addEventListener('change', renderTable);
 document.getElementById('filterClass').addEventListener('change', renderTable);
 
-// CSV
 document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-    let csv = "Alumno,Clase,Tarea,Estado,Nota,Tiempo_Segundos,Fecha\n";
-    allData.forEach(d => {
+    let csv = "DNI,Nombre,Apellidos,Email,Clase,Tarea,Estado,Nota_Maxima,Tiempo,Fecha_Ultimo_Intento\n";
+    
+    // Obtener los datos filtrados actuales
+    const filterP = document.getElementById('filterProject').value;
+    const filterC = document.getElementById('filterClass').value;
+    const filtered = allData.filter(d => {
+        return (filterP === 'all' || d.projectId.toString() === filterP) && 
+               (filterC === 'all' || d.className === filterC);
+    });
+
+    filtered.forEach(d => {
         const estado = d.score >= 0 ? 'Completado' : 'Pendiente';
         const nota = d.score >= 0 ? d.score : '';
-        csv += `"${d.studentName}","${d.className}","${d.projectName}","${estado}","${nota}","${d.time_spent}","${d.date}"\n`;
+        // Separar nombre y apellidos si se puede (para el Excel)
+        const nameParts = d.studentName.split(' ');
+        const nombre = nameParts[0] || '';
+        const apellidos = nameParts.slice(1).join(' ') || '';
+        
+        csv += `"", "${nombre}", "${apellidos}", "${d.email}", "${d.className}", "${d.projectName}", "${estado}", "${nota}", "${d.time_spent}", "${d.date}"\n`;
     });
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
