@@ -48,7 +48,7 @@ async function initAnalytics() {
     classSet.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
 
     // 4. Obtener progresos (notas y tiempos)
-    const { data: progress } = await window.sb.from('student_progress').select('*').in('project_id', projectIds);
+    const { data: progress } = await window.sb.from('student_progress').select('*, path').in('project_id', projectIds);
     const progressMap = {}; // Clave: email_projectId
     
     // Agrupar buscando el mejor intento (mayor nota)
@@ -72,7 +72,8 @@ async function initAnalytics() {
             projectName: projectMap[assign.project_id],
             score: prog ? prog.score : -1,
             time_spent: prog ? prog.time_spent : 0,
-            date: prog ? new Date(prog.completed_at).toLocaleDateString() : '-'
+            date: prog ? new Date(prog.completed_at).toLocaleDateString() : '-',
+            path: prog ? prog.path :[]
         };
     });
 
@@ -108,8 +109,17 @@ function renderTable() {
         const secs = d.time_spent % 60;
         const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱️ ${mins}m ${secs}s</span>` : '-';
 
-        // Estado y Nota
-        const statusStr = d.score >= 0 ? `<span class="status-done">✅ Completado (Nota: ${d.score})</span>` : `<span class="status-pending">Pendiente</span>`;
+        // Estado, Nota y Ruta
+        let statusStr = `<span class="status-pending">Pendiente</span>`;
+        if (d.score >= 0) {
+            statusStr = `
+                <span class="status-done">✅ Completado (Nota: ${d.score})</span>
+                <br>
+                <button onclick="showStudentPath('${d.studentName}', ${allData.indexOf(d)})" style="margin-top:5px; background:none; border:1px solid #711651; color:#711651; padding:2px 8px; border-radius:4px; cursor:pointer; font-size:0.8rem;">
+                    Ver Ruta Tomada
+                </button>
+            `;
+        }
 
         tbody.innerHTML += `
             <tr>
@@ -123,6 +133,50 @@ function renderTable() {
         `;
     });
 }
+
+// ============================================================
+//               VER RUTA DEL ALUMNO (MERMAID)
+// ============================================================
+window.showStudentPath = async (studentName, dataIndex) => {
+    const data = allData[dataIndex];
+    
+    if (!data.path || data.path.length === 0) {
+        alert("No hay datos de ruta guardados para este intento (probablemente es una partida antigua).");
+        return;
+    }
+
+    // 1. Crear el texto de Mermaid (Diagrama lineal)
+    let graph = "graph TD;\n";
+    graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
+    
+    for(let i = 0; i < data.path.length; i++) {
+        const safeId = data.path[i].replace(/[^a-zA-Z0-9]/g, '_');
+        // El nodo actual
+        graph += `S${i}["🎬 ${data.path[i]}"];\n`;
+        
+        // Si hay un nodo anterior, los conectamos
+        if (i > 0) {
+            graph += `S${i-1} --> S${i};\n`;
+        }
+    }
+
+    // 2. Mostrar en el Modal
+    const container = document.getElementById('mermaidPath');
+    container.innerHTML = graph;
+    
+    // Cambiar el título para que ponga el nombre del alumno
+    document.querySelector('#pathModal h2').innerText = `🗺️ Ruta de ${studentName}`;
+    
+    document.getElementById('pathModal').style.display = 'flex';
+    
+    // 3. Renderizar
+    container.removeAttribute('data-processed');
+    try {
+        await mermaid.run({ nodes: [container] });
+    } catch(e) {
+        console.error("Error Mermaid:", e);
+    }
+};
 
 // Filtros
 document.getElementById('filterProject').addEventListener('change', renderTable);

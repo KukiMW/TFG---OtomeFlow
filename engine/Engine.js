@@ -41,7 +41,8 @@ export class Engine {
     start() {
         if (!this.story) return;
         this.gameState.variables = {};
-        this.startTime = Date.now(); 
+        this.startTime = Date.now();    // Tiempo tomado
+        this.gameState.path =[];        // Ruta tomada
         this.startScene(this.story.start);
     }
 
@@ -50,6 +51,7 @@ export class Engine {
             console.error(`Error: La escena "${sceneName}" no existe.`);
             return;
         }
+        this.gameState.path.push(sceneName);    // Guardar escena en ruta tomada
         this.gameState.currentScene = sceneName;
         this.gameState.currentIndex = 0;
         this.runNextAction(); 
@@ -141,12 +143,13 @@ export class Engine {
         if (window.sb && projectId) {
             const { data: { user } } = await window.sb.auth.getUser();
             if (user) {
-                // GUARDAMOS TAMBIÉN EL EMAIL
                 await window.sb.from('student_progress').insert([{
                     user_id: user.id,
                     user_email: user.email, 
                     project_id: projectId,
-                    score: totalScore
+                    score: totalScore,
+                    //time_spent: timeSpentSeconds,
+                    path: this.gameState.path
                 }]);
                 console.log("Progreso guardado.");
             }
