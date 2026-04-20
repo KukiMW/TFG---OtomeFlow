@@ -41,8 +41,12 @@ export class Engine {
     start() {
         if (!this.story) return;
         this.gameState.variables = {};
-        this.startTime = Date.now();    // Tiempo tomado
-        this.gameState.path =[];        // Ruta tomada
+        
+        // CRONÓMETRO Y RUTA
+        this.startTime = Date.now(); 
+        console.log("Cronómetro iniciado.");
+        
+        this.gameState.path =[]; 
         this.startScene(this.story.start);
     }
 
@@ -104,16 +108,17 @@ export class Engine {
 
     // --- PANTALLA FINAL Y GUARDADO ---
     async finishGame() {
-        // 1. Mostrar pantalla de fin (HTML inyectado)
         const gameDiv = document.getElementById('game');
-
-        // Calcular tiempo invertido en segundos
+        
+        // 1. CALCULAR EL TIEMPO
         const timeSpentSeconds = Math.floor((Date.now() - this.startTime) / 1000);
+        console.log(`⏱️ Tiempo total invertido: ${timeSpentSeconds} segundos.`);
+        
         const minutes = Math.floor(timeSpentSeconds / 60);
         const seconds = timeSpentSeconds % 60;
         const timeString = `${minutes}m ${seconds}s`;
-        
-        // Crear un overlay de fin
+
+        // 2. CREAR PANTALLA FINAL
         const endScreen = document.createElement('div');
         endScreen.style.cssText = `
             position: absolute; top:0; left:0; width:100%; height:100%;
@@ -126,7 +131,8 @@ export class Engine {
 
         endScreen.innerHTML = `
             <h1 style="font-size: 3rem; margin-bottom: 20px;">🎉 ¡Fin de la Historia!</h1>
-            <p style="font-size: 1.5rem;">Puntuación final: ${totalScore}</p>
+            <p style="font-size: 1.5rem;">Puntuación: ${totalScore}</p>
+            <p style="font-size: 1.2rem; color:#d8a4ff;">Tiempo: ${timeString}</p>
             <button id="backDashBtn" style="
                 margin-top: 30px; padding: 15px 30px; font-size: 1.2rem;
                 background: #711651; color: white; border: none; border-radius: 8px; cursor: pointer;
@@ -135,27 +141,36 @@ export class Engine {
 
         gameDiv.appendChild(endScreen);
 
-        // 2. Guardar progreso en Supabase
-        // Necesitamos leer el ID del proyecto de la URL de nuevo
+        // 3. GUARDAR EN SUPABASE
         const projectId = new URLSearchParams(window.location.search).get('id');
         
-        // Intentar guardar (si el usuario está logueado)
         if (window.sb && projectId) {
             const { data: { user } } = await window.sb.auth.getUser();
             if (user) {
-                await window.sb.from('student_progress').insert([{
+                // Preparamos el paquete de datos para subirlo
+                const payload = {
                     user_id: user.id,
                     user_email: user.email, 
                     project_id: projectId,
                     score: totalScore,
-                    //time_spent: timeSpentSeconds,
+                    time_spent: timeSpentSeconds, // <--- AQUÍ ESTÁ EL TIEMPO
                     path: this.gameState.path
-                }]);
-                console.log("Progreso guardado.");
+                };
+                
+                console.log("📤 Enviando datos a Supabase:", payload);
+
+                // Subimos a la base de datos
+                const { error } = await window.sb.from('student_progress').insert([payload]);
+                
+                if (error) {
+                    console.error("❌ Error guardando progreso:", error.message);
+                } else {
+                    console.log("✅ Progreso, ruta y tiempo guardados con éxito.");
+                }
             }
         }
 
-        // 3. Evento botón volver
+        // Botón de salir
         document.getElementById('backDashBtn').onclick = () => window.location.href = 'dashboard.html';
     }
 

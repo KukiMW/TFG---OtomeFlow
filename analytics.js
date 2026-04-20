@@ -128,7 +128,7 @@ function renderTable() {
             <tr>
                 <td><b>${d.studentName}</b><br><small style="color:#888">${d.email}</small></td>
                 <td>${d.className}</td>
-                <td>Historial${d.projectName}</td>
+                <td>${d.projectName}</td>
                 <td>${statusStr}</td>
                 <td>${timeStr}</td>
                 <td>${actionBtn}</td>
