@@ -112,7 +112,7 @@ export class Engine {
         
         // 1. CALCULAR EL TIEMPO
         const timeSpentSeconds = Math.floor((Date.now() - this.startTime) / 1000);
-        console.log(`⏱️ Tiempo total invertido: ${timeSpentSeconds} segundos.`);
+        console.log(`Tiempo total invertido: ${timeSpentSeconds} segundos.`);
         
         const minutes = Math.floor(timeSpentSeconds / 60);
         const seconds = timeSpentSeconds % 60;
@@ -130,7 +130,7 @@ export class Engine {
         const totalScore = Object.values(this.gameState.variables).reduce((a, b) => a + b, 0);
 
         endScreen.innerHTML = `
-            <h1 style="font-size: 3rem; margin-bottom: 20px;">🎉 ¡Fin de la Historia!</h1>
+            <h1 style="font-size: 3rem; margin-bottom: 20px;">¡Fin de la Historia!</h1>
             <p style="font-size: 1.5rem;">Puntuación: ${totalScore}</p>
             <p style="font-size: 1.2rem; color:#d8a4ff;">Tiempo: ${timeString}</p>
             <button id="backDashBtn" style="
@@ -157,7 +157,7 @@ export class Engine {
                     path: this.gameState.path
                 };
                 
-                console.log("📤 Enviando datos a Supabase:", payload);
+                console.log("Enviando datos a Supabase:", payload);
 
                 // Subimos a la base de datos
                 const { error } = await window.sb.from('student_progress').insert([payload]);
