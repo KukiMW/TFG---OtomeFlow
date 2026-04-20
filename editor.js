@@ -486,7 +486,7 @@ function renderSceneList() {
     keys.forEach(id => {
         const item = document.createElement('div');
         item.className = `scene-item ${id === currentSceneId ? 'active' : ''}`;
-        item.innerHTML = `<span>🎬 ${id}</span> <button class="delete-btn">✕</button>`;
+        item.innerHTML = `<span>${id}</span> <button class="delete-btn">✕</button>`;
         item.addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') switchToScene(id); });
         item.querySelector('button').addEventListener('click', (e) => {
             e.stopPropagation();

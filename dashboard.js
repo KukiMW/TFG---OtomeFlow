@@ -58,14 +58,14 @@ function setupUIByRole() {
     const menuAnalytics = document.getElementById('menuAnalytics');
 
     if (currentProfile.role === 'teacher') {
-        if (roleLabel) roleLabel.innerText = "👨‍🏫 Profesor";
+        if (roleLabel) roleLabel.innerText = "Profesor";
         if (fabAdd) fabAdd.style.display = 'flex';
         if (headerTitle) headerTitle.innerText = "Gestión de Clases";
         
         // Mostrar opción de Analíticas en el menú SOLO a profesores
         if (menuAnalytics) menuAnalytics.style.display = 'flex';
     } else {
-        if (roleLabel) roleLabel.innerText = "🎓 Alumno";
+        if (roleLabel) roleLabel.innerText = "Alumno";
         if (fabAdd) fabAdd.style.display = 'none';
         if (headerTitle) headerTitle.innerText = "Mis Tareas";
         

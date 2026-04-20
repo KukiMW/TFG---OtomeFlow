@@ -167,7 +167,7 @@ window.openHistoryModal = (email, projectId, studentName) => {
 
         let pathBtn = "-";
         if (pathJson && att.path.length > 0) {
-            pathBtn = `<button onclick="drawPath('${pathJson}')" style="background:none; border:1px solid #711651; color:#711651; padding:2px 8px; border-radius:4px; cursor:pointer;">🗺️ Ver</button>`;
+            pathBtn = `<button onclick="drawPath('${pathJson}')" style="background:none; border:1px solid #711651; color:#711651; padding:2px 8px; border-radius:4px; cursor:pointer;">Ver Ruta</button>`;
         }
 
         html += `<tr>
@@ -184,36 +184,63 @@ window.openHistoryModal = (email, projectId, studentName) => {
     document.getElementById('historyModal').style.display = 'flex';
 };
 
-// 2. Dibujar el Árbol del Intento con Mermaid
+// ============================================================
+//               VER RUTA DEL ALUMNO
+// ============================================================
 window.drawPath = async (pathJsonEncoded) => {
+    // Decodificar los datos que nos manda el botón
     const pathArray = JSON.parse(decodeURIComponent(pathJsonEncoded));
     
-    let graph = "graph TD;\nclassDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
+    if (!pathArray || pathArray.length === 0) {
+        alert("No hay datos de ruta guardados para este intento.");
+        return;
+    }
+
+    // Preparar el lienzo de Mermaid
+    let graph = "graph TD;\n";
+    graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
     
     for(let i = 0; i < pathArray.length; i++) {
-        // Limpiamos los IDs de espacios para Mermaid
-        const safeId = pathArray[i].replace(/[^a-zA-Z0-9]/g, '_');
+        const step = pathArray[i];
         
-        // Nodo (añadimos un índice i para evitar conflictos si pasa por la misma escena 2 veces)
-        graph += `S${i}["${pathArray[i]}"];\n`;
+        // Mantenemos compatibilidad por si abres una partida vieja (string) vs nueva (objeto)
+        const sceneName = typeof step === 'string' ? step : step.scene;
         
-        // Conexión con el anterior
+        // Dibujamos el nodo de la escena
+        graph += `S${i}["🎬 ${sceneName}"];\n`;
+        
+        // Si no es la primera escena, dibujamos la flecha desde la anterior
         if (i > 0) {
-            graph += `S${i-1} -->|Paso ${i}| S${i};\n`;
+            const prevStep = pathArray[i-1];
+            let arrowLabel = `Paso ${i}`; // Texto por defecto si fue salto automático
+            
+            // Si el paso anterior tiene una respuesta guardada, la ponemos en la flecha
+            if (typeof prevStep === 'object' && prevStep.choice) {
+                // Limpiamos comillas dobles para que no rompan el gráfico de Mermaid
+                arrowLabel = prevStep.choice.replace(/"/g, "'");
+            }
+            
+            // Conectamos la escena anterior con la actual, poniendo la respuesta en medio
+            graph += `S${i-1} -->|"${arrowLabel}"| S${i};\n`;
         }
     }
 
+    // Inyectar y mostrar en el Modal
     const container = document.getElementById('mermaidPath');
     container.innerHTML = graph;
     document.getElementById('pathModal').style.display = 'flex';
     
-    // Forzar el renderizado de Mermaid
+    // Si estaba abierto el modal de notas, lo ocultamos para que no se superpongan
+    const scoresModal = document.getElementById('scoresModal');
+    if (scoresModal) scoresModal.style.display = 'none';
+    
+    // Forzar el renderizado del gráfico
     container.removeAttribute('data-processed');
     try {
         await mermaid.run({ nodes: [container] });
     } catch (e) {
         console.error("Error Mermaid:", e);
-        container.innerHTML = "Error dibujando la ruta.";
+        container.innerHTML = "Error dibujando la ruta. Puede contener caracteres no válidos.";
     }
 };
 

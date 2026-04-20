@@ -42,11 +42,12 @@ export class Engine {
         if (!this.story) return;
         this.gameState.variables = {};
         
-        // CRONÓMETRO Y RUTA
         this.startTime = Date.now(); 
-        console.log("Cronómetro iniciado.");
+        console.log("⏱ Cronómetro iniciado.");
         
+        // Inicializamos el camino como un array vacío
         this.gameState.path =[]; 
+        
         this.startScene(this.story.start);
     }
 
@@ -55,7 +56,13 @@ export class Engine {
             console.error(`Error: La escena "${sceneName}" no existe.`);
             return;
         }
-        this.gameState.path.push(sceneName);    // Guardar escena en ruta tomada
+        
+        // Guardamos la escena actual como un objeto (dejamos la respuesta vacía por ahora)
+        this.gameState.path.push({ 
+            scene: sceneName, 
+            choice: null 
+        });
+
         this.gameState.currentScene = sceneName;
         this.gameState.currentIndex = 0;
         this.runNextAction(); 
@@ -188,29 +195,27 @@ export class Engine {
         console.log(`Variable '${varName}' ahora es: ${this.gameState.variables[varName]}`);
     }
 
-   /**
-     * Gestiona la elección del usuario.
-     */
+    /* Gestiona la elección del usuario */
     handleChoice(option) {
-        // 1. Aplicar variables (puntos, afinidad, etc)
+        // Guardamos el texto del botón.
+        if (this.gameState.path.length > 0) {
+            // Cogemos el último elemento del camino y le añadimos la respuesta elegida
+            this.gameState.path[this.gameState.path.length - 1].choice = option.text;
+        }
+
+        // Aplicar variables
         if (option.varName && option.varVal) {
             this.modifyVariable(option.varName, option.varVal);
         }
-        // Soporte legacy (afinidad antigua)
         if (option.affinity) {
             this.modifyVariable(option.affinity.character, option.affinity.amount);
         }
 
-        // 2. Decidir el destino
+        // Decidir el destino
         if (option.goto) {
-            // A) Si hay un destino ("goto"), saltamos a esa escena
             this.startScene(option.goto);
         } else {
-            // B) Si NO hay destino (es un bloque de solo puntos), 
-            // continuamos con la siguiente acción de la escena actual.
             console.log("Opción sin salto: Continuando en la escena actual...");
-            
-            // Avanzamos el índice manualmante porque el 'return' del switch detuvo el flujo automático
             this.gameState.currentIndex++;
             this.runNextAction();
         }
