@@ -160,11 +160,11 @@ function renderGrid(projects, myProgress =[]) {
                 <div class="dropdown">
                     <span class="material-icons dropbtn notranslate" translate="no" onclick="toggleMenu(${proj.id})">more_vert</span>
                     <div id="menu-${proj.id}" class="dropdown-content">
-                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">✏️ Editar Info</a>
-                        <a onclick="openShareModal(${proj.id})">🤝 Compartir con Profe</a>
-                        <a onclick="cloneProject(${proj.id})">📑 Duplicar</a>
-                        <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">📦 Exportar ZIP</a>
-                        <a onclick="deleteProject(${proj.id})" style="color:red;">🗑️ Borrar</a>
+                        <a onclick="editProjectMetadata(${proj.id}, '${safeTitle}', '${safeDesc}', ${maxAttempts})">Editar Info</a>
+                        <a onclick="openShareModal(${proj.id})">Compartir con Profe</a>
+                        <a onclick="cloneProject(${proj.id})">Duplicar</a>
+                        <a id="export-btn-${proj.id}" onclick="exportZip(${proj.id})">Exportar ZIP</a>
+                        <a onclick="deleteProject(${proj.id})" style="color:red;">Borrar</a>
                     </div>
                 </div>`;
             
@@ -258,6 +258,14 @@ if (fabAdd) {
         document.querySelector('#createModal h2').innerText = "Nueva Historia";
         document.querySelector('#createForm button[type="submit"]').innerText = "Crear";
         document.getElementById('createModal').style.display = 'flex';
+    };
+}
+
+// --- CERRAR MODAL DE CREAR/EDITAR ---
+const closeModal = document.getElementById('closeModal');
+if (closeModal) {
+    closeModal.onclick = () => {
+        document.getElementById('createModal').style.display = 'none';
     };
 }
 
