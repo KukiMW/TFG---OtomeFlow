@@ -54,9 +54,6 @@
                 <h1 id="headerTitle">Mis Proyectos</h1>
                 <p id="headerSubtitle">Gestiona tus historias interactivas</p>
             </div>
-            <button id="btnImportDash" style="display:none; background-color: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                Importar Proyecto
-            </button>
         </header>
 
         <div id="gamesGrid" class="games-grid">
@@ -64,8 +61,15 @@
         </div>
     </div>
 
-    <!-- BOTÓN CREAR (Solo profesores) -->
+    <!-- BOTÓN FLOTANTE IMPORTAR ZIP -->
+    <button id="fabImport" class="fab fab-secondary" title="Importar proyecto ZIP" style="display:none;">
+        <span class="material-icons">file_upload</span>
+    </button>
+
+    <!-- BOTÓN CREAR -->
     <button id="fabAdd" class="fab" title="Crear nueva historia" style="display:none;">+</button>
+
+    <input type="file" id="importInput" accept=".zip" style="display: none;">
 
     <!-- MODAL CREAR -->
     <div id="createModal" class="modal-overlay" style="display: none;">

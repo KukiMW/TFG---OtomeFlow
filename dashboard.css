@@ -187,7 +187,9 @@
 .dropdown-content a:hover { background-color: #f1f1f1; }
 .show { display: block; }
 
-/* BOTÓN FLOTANTE (+) */
+/* ============================================================
+   BOTÓN FLOTANTE (+)
+============================================================ */
 .fab {
     position: fixed;
     bottom: 30px; right: 30px;
@@ -221,6 +223,23 @@ form input, form textarea {
     padding: 10px 24px; border-radius: 4px; font-weight: 600; 
 }
 .btn-primary:hover { background: #1557b0; }
+
+/* ============================================================
+   BOTÓN FLOTANTE SECUNDARIO (IMPORTAR ZIP)
+============================================================ */
+.fab-secondary {
+    bottom: 100px; /* Lo eleva 70px por encima del botón principal (que está a 30px) */
+    background: #ff9800; /* Color naranja */
+    width: 50px;  /* Un poco más pequeño que el principal para dar jerarquía */
+    height: 50px;
+    font-size: 24px;
+}
+
+.fab-secondary:hover { 
+    background: #f57c00; 
+    transform: scale(1.1); 
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3); 
+}
 
 /*============================================================
                 MENÚ DEL AVATAR (PERFIL)
