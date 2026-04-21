@@ -113,7 +113,7 @@ function renderTable() {
     filtered.forEach(d => {
         const mins = Math.floor(d.time_spent / 60);
         const secs = d.time_spent % 60;
-        const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱️ ${mins}m ${secs}s</span>` : '-';
+        const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱ ${mins}m ${secs}s</span>` : '-';
 
         const statusStr = d.score >= 0 
             ? `<span class="status-done">✅ Completado (${d.score} pts)</span>` 

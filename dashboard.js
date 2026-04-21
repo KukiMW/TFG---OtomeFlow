@@ -60,7 +60,7 @@ function setupUIByRole() {
     if (currentProfile.role === 'teacher') {
         if (roleLabel) roleLabel.innerText = "Profesor";
         if (fabAdd) fabAdd.style.display = 'flex';
-        if (headerTitle) headerTitle.innerText = "Gestión de Clases";
+        if (headerTitle) headerTitle.innerText = "Mis Proyectos";
         
         // Mostrar opción de Analíticas en el menú SOLO a profesores
         if (menuAnalytics) menuAnalytics.style.display = 'flex';
