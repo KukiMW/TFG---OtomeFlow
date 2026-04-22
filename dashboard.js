@@ -185,14 +185,14 @@ function renderGrid(projects, myProgress =[]) {
                 const maxScore = Math.max(...myAttempts.map(a => a.score || 0));
                 footerContent = `
                     <div style="color: #d32f2f; font-weight: bold; width: 100%; text-align: center; font-size: 0.85rem;">
-                        ⛔ LÍMITE ALCANZADO ${attemptsText} <br> Nota: ${maxScore}
+                        LÍMITE ALCANZADO ${attemptsText} <br> Nota: ${maxScore}
                     </div>
                 `;
             } else if (attemptsCount > 0) {
                 const maxScore = Math.max(...myAttempts.map(a => a.score || 0));
                 footerContent = `
                     <div style="color: green; font-weight: bold; font-size: 0.85rem; margin-right:auto;">
-                        ✅ COMPLETADO ${attemptsText} <br> Nota más alta: ${maxScore}
+                        ✔ COMPLETADO ${attemptsText} <br> Nota más alta: ${maxScore}
                     </div>
                     <button onclick="window.location.href='game.html?id=${proj.id}'" class="icon-btn" title="Repetir">🔄</button>
                 `;
@@ -356,7 +356,7 @@ async function loadAssignedStudents(projectId) {
     list.innerHTML = "";
     if (!data || data.length === 0) { list.innerHTML = "<li>Aún no hay alumnos asignados.</li>"; return; }
     data.forEach(a => {
-        const li = document.createElement('li'); li.innerHTML = `👤 ${a.student_email}`;
+        const li = document.createElement('li'); li.innerHTML = `${a.student_email}`;
         li.style.padding = "5px 0"; li.style.borderBottom = "1px solid #eee";
         list.appendChild(li);
     });
@@ -370,7 +370,7 @@ if (assignEmailForm) {
         if(!email) return;
         const { error } = await window.sb.from('assignments').insert([{ project_id: currentAssignId, student_email: email, assigned_by: currentUser.id }]);
         if(error) {
-            if(error.code === '23505') alert("⚠️ Alumno ya asignado.");
+            if(error.code === '23505') alert(" Alumno ya asignado.");
             else alert("Error: " + error.message);
         } else {
             document.getElementById('studentEmail').value = '';
@@ -421,7 +421,7 @@ if (shareForm) {
 
         const { data: targetProfile, error: searchError } = await window.sb.from('profiles').select('id, role').eq('email', emailToShare.toLowerCase()).single();
         if (searchError || !targetProfile) { alert("❌ Usuario no encontrado."); return; }
-        if (targetProfile.role !== 'teacher') { alert("⚠️ El usuario no es Profesor."); return; }
+        if (targetProfile.role !== 'teacher') { alert("El usuario no es Profesor."); return; }
 
         const { data: original } = await window.sb.from('projects').select('*').eq('id', currentShareId).single();
         if (!original) return;
@@ -434,7 +434,7 @@ if (shareForm) {
 
         if (cloneError) alert("Error al compartir: " + cloneError.message);
         else {
-            alert("✅ ¡Enviado con éxito a " + emailToShare + "!");
+            alert("✔ ¡Enviado con éxito a " + emailToShare + "!");
             document.getElementById('shareModal').style.display = 'none';
         }
     });
@@ -443,7 +443,7 @@ if (shareForm) {
 window.exportZip = async (id) => {
     const btn = document.getElementById(`export-btn-${id}`);
     const originalText = btn.innerText;
-    btn.innerText = "⏳ Empaquetando...";
+    btn.innerText = "Empaquetando...";
     btn.style.pointerEvents = "none";
 
     try {
@@ -488,7 +488,7 @@ window.exportZip = async (id) => {
         a.download = `otome_${safeTitle}.zip`;
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
 
-        btn.innerText = "✅ ¡Descargado!";
+        btn.innerText = "✔ ¡Descargado!";
         setTimeout(() => { btn.innerText = originalText; btn.style.pointerEvents = "auto"; }, 2000);
 
     } catch (error) {
@@ -559,7 +559,7 @@ if (fabImport && importInput) {
             }]);
 
             if (error) throw error;
-            alert("✅ ¡Proyecto importado con éxito!");
+            alert("✔ ¡Proyecto importado con éxito!");
             loadProjects(); 
 
         } catch (error) {

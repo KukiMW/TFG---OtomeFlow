@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">
     <title>Otome Classroom</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
@@ -48,7 +49,7 @@
         </div>
     </nav>
 
-    <div class="main-container">
+    <main class="main-container">
         <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h1 id="headerTitle">Mis Proyectos</h1>
@@ -59,7 +60,7 @@
         <div id="gamesGrid" class="games-grid">
             <p>Cargando...</p>
         </div>
-    </div>
+    </main>
 
     <!-- BOTÓN FLOTANTE IMPORTAR ZIP -->
     <button id="fabImport" class="fab fab-secondary" title="Importar proyecto ZIP" style="display:none;">
@@ -76,11 +77,11 @@
         <div class="modal-card">
             <h2>Nueva Historia</h2>
             <form id="createForm">
-                <label>Título:</label>
+                <label for="newTitle">Título:</label>
                 <input type="text" id="newTitle" required placeholder="Ej: La Revolución Francesa">
-                <label>Descripción:</label>
+                <label for="newDescription">Descripción:</label>
                 <textarea id="newDesc" placeholder="Breve descripción..."></textarea>
-                <label>Límite de intentos permitidos:</label>
+                <label for="maxChances">Límite de intentos permitidos:</label>
                 <input type="number" id="newMaxAttempts" value="0" min="0" placeholder="0 = Sin límite">
                 <small style="color:#666; font-size:0.8rem;">(Pon 0 para intentos infinitos)</small>
                 <div class="modal-actions">
@@ -97,7 +98,7 @@
             <h2>Asignar Tarea</h2>
             
             <div style="margin-bottom: 20px;">
-                <label><b>Opción A: Por correo electrónico</b></label>
+                <label for="assigneByEmail"><b>Opción A: Por correo electrónico</b></label>
                 <form id="assignEmailForm" style="display: flex; gap:5px;">
                     <input type="email" id="studentEmail" placeholder="alumno@ejemplo.com" required style="margin:0;">
                     <button type="submit" class="btn-primary" style="margin:0;">Añadir</button>
@@ -105,7 +106,7 @@
             </div>
 
             <div style="margin-bottom: 20px;">
-                <label><b>Opción B: A una clase entera</b></label>
+                <label for="assigneByClassroom"><b>Opción B: A una clase entera</b></label>
                 <form id="assignClassForm" style="display: flex; gap:5px;">
                     <select id="classSelect" required style="margin:0;">
                         <option value="">Cargando clases...</option>

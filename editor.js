@@ -17,7 +17,7 @@ let projectDBId = new URLSearchParams(window.location.search).get('id');
 //               2. INICIALIZACIÓN
 // ============================================================
 function initEditor() {
-    console.log("🚀 Iniciando Editor Otome Flow...");
+    console.log("Iniciando Editor Otome Flow...");
 
     // Validación de Supabase
     if (!window.sb) {
@@ -83,7 +83,7 @@ async function loadProjectFromCloud() {
 
     // Restaurar estado
     if (data.project_data && data.project_data.scenes && Object.keys(data.project_data.scenes).length > 0) {
-        console.log("📂 Proyecto existente detectado.");
+        console.log("Proyecto existente detectado.");
         assetState.scenes = data.project_data.scenes;
         assetState.backgrounds = data.project_data.assets?.backgrounds || [];
         assetState.characters = data.project_data.assets?.characters || {};
@@ -103,7 +103,7 @@ async function loadProjectFromCloud() {
         const scenes = Object.keys(assetState.scenes);
         switchToScene(scenes[0]);
     } else {
-        console.log("✨ Proyecto nuevo: Creando escena 'inicio'...");
+        console.log("Proyecto nuevo: Creando escena 'inicio'...");
         refreshBlocklyEnv(); 
         createNewScene("inicio");
     }
@@ -113,7 +113,7 @@ async function uploadAssetToCloud(file, folder) {
     const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const filePath = `${folder}/${Date.now()}_${cleanName}`;
 
-    console.log(`📤 Subiendo a Supabase: ${filePath}`);
+    console.log(`Subiendo a Supabase: ${filePath}`);
 
     const { data, error } = await window.sb.storage
         .from('otome-assets')
@@ -127,7 +127,7 @@ async function uploadAssetToCloud(file, folder) {
 
     const { data: publicData } = window.sb.storage.from('otome-assets').getPublicUrl(filePath);
     
-    console.log("✅ Subida exitosa:", publicData.publicUrl);
+    console.log("Subida exitosa:", publicData.publicUrl);
     
     return {
         name: file.name,
@@ -172,8 +172,8 @@ async function saveProjectToCloud() {
 
         if (error) throw error;
 
-        btn.innerText = "✅ Guardado";
-        setTimeout(() => { btn.innerText = "☁️ GUARDAR EN LA NUBE"; btn.disabled = false; }, 2000);
+        btn.innerText = "Guardado";
+        setTimeout(() => { btn.innerText = "GUARDAR EN LA NUBE"; btn.disabled = false; }, 2000);
 
     } catch (e) {
         console.error(e);
@@ -309,7 +309,7 @@ function setupEventListeners() {
         const existingIndex = assetState.backgrounds.findIndex(b => b.name === file.name);
         
         if (existingIndex !== -1) {
-            if (!confirm(`⚠️ Ya existe un fondo llamado "${file.name}". ¿Quieres reemplazarlo por este nuevo?`)) {
+            if (!confirm(`Ya existe un fondo llamado "${file.name}". ¿Quieres reemplazarlo por este nuevo?`)) {
                 e.target.value = ''; // Limpiar el input si cancela
                 return; 
             }
@@ -342,7 +342,7 @@ function setupEventListeners() {
         const existingIndex = assetState.characters[char].findIndex(s => s.name === file.name);
         
         if (existingIndex !== -1) {
-            if (!confirm(`⚠️ Ya existe un sprite llamado "${file.name}" para ${char}. ¿Quieres reemplazarlo?`)) {
+            if (!confirm(`Ya existe un sprite llamado "${file.name}" para ${char}. ¿Quieres reemplazarlo?`)) {
                 e.target.value = '';
                 return;
             }
@@ -387,7 +387,7 @@ function setupEventListeners() {
         saveCurrentWorkspaceToMemory();
         renderSceneList();
         const btn = document.getElementById('saveSceneBtn');
-        const old = btn.innerText; btn.innerText = "✅"; setTimeout(()=>btn.innerText=old, 500);
+        const old = btn.innerText; btn.innerText = "✔"; setTimeout(()=>btn.innerText=old, 500);
     });
 
     document.getElementById('saveCloudBtn').addEventListener('click', saveProjectToCloud);
@@ -504,7 +504,7 @@ function renderAssetList() {
     if(assetState.backgrounds.length > 0){
         const d = document.createElement('div'); 
         d.className = 'tree-category'; 
-        d.innerHTML = '<b>🖼️ Fondos</b>';
+        d.innerHTML = '<b>Fondos</b>';
         
         const ul = document.createElement('ul'); 
         ul.className = 'tree-list';
@@ -527,14 +527,14 @@ function renderAssetList() {
     if (charNames.length > 0) {
         const d = document.createElement('div'); 
         d.className = 'tree-category'; 
-        d.innerHTML = '<b>👤 Personajes</b>';
+        d.innerHTML = '<b>Personajes</b>';
         
         charNames.forEach(charName => {
             const charFolder = document.createElement('div'); 
             charFolder.className = 'char-folder';
             
             // Nombre del Personaje y botón X para borrar todo el personaje
-            charFolder.innerHTML = `<div class="char-name">📂 ${charName} <button class="delete-btn" onclick="deleteAsset('char', '${charName}', null)">✕</button></div>`;
+            charFolder.innerHTML = `<div class="char-name">${charName} <button class="delete-btn" onclick="deleteAsset('char', '${charName}', null)">✕</button></div>`;
             
             const ul = document.createElement('ul'); 
             ul.className = 'tree-list';
@@ -595,12 +595,12 @@ function updateCharDropdown(sel) {
 function defineStaticBlocks() {
     Blockly.defineBlocksWithJsonArray([
         { type: "def_scene", message0: "🎬 Escena ID: %1 %2 Acciones: %3", args0: [{ type: "field_input", name: "SCENE_ID", text: "inicio" }, { type: "input_dummy" }, { type: "input_statement", name: "ACTIONS" }], colour: 290 },
-        { type: "action_narrator", message0: "📣 Narrador: %1", args0: [{ type: "field_input", name: "TEXT", text: "..." }], previousStatement: null, nextStatement: null, colour: 160 },
-        { type: "choice", message0: "🔀 Decisión %1", args0: [{ type: "input_statement", "name": "OPTIONS" }], previousStatement: null, nextStatement: null, colour: 20 },
-        { type: "choice_points", message0: "Opción: %1 💡 Efecto: %2 Sumar %3", args0: [{ type: "field_input", name: "TEXT", text: "Respuesta" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 1 }], previousStatement: null, nextStatement: null, colour: 45 },
-        { type: "choice_option", message0: "Opción: %1 Ir a: %2 %3 💡 Efecto: %4 Sumar %5", args0: [{ type: "field_input", name: "TEXT", text: "Sí" }, { type: "field_input", name: "GOTO", "text": "otra_escena" }, { type: "input_dummy" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 0 }], previousStatement: null, nextStatement: null, colour: 45 },
-        { type: "logic_check_var", message0: "⚖️ Juez: Si %1 %2 %3 %4 🟢 Ir a: %5 %6 🔴 Si no: %7", args0: [{ type: "field_input", name: "VAR", text: "puntos" }, { type: "field_dropdown", name: "OP", options: [["≥", "gte"], [">", "gt"], ["=", "eq"], ["<", "lt"], ["≤", "lte"]] }, { type: "field_number", name: "VAL", value: 5 }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_TRUE", text: "aprobado" }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_FALSE", text: "suspenso" }], previousStatement: null, nextStatement: null, colour: 0 },
-        { type: "action_jump", message0: "🚀 Ir directamente a escena: %1", args0: [{ type: "field_input", name: "GOTO", "text": "nombre_escena" }], previousStatement: null, nextStatement: null, colour: 210, tooltip: "Cambia de escena automáticamente sin preguntar." }
+        { type: "action_narrator", message0: "Narrador: %1", args0: [{ type: "field_input", name: "TEXT", text: "..." }], previousStatement: null, nextStatement: null, colour: 160 },
+        { type: "choice", message0: "Decisión %1", args0: [{ type: "input_statement", "name": "OPTIONS" }], previousStatement: null, nextStatement: null, colour: 20 },
+        { type: "choice_points", message0: "Opción: %1 Efecto: %2 Sumar %3", args0: [{ type: "field_input", name: "TEXT", text: "Respuesta" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 1 }], previousStatement: null, nextStatement: null, colour: 45 },
+        { type: "choice_option", message0: "Opción: %1 Ir a: %2 %3 Efecto: %4 Sumar %5", args0: [{ type: "field_input", name: "TEXT", text: "Sí" }, { type: "field_input", name: "GOTO", "text": "otra_escena" }, { type: "input_dummy" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 0 }], previousStatement: null, nextStatement: null, colour: 45 },
+        { type: "logic_check_var", message0: "Juez: Si %1 %2 %3 %4 🟢 Ir a: %5 %6 🔴 Si no: %7", args0: [{ type: "field_input", name: "VAR", text: "puntos" }, { type: "field_dropdown", name: "OP", options: [["≥", "gte"], [">", "gt"], ["=", "eq"], ["<", "lt"], ["≤", "lte"]] }, { type: "field_number", name: "VAL", value: 5 }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_TRUE", text: "aprobado" }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_FALSE", text: "suspenso" }], previousStatement: null, nextStatement: null, colour: 0 },
+        { type: "action_jump", message0: "Ir directamente a escena: %1", args0: [{ type: "field_input", name: "GOTO", "text": "nombre_escena" }], previousStatement: null, nextStatement: null, colour: 210, tooltip: "Cambia de escena automáticamente sin preguntar." }
     ]);
 }
 
@@ -631,7 +631,7 @@ function refreshBlocklyEnv() {
     if(!bgOpts.length) bgOpts=[["(Sin fondos)",""]];
 
     defs.push({
-        "type": "action_set_background", "message0": "🖼️ Fondo: %1",
+        "type": "action_set_background", "message0": "Fondo: %1",
         "args0": [{"type": "field_dropdown", "name": "BG_IMAGE", "options": bgOpts}],
         "previousStatement": null, "nextStatement": null, "colour": 230
     });
@@ -651,7 +651,7 @@ function refreshBlocklyEnv() {
 
             const charDef = {
                 "type": `char_${safe}`,
-                "message0": `👤 ${k} %1 Expr: %2 %3 Dice: %4`,
+                "message0": `${k} %1 Expr: %2 %3 Dice: %4`,
                 "args0": [{"type":"input_dummy"}, {"type":"field_dropdown","name":"SPRITE","options":opts}, {"type":"input_dummy"}, {"type":"field_input","name":"TEXT","text":"..."}],
                 "previousStatement": null, "nextStatement": null, "colour": 120
             };

@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Otome Flow - Acceso</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">    <title>Otome Flow - Acceso</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,7 +14,7 @@
         p.subtitle { text-align: center; color: #7b1fa2; margin-bottom: 20px; }
         
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #f3e5f5; }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #ba68c8; transition: 0.3s; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #711651;; transition: 0.3s; }
         .tab.active { color: #711651; border-bottom: 3px solid #711651; }
 
         .form-group { margin-bottom: 15px; }
@@ -33,7 +33,7 @@
 </head>
 <body>
 
-    <div class="auth-container">
+    <main class="auth-container">
         <h1>Otome Flow</h1>
         <p class="subtitle">Plataforma Educativa Narrativa</p>
 
@@ -45,8 +45,8 @@
 
         <!-- FORMULARIO LOGIN -->
         <div id="loginForm">
-            <div class="form-group"><label>Email</label><input type="email" id="loginEmail"></div>
-            <div class="form-group"><label>Contraseña</label><input type="password" id="loginPass"></div>
+            <div class="form-group"><label for="loginEmail">Email</label><input type="email" id="loginEmail"></div>
+            <div class="form-group"><label for="loginPass">Contraseña</label><input type="password" id="loginPass"></div>
             <button class="btn-primary" onclick="doLogin()">Entrar</button>
             <button class="btn-google" onclick="doGoogleLogin()">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="20"> Entrar con Google
@@ -56,29 +56,29 @@
         <!-- FORMULARIO REGISTRO -->
         <div id="registerForm" class="hidden">
             <div class="form-group">
-                <label>Soy un...</label>
+                <label for="regRole">Soy un...</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="role" value="student" checked onchange="toggleStudentFields(true)"> 🎓 Alumno</label>
-                    <label><input type="radio" name="role" value="teacher" onchange="toggleStudentFields(false)"> 👨‍🏫 Profesor</label>
+                    <label for="regAsAlumn"><input type="radio" name="role" value="student" checked onchange="toggleStudentFields(true)">Alumno</label>
+                    <label for="regAsTeacher"><input type="radio" name="role" value="teacher" onchange="toggleStudentFields(false)">Profesor</label>
                 </div>
             </div>
 
-            <div class="form-group"><label>Nombre</label><input type="text" id="regName"></div>
-            <div class="form-group"><label>Apellidos</label><input type="text" id="regLastname"></div>
+            <div class="form-group"><label for="regName">Nombre</label><input type="text" id="regName"></div>
+            <div class="form-group"><label for="regLastname">Apellidos</label><input type="text" id="regLastname"></div>
             
             <div id="studentFields">
-                <div class="form-group"><label>DNI</label><input type="text" id="regDni"></div>
-                <div class="form-group"><label>Clase / Grupo (Ej: 3A)</label><input type="text" id="regClass"></div>
+                <div class="form-group"><label for="regID">DNI</label><input type="text" id="regDni"></div>
+                <div class="form-group"><label for="regClassroom">Clase / Grupo (Ej: 3A)</label><input type="text" id="regClass"></div>
             </div>
 
-            <div class="form-group"><label>Email</label><input type="email" id="regEmail"></div>
-            <div class="form-group"><label>Contraseña</label><input type="password" id="regPass"></div>
+            <div class="form-group"><label for="regEmail">Email</label><input type="email" id="regEmail"></div>
+            <div class="form-group"><label for="regPass">Contraseña</label><input type="password" id="regPass"></div>
             
             <button class="btn-primary" onclick="doRegister()">Crear Cuenta</button>
         </div>
 
         <p id="msg" style="margin-top: 15px; font-size: 0.85rem; text-align: center; color: #d32f2f;"></p>
-    </div>
+    </main>
 
     <script src="supabaseClient.js"></script>
     <script>

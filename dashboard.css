@@ -54,7 +54,7 @@
 }
 
 .dashboard-header h1 { font-size: 2rem; color: #202124; margin: 0; }
-.dashboard-header p { color: #5f6368; margin-top: 5px; }
+.dashboard-header p { color: #3c4043;; margin-top: 5px; }
 
 /* GRID DE PROYECTOS */
 .games-grid {
@@ -97,7 +97,8 @@
 
 .card-subtitle {
     font-size: 0.85rem;
-    opacity: 0.9;
+    opacity: 1;
+    color: #f1f3f4;
     margin-top: 4px;
 }
 

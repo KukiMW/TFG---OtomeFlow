@@ -116,7 +116,7 @@ function renderTable() {
         const timeStr = d.time_spent > 0 ? `<span class="time-badge">⏱ ${mins}m ${secs}s</span>` : '-';
 
         const statusStr = d.score >= 0 
-            ? `<span class="status-done">✅ Completado (${d.score} pts)</span>` 
+            ? `<span class="status-done">✔ Completado (${d.score} pts)</span>` 
             : `<span class="status-pending">Pendiente</span>`;
 
         // Botón de Historial si ha jugado al menos una vez
