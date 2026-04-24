@@ -1,0 +1,15 @@
+/*
+  # 1. HSTS: Obliga a usar HTTPS seguro siempre
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # 2. XFO / Clickjacking: Impide que clonen t¡la web en un iframe falso (phishing)
+  X-Frame-Options: DENY
+  
+  # 3. X-Content-Type-Options: Evita que el navegador adivine tipos de archivos
+  X-Content-Type-Options: nosniff
+  
+  # 4. COOP: Aislamiento de origen para evitar ataques entre pestañas
+  Cross-Origin-Opener-Policy: same-origin
+  
+  # 5. CSP (Content Security Policy): Bloquea ataques XSS (Inyección de código)
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://*.supabase.co; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.supabase.co https://upload.wikimedia.org; media-src 'self' blob:;
