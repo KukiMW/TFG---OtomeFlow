@@ -8,6 +8,12 @@ let editingProjectId = null;
 let currentAssignId = null;
 let currentShareId = null;
 
+const OtomeAlert = Swal.mixin({
+    confirmButtonColor: '#711651',
+    cancelButtonColor: '#888',
+    fontFamily: '"Poppins", sans-serif'
+});
+
 // ============================================================
 // 1. INICIALIZACIÓN
 // ============================================================
@@ -284,14 +290,16 @@ if (createForm) {
             pData.max_attempts = maxAttempts;
 
             const { error } = await window.sb.from('projects').update({ title: title, description: desc, project_data: pData }).eq('id', editingProjectId);
-            if (error) alert("Error: " + error.message);
-            else { loadProjects(); document.getElementById('createModal').style.display = 'none'; }
+            if (error) OtomeAlert.fire("Error", error.message, "error");
+            else { loadProjects(); document.getElementById('createModal').style.display = 'none'; 
+                OtomeAlert.fire({title: "Actualizado", icon: "success", timer: 1500, showConfirmButton: false});
+            }
         } else {
             const { data, error } = await window.sb.from('projects').insert([{ 
                 title: title, description: desc, user_id: currentUser.id, 
                 project_data: { max_attempts: maxAttempts }, story_data: {}    
             }]).select();
-            if (error) alert("Error al crear: " + error.message);
+            if (error) OtomeAlert.fire("Error", error.message, "error");
             else window.location.href = `editor.html?id=${data[0].id}`; 
         }
     });
@@ -310,24 +318,84 @@ window.editProjectMetadata = (id, title, desc, maxAtt) => {
 };
 
 window.deleteProject = async (id) => {
-    if(confirm("¿Seguro? Esto borrará el proyecto y sus notas.")) {
+    // 1. Pedir confirmación
+    const { isConfirmed } = await OtomeAlert.fire({
+        title: '¿Borrar proyecto?',
+        text: "Esta acción no se puede deshacer. Se borrarán también las notas y asignaciones de los alumnos.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33', // Rojo para peligro
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Sí, borrar'
+    });
+
+    // 2. Si el usuario confirma, procedemos a borrar
+    if (isConfirmed) {
+        // Primero borrar dependencias para evitar error de Foreign Key
         await window.sb.from('assignments').delete().eq('project_id', id);
         await window.sb.from('student_progress').delete().eq('project_id', id);
+        
+        // Luego borrar el proyecto
         const { error } = await window.sb.from('projects').delete().eq('id', id);
-        if(!error) loadProjects();
-        else alert("Error: " + error.message);
+        
+        if (!error) {
+            // Mensaje de éxito que desaparece solo
+            OtomeAlert.fire({
+                title: "¡Borrado!",
+                text: "El proyecto ha sido eliminado.",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false
+            });
+            loadProjects(); // Recargar la lista
+        } else {
+            OtomeAlert.fire("Error al borrar", error.message, "error");
+        }
     }
 };
 
 window.cloneProject = async (id) => {
-    if(!confirm("¿Crear una copia exacta de este proyecto en tu cuenta?")) return;
+    // 1. Pedir confirmación
+    const { isConfirmed } = await OtomeAlert.fire({
+        title: '¿Duplicar proyecto?',
+        text: "Se creará una copia exacta de esta historia en tu cuenta.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, duplicar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!isConfirmed) return;
+
+    // 2. Obtener el original
     const { data: original } = await window.sb.from('projects').select('*').eq('id', id).single();
-    if (!original) return;
+    if (!original) {
+        OtomeAlert.fire("Error", "No se encontró el proyecto original.", "error");
+        return;
+    }
+
+    // 3. Crear la copia
     const { error } = await window.sb.from('projects').insert([{
-        title: original.title + " (Copia)", description: original.description, user_id: currentUser.id, project_data: original.project_data, story_data: original.story_data
+        title: original.title + " (Copia)", 
+        description: original.description, 
+        user_id: currentUser.id, 
+        project_data: original.project_data, 
+        story_data: original.story_data
     }]);
-    if(error) alert("Error: " + error.message);
-    else { alert("¡Duplicado!"); loadProjects(); }
+
+    if (error) {
+        OtomeAlert.fire("Error al clonar", error.message, "error");
+    } else {
+        // Mensaje de éxito que desaparece solo
+        OtomeAlert.fire({
+            title: "¡Duplicado!",
+            text: "El proyecto se ha copiado con éxito.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false
+        });
+        loadProjects(); // Recargar la lista
+    }
 };
 
 // ============================================================
@@ -362,23 +430,45 @@ async function loadAssignedStudents(projectId) {
     });
 }
 
+// Formulario: Asignar por Email
 const assignEmailForm = document.getElementById('assignEmailForm');
 if (assignEmailForm) {
     assignEmailForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('studentEmail').value.trim();
         if(!email) return;
-        const { error } = await window.sb.from('assignments').insert([{ project_id: currentAssignId, student_email: email, assigned_by: currentUser.id }]);
+
+        const { error } = await window.sb.from('assignments').insert([{ 
+            project_id: currentAssignId, 
+            student_email: email, 
+            assigned_by: currentUser.id 
+        }]);
+
         if(error) {
-            if(error.code === '23505') alert(" Alumno ya asignado.");
-            else alert("Error: " + error.message);
+            // Error 23505 es "Violación de unicidad" (ya existe en la base de datos)
+            if(error.code === '23505') {
+                OtomeAlert.fire("Aviso", "Este alumno ya tiene asignada esta tarea.", "info");
+            } else {
+                OtomeAlert.fire("Error al asignar", error.message, "error");
+            }
         } else {
+            // Éxito
             document.getElementById('studentEmail').value = '';
             await loadAssignedStudents(currentAssignId);
+            
+            // Notificación visual rápida
+            OtomeAlert.fire({
+                title: "¡Asignado!", 
+                text: `Tarea enviada a ${email}`, 
+                icon: "success", 
+                timer: 1500, 
+                showConfirmButton: false
+            });
         }
     });
 }
 
+// Formulario: Asignar por Clase Completa
 const assignClassForm = document.getElementById('assignClassForm');
 if (assignClassForm) {
     assignClassForm.addEventListener('submit', async (e) => {
@@ -386,16 +476,49 @@ if (assignClassForm) {
         const className = document.getElementById('classSelect').value;
         if(!className) return;
 
-        const { data: students } = await window.sb.from('profiles').select('email').eq('role', 'student').eq('class_name', className);
-        if (!students || students.length === 0) { alert("No hay alumnos en esa clase."); return; }
+        // Buscar alumnos en esa clase
+        const { data: students } = await window.sb
+            .from('profiles')
+            .select('email')
+            .eq('role', 'student')
+            .eq('class_name', className);
 
-        const assigns = students.map(s => ({ project_id: currentAssignId, student_email: s.email, assigned_by: currentUser.id }));
+        if (!students || students.length === 0) { 
+            OtomeAlert.fire("Aviso", `No hay alumnos registrados en la clase "${className}".`, "info"); 
+            return; 
+        }
+
+        // Feedback visual de que está procesando
+        const btnSubmit = assignClassForm.querySelector('button[type="submit"]');
+        const originalText = btnSubmit.innerText;
+        btnSubmit.innerText = "Asignando...";
+        btnSubmit.disabled = true;
+
+        // Preparamos los datos
+        const assigns = students.map(s => ({ 
+            project_id: currentAssignId, 
+            student_email: s.email, 
+            assigned_by: currentUser.id 
+        }));
+        
         let count = 0;
+        // Insertamos uno a uno ignorando si ya estaban asignados previamente
         for (let a of assigns) {
             const { error } = await window.sb.from('assignments').insert([a]);
             if (!error) count++;
         }
-        alert(`Asignado a ${count} alumnos de ${className}.`);
+
+        // Restaurar botón
+        btnSubmit.innerText = originalText;
+        btnSubmit.disabled = false;
+
+        // Alerta de éxito con el total
+        OtomeAlert.fire(
+            "¡Completado!", 
+            `Se ha asignado la tarea a ${count} alumno(s) nuevo(s) de la clase ${className}.`, 
+            "success"
+        );
+        
         await loadAssignedStudents(currentAssignId);
     });
 }
@@ -412,6 +535,7 @@ window.openShareModal = (id) => {
     if(em) em.value = ''; 
 };
 
+// Formulario: Compartir Proyecto con otro Profesor
 const shareForm = document.getElementById('shareForm');
 if (shareForm) {
     shareForm.addEventListener('submit', async (e) => {
@@ -419,27 +543,77 @@ if (shareForm) {
         const emailToShare = document.getElementById('teacherEmail').value.trim();
         if (!emailToShare) return;
 
-        const { data: targetProfile, error: searchError } = await window.sb.from('profiles').select('id, role').eq('email', emailToShare.toLowerCase()).single();
-        if (searchError || !targetProfile) { alert("❌ Usuario no encontrado."); return; }
-        if (targetProfile.role !== 'teacher') { alert("El usuario no es Profesor."); return; }
+        // Feedback visual: Bloquear botón mientras procesa
+        const btnSubmit = shareForm.querySelector('button[type="submit"]');
+        const originalText = btnSubmit.innerText;
+        btnSubmit.innerText = "Buscando...";
+        btnSubmit.disabled = true;
 
+        // 1. Comprobar usuario
+        const { data: targetProfile, error: searchError } = await window.sb
+            .from('profiles')
+            .select('id, role')
+            .eq('email', emailToShare.toLowerCase())
+            .single();
+
+        if (searchError || !targetProfile) { 
+            OtomeAlert.fire("No encontrado", "No existe ningún usuario registrado con ese correo.", "error"); 
+            btnSubmit.innerText = originalText;
+            btnSubmit.disabled = false;
+            return; 
+        }
+        
+        if (targetProfile.role !== 'teacher') { 
+            OtomeAlert.fire("Acceso Denegado", "El usuario encontrado es un Alumno. Solo puedes compartir proyectos con otros Profesores.", "warning"); 
+            btnSubmit.innerText = originalText;
+            btnSubmit.disabled = false;
+            return; 
+        }
+
+        btnSubmit.innerText = "Enviando copia...";
+
+        // 2. Obtener original
         const { data: original } = await window.sb.from('projects').select('*').eq('id', currentShareId).single();
-        if (!original) return;
+        if (!original) {
+            btnSubmit.innerText = originalText;
+            btnSubmit.disabled = false;
+            return;
+        }
 
+        // 3. Crear clon
         const { error: cloneError } = await window.sb.from('projects').insert([{
             title: original.title + " (Compartido por " + currentUser.email + ")",
-            description: original.description, user_id: targetProfile.id, 
-            project_data: original.project_data, story_data: original.story_data
+            description: original.description, 
+            user_id: targetProfile.id, 
+            project_data: original.project_data, 
+            story_data: original.story_data
         }]);
 
-        if (cloneError) alert("Error al compartir: " + cloneError.message);
-        else {
-            alert("✔ ¡Enviado con éxito a " + emailToShare + "!");
+        // Restaurar botón
+        btnSubmit.innerText = originalText;
+        btnSubmit.disabled = false;
+
+        if (cloneError) {
+            OtomeAlert.fire("Error al compartir", cloneError.message, "error");
+        } else {
+            // Éxito
             document.getElementById('shareModal').style.display = 'none';
+            document.getElementById('teacherEmail').value = ''; // Limpiar el campo
+            
+            OtomeAlert.fire({
+                title: "¡Enviado!",
+                text: `Copia del proyecto enviada a ${emailToShare}`,
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
     });
 }
 
+// ============================================================
+//               EXPORTAR ZIP
+// ============================================================
 window.exportZip = async (id) => {
     const btn = document.getElementById(`export-btn-${id}`);
     const originalText = btn.innerText;
@@ -486,26 +660,35 @@ window.exportZip = async (id) => {
         a.href = URL.createObjectURL(blob);
         const safeTitle = project.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
         a.download = `otome_${safeTitle}.zip`;
-        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        document.body.appendChild(a); 
+        a.click(); 
+        document.body.removeChild(a);
 
-        btn.innerText = "✔ ¡Descargado!";
+        btn.innerText = "¡Descargado!";
         setTimeout(() => { btn.innerText = originalText; btn.style.pointerEvents = "auto"; }, 2000);
 
     } catch (error) {
         console.error(error);
-        alert("Error al exportar: " + error.message);
-        btn.innerText = originalText; btn.style.pointerEvents = "auto";
+        OtomeAlert.fire("Error al exportar", error.message, "error");
+        btn.innerText = originalText; 
+        btn.style.pointerEvents = "auto";
     }
 };
 
+// ============================================================
+//               IMPORTAR ZIP
+// ============================================================
 const fabImport = document.getElementById('fabImport');
 const importInput = document.getElementById('importInput');
+
 if (fabImport && importInput) {
     fabImport.addEventListener('click', () => importInput.click());
+    
     importInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Cambiar icono del botón flotante a reloj de arena
         const originalIcon = fabImport.innerHTML;
         fabImport.innerHTML = '<span class="material-icons">hourglass_empty</span>';
         fabImport.disabled = true;
@@ -516,12 +699,36 @@ if (fabImport && importInput) {
             const pDataFile = zip.file("project_data.json");
             const sDataFile = zip.file("story.json");
 
-            if (!pDataFile || !sDataFile) throw new Error("ZIP no válido.");
+            if (!pDataFile || !sDataFile) throw new Error("El archivo ZIP no es un proyecto válido de Otome Flow.");
 
             let pDataStr = await pDataFile.async("string");
             let sDataStr = await sDataFile.async("string");
             const pDataObj = JSON.parse(pDataStr);
 
+            // 1. PREGUNTAR EL NOMBRE PRIMERO
+            const { value: newTitle } = await OtomeAlert.fire({
+                title: 'Importar Proyecto',
+                text: 'Nombre para esta copia:',
+                input: 'text',
+                inputValue: "Copia - " + (pDataObj.startScene || "Proyecto"),
+                showCancelButton: true,
+                confirmButtonText: 'Importar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!newTitle) throw new Error("Cancelado");
+
+            // 2. MOSTRAR POP-UP DE CARGA (Para que el usuario no desespere)
+            OtomeAlert.fire({
+                title: 'Procesando imágenes...',
+                text: 'Subiendo los recursos a la nube, por favor espera.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // 3. SUBIR IMÁGENES
             const backgrounds = pDataObj.assets?.backgrounds ||[];
             for (let bg of backgrounds) {
                 const zipFile = zip.file(`assets/backgrounds/${bg.name}`);
@@ -550,22 +757,35 @@ if (fabImport && importInput) {
                 }
             }
 
-            const newTitle = prompt("Nombre para la copia importada:", "Copia - " + (pDataObj.startScene || "Proyecto"));
-            if (!newTitle) throw new Error("Cancelado");
-
+            // 4. GUARDAR EN BASE DE DATOS
             const { error } = await window.sb.from('projects').insert([{
-                title: newTitle, description: "Restaurado desde ZIP", user_id: currentUser.id,
-                project_data: JSON.parse(pDataStr), story_data: JSON.parse(sDataStr)
+                title: newTitle, 
+                description: "Restaurado desde ZIP", 
+                user_id: currentUser.id,
+                project_data: JSON.parse(pDataStr), 
+                story_data: JSON.parse(sDataStr)
             }]);
 
             if (error) throw error;
-            alert("✔ ¡Proyecto importado con éxito!");
+            
+            // 5. ÉXITO
+            OtomeAlert.fire({
+                title: "¡Completado!",
+                text: "El proyecto se ha importado con éxito.",
+                icon: "success",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
             loadProjects(); 
 
         } catch (error) {
-            if (error.message !== "Cancelado") alert("❌ Error al importar: " + error.message);
+            if (error.message !== "Cancelado") {
+                OtomeAlert.fire("Error al importar", error.message, "error");
+            }
         }
 
+        // Restaurar estado del botón flotante
         fabImport.innerHTML = originalIcon;
         fabImport.disabled = false;
         fabImport.style.background = "#ff9800"; 
