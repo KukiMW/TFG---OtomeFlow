@@ -1,4 +1,11 @@
-/* dashboard.css */
+/* ============================================================
+   dashboard.css
+============================================================ */
+body, html {
+    overflow-y: auto !important; /* Forzamos a que permita el scroll vertical */
+    height: auto !important;     /* Dejamos que la página crezca si hay muchas tarjetas */
+    min-height: 100vh;           /* Como mínimo, ocupa toda la pantalla */
+}
 
 /* NAVBAR */
 .navbar {
