@@ -65,21 +65,23 @@
             <select id="filterClass"><option value="all">Todas las clases</option></select>
         </div>
 
-        <table class="styled-table" id="analyticsTable">
-            <thead>
-                <tr>
-                    <th>Alumno</th>
-                    <th>Clase</th>
-                    <th>Tarea (Juego)</th>
-                    <th>Estado / Mejor Nota</th>
-                    <th>Tiempo invertido</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="6" style="text-align: center;">Cargando datos...</td></tr>
-            </tbody>
-        </table>
+        <div style="overflow-x: auto; width: 100%; box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); border-radius: 8px;"></div>
+            <table class="styled-table" id="analyticsTable">
+                <thead>
+                    <tr>
+                        <th>Alumno</th>
+                        <th>Clase</th>
+                        <th>Tarea (Juego)</th>
+                        <th>Estado / Mejor Nota</th>
+                        <th>Tiempo invertido</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="6" style="text-align: center;">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- MODAL 1: HISTORIAL DE INTENTOS -->
