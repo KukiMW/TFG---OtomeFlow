@@ -71,10 +71,9 @@ export class Engine {
     async runNextAction() {
         const scene = this.story.scenes[this.gameState.currentScene];
         
-         // --- MODIFICADO: DETECTAR FIN DE JUEGO ---
         if (!scene || this.gameState.currentIndex >= scene.length) {
             console.log("Fin de la historia.");
-            this.finishGame(); // <--- LLAMADA NUEVA
+            this.finishGame();
             return; 
         }
 
@@ -110,7 +109,7 @@ export class Engine {
         }
 
         this.gameState.currentIndex++;
-        this.runNextAction();
+        this.runNextAction();   // Llamada recursiva al siguiente nodo
     }
 
     // --- PANTALLA FINAL Y GUARDADO ---

@@ -114,24 +114,48 @@
         }
 
         async function doRegister() {
-            msgBox.style.color = "#333"; msgBox.innerText = "Registrando...";
-            
             const role = document.querySelector('input[name="role"]:checked').value;
-            const metadata = {
-                role: role,
-                first_name: document.getElementById('regName').value,
-                last_name: document.getElementById('regLastname').value
-            };
+            const name = document.getElementById('regName').value.trim();
+            const lastname = document.getElementById('regLastname').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPass').value;
 
-            if (role === 'student') {
-                metadata.dni = document.getElementById('regDni').value;
-                metadata.class_name = document.getElementById('regClass').value;
+            // 1. Validación básica para todos
+            if (!name || !email || !pass) {
+                msgBox.style.color = "#d32f2f"; 
+                msgBox.innerText = "❌ Por favor, rellena todos los campos básicos.";
+                return;
             }
 
+            const metadata = {
+                role: role,
+                first_name: name,
+                last_name: lastname
+            };
+
+            // 2. VALIDACIÓN ESTRICTA PARA ALUMNOS (NUEVO)
+            if (role === 'student') {
+                const dni = document.getElementById('regDni').value.trim();
+                const className = document.getElementById('regClass').value.trim();
+
+                // Si falta el DNI o la Clase, cortamos el registro y avisamos
+                if (!dni || !className) {
+                    msgBox.style.color = "#d32f2f"; 
+                    msgBox.innerText = "❌ Si eres alumno, los campos DNI y Clase son OBLIGATORIOS.";
+                    return;
+                }
+
+                metadata.dni = dni;
+                metadata.class_name = className;
+            }
+
+            msgBox.style.color = "#333"; 
+            msgBox.innerText = "Registrando...";
+
             const { data, error } = await window.sb.auth.signUp({
-                email: document.getElementById('regEmail').value,
-                password: document.getElementById('regPass').value,
-                options: { data: metadata } // Aquí enviamos los datos extra al Trigger de SQL
+                email: email,
+                password: pass,
+                options: { data: metadata }
             });
 
             if (error) {
