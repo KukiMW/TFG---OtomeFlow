@@ -47,7 +47,8 @@ function initEditor() {
     workspace = Blockly.inject('blocklyDiv', {
         toolbox: initialToolbox, 
         scrollbars: true, 
-        trashcan: true
+        trashcan: true,
+        media: 'https://unpkg.com/blockly/media/'
     });
 
     Blockly.JavaScript.init(workspace);
@@ -67,7 +68,7 @@ function initEditor() {
 // ============================================================
 
 async function loadProjectFromCloud() {
-    console.log("☁️ Cargando proyecto ID:", projectDBId);
+    console.log("Cargando proyecto ID:", projectDBId);
     
     const { data, error } = await window.sb
         .from('projects')
@@ -402,7 +403,8 @@ function setupEventListeners() {
 async function generateStoryTree() {
     saveCurrentWorkspaceToMemory(); 
 
-    let graphDefinition = "graph TD;\n";
+    // 1. CONFIGURACIÓN MÁGICA: Desactivamos htmlLabels y forzamos la fuente
+    let graphDefinition = "%%{init: {'flowchart': {'htmlLabels': false, 'padding': 10}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";    graphDefinition += "graph TD;\n";
     graphDefinition += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
     graphDefinition += "classDef start fill:#d1e7dd,stroke:#0f5132,stroke-width:3px;\n";
     graphDefinition += "classDef logic fill:#fff3cd,stroke:#ffc107,stroke-width:2px,stroke-dasharray: 5 5;\n";
@@ -419,8 +421,7 @@ async function generateStoryTree() {
         const styleClass = (id === startScene) ? ":::start" : "";
         const safeId = id.replace(/[^a-zA-Z0-9]/g, '_');
         
-        // Nodo de la escena
-        graphDefinition += `${safeId}["🎬 ${id}"]${styleClass};\n`;
+        graphDefinition += `${safeId}["${id}"]${styleClass};\n`;
         
         try {
             const jsonStr = `{ ${assetState.scenes[id].code} }`;
@@ -428,20 +429,17 @@ async function generateStoryTree() {
             const actions = sceneObj[Object.keys(sceneObj)[0]]; 
 
             actions.forEach(action => {
-                // Conexiones de Decisión
                 if (action.action === "choice") {
                     action.options.forEach(opt => {
                         if (opt.goto) {
                             const safeDest = opt.goto.replace(/[^a-zA-Z0-9]/g, '_');
                             let label = opt.text.substring(0, 15) + (opt.text.length>15?"...":"");
                             if(opt.varVal && opt.varVal != 0) label += ` [${opt.varName} +${opt.varVal}]`;
-                            // Limpiar comillas en la etiqueta
-                            label = label.replace(/"/g, "'") + " ";
+                            label = label.replace(/"/g, "'");
                             graphDefinition += `${safeId} -->|"${label}"| ${safeDest};\n`;
                         }
                     });
                 }
-                // Conexiones de Juez
                 if (action.action === "check_variable") {
                     const safeTrue = action.goto_true.replace(/[^a-zA-Z0-9]/g, '_');
                     const safeFalse = action.goto_false.replace(/[^a-zA-Z0-9]/g, '_');
@@ -451,29 +449,34 @@ async function generateStoryTree() {
                     graphDefinition += `${logicNode} -->|Sí| ${safeTrue};\n`;
                     graphDefinition += `${logicNode} -->|No| ${safeFalse};\n`;
                 }
-                // Salto directo
                 if (action.action === "jump") {
                     const safeDest = action.goto.replace(/[^a-zA-Z0-9]/g, '_');
                     graphDefinition += `${safeId} -->|Salto| ${safeDest};\n`;
                 }
             });
-
         } catch (e) { console.error("Error Mermaid:", e); }
     });
 
-    // Mostrar modal y renderizar
+    // 2. ABRIMOS EL MODAL PRIMERO PARA QUE EL NAVEGADOR CALCULE EL ESPACIO
     const modal = document.getElementById('treeModal');
     modal.style.display = 'flex';
-    const container = document.getElementById('mermaidGraph');
-    container.innerHTML = graphDefinition;
-    container.removeAttribute('data-processed');
     
-    try {
-        await mermaid.run({ nodes: [container] });
-    } catch(err) {
-        console.error("Error renderizando gráfico:", err);
-        container.innerHTML = "Error al generar gráfico. Revisa que las nombres de escenas no tengan caracteres extraños.";
-    }
+    // Forzamos al navegador a repintar la pantalla (Truco Reflow)
+    void modal.offsetWidth;
+
+    // 3. ESPERAMOS 50 MILISEGUNDOS Y DIBUJAMOS
+    setTimeout(async () => {
+        const container = document.getElementById('mermaidGraph');
+        container.innerHTML = graphDefinition;
+        container.removeAttribute('data-processed');
+        
+        try {
+            await mermaid.run({ nodes: [container] });
+        } catch(err) {
+            console.error("Error renderizando gráfico:", err);
+            container.innerHTML = "Error al generar gráfico.";
+        }
+    }, 50);
 }
 
 // ============================================================

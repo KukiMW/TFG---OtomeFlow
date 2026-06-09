@@ -10,7 +10,7 @@
     <title>Otome Flow - Editor Visual</title>
     <!-- CSS -->
     <link rel="stylesheet" href="editor_style.css">
-    <!-- Iconos Material (Opcional, pero recomendado para flechas bonitas) -->
+    <!-- Iconos Material -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/OF.png">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -31,86 +31,86 @@
         </div>
     </header>
 
-    <!-- CONTENEDOR PRINCIPAL (Flex) -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <div id="main-wrapper">
 
-        <!-- 2. SIDEBAR IZQUIERDA -->
-        <aside id="sidebar-left">
-            <div class="section">
-                <h3>Añadir</h3>
-                <label for="bgInput">1. Fondo:</label>
-                <input type="file" id="bgInput" accept="image/*">
-                
-                <hr class="divider">
-                
-                <label for="newCharName">2. Personaje:</label>
-                <div class="input-group">
-                    <input type="text" id="newCharName" placeholder="Nombre">
-                    <button id="addCharBtn">+</button>
-                </div>
-                
-                <label for="editChar">3. Editar:</label>
-                <select id="charSelector">
-                    <option value="" disabled selected>-- Selecciona --</option>
-                </select>
-                
-                <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
-                    <label for="newCharSprite">Añadir Sprite a <b id="displayCharName">...</b>:</label>
-                    <input type="file" id="spriteInput" accept="image/*">
-                </div>
+        <!-- 1. SIDEBAR IZQUIERDA: CONTROLES DE ASSETS Y LISTA -->
+    <aside id="sidebar-left">
+        <div class="section">
+            <h3>Añadir Recursos</h3>
+            
+            <label>1. Fondo:</label>
+            <label for="bgInput" class="custom-file-btn">Subir Imagen de Fondo</label>
+            <input type="file" id="bgInput" accept="image/*" style="display: none;">
+            
+            <hr class="divider">
+            
+            <label>2. Crear Personaje:</label>
+            <div class="input-group">
+                <input type="text" id="newCharName" placeholder="Nombre">
+                <button id="addCharBtn">+</button>
             </div>
-
-            <div class="section">
-                <h3>Proyecto</h3>
-                <label for="sceneName">Nombre Escena Inicio:</label>
-                <input type="text" id="startSceneInput" value="inicio">
-                
-                <hr class="divider">
-                
-                <!-- AHORA SOLO GUARDAMOS EN LA NUBE -->
-                <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:1rem;">
-                    GUARDAR EN LA NUBE
-                </button>
-                
-                <div style="margin-top:10px; text-align:center;">
-                    <a href="dashboard.html" style="color:#711651; text-decoration:underline; font-size:0.8rem;">Volver al Dashboard</a>
-                </div>
+            
+            <label>3. Editar Personaje:</label>
+            <select id="charSelector">
+                <option value="" disabled selected>-- Selecciona --</option>
+            </select>
+            
+            <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
+                <label>Añadir Sprite a <b id="displayCharName">...</b>:</label>
+                <label for="spriteInput" class="custom-file-btn">Subir Expresión (Sprite)</label>
+                <input type="file" id="spriteInput" accept="image/*" style="display: none;">
             </div>
-        </aside>
-
-        <!-- 3. PESTAÑA DE COLAPSO IZQUIERDA -->
-        <div id="sidebarToggle" title="Contraer/Expandir">
-            <span class="material-icons">chevron_left</span>
         </div>
 
-        <!-- 4. CENTRO: BLOCKLY -->
-        <main id="blocklyArea">
-            <div id="blocklyDiv"></div>
-        </main>
-
-        <!-- 5. PESTAÑA DE COLAPSO DERECHA -->
-        <div id="sidebarRightToggle" title="Contraer/Expandir">
-            <span class="material-icons">chevron_right</span>
-        </div>
-
-
-        <!-- 6. DERECHA: ESCENAS -->
-        <aside id="sidebar-right">
-            <div class="section scene-section">
-                <h3>🎬 Escenas</h3>
-                <div class="scene-controls">
-                    <button id="newSceneBtn" class="btn-new-scene">Nueva</button>
-                    <button id="saveSceneBtn" class="btn-save-scene">Guardar</button>
-                    <button id="viewTreeBtn" class="btn-tree">Árbol</button>
-                </div>
-                <div id="sceneList"><p class="empty-msg">Vacío</p></div>
-            </div>
-
-            <h3>Archivos</h3>
+        <div class="section">
+            <h3>Archivos Cargados</h3>
             <div id="assetList"><p class="empty-msg">Vacío</p></div>
-        </aside>
+        </div>
+    </aside>
 
+    <!-- PESTAÑA DE COLAPSO IZQUIERDA -->
+    <div id="sidebarToggle" title="Contraer/Expandir">
+        <span class="material-icons">chevron_left</span>
     </div>
+
+    <!-- 2. CENTRO: BLOCKLY -->
+    <main id="blocklyArea">
+        <div id="blocklyDiv"></div>
+    </main>
+
+    <!-- PESTAÑA DE COLAPSO DERECHA -->
+    <div id="sidebarRightToggle" title="Contraer/Expandir">
+        <span class="material-icons">chevron_right</span>
+    </div>
+
+    <!-- 3. DERECHA: ESCENAS Y NUBE -->
+    <aside id="sidebar-right">
+        <div class="section">
+            <h3>Proyecto en Nube</h3>
+            <label>Nombre de Inicio:</label>
+            <input type="text" id="startSceneInput" value="inicio" title="Debe coincidir con el nombre de tu primera escena">
+            
+            <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:0.95rem; margin-top: 10px; background:#711651;">
+                GUARDAR PROYECTO EN LA NUBE
+            </button>
+            
+            <div style="margin-top:15px; text-align:center;">
+                <a href="dashboard.html" style="color:#711651; text-decoration:underline; font-size:0.85rem;">Volver al Dashboard</a>
+            </div>
+        </div>
+
+        <div class="section scene-section">
+            <h3>Escenas</h3>
+            <div class="scene-controls">
+                <button id="newSceneBtn" class="btn-new-scene">Nueva</button>
+                <button id="saveSceneBtn" class="btn-save-scene">Guardar escena</button>
+                <button id="viewTreeBtn" class="btn-tree">Ver Árbol</button>
+            </div>
+            <div id="sceneList"><p class="empty-msg">Vacío</p></div>
+        </div>
+        
+    </aside>    
 
     <!-- MODAL ÁRBOL -->
     <div id="treeModal" class="modal-overlay" style="display: none;">
@@ -143,6 +143,8 @@
     <!-- 3. Lógica del Editor -->
     <script src="editor.js"></script>
 </body>
+
+
 </html>
 
 </body>

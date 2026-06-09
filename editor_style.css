@@ -173,11 +173,36 @@ button:active {
     background: #731565;
 }
 
+/* Botones personalizados de subida de archivos */
+.custom-file-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: #e0c3fc;
+    border: 1px solid #b48de3;
+    border-radius: 4px;
+    color: #4a148c;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 5px;
+    box-sizing: border-box;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.custom-file-btn:hover {
+    background: #d1abf9;
+}
+
+.custom-file-btn:active {
+    transform: translateY(1px);
+}
+
 .btn-export { background: #4caf50; } /* Verde */
 .btn-import { background: #ff9800; } /* Naranja */
 
 /* ============================================================
-   4. PESTAÑA DE COLAPSO (TOGGLE)
+   PESTAÑA DE COLAPSO IZQUIERDA
 ============================================================ */
 #sidebarToggle {
     width: 20px;
@@ -191,14 +216,13 @@ button:active {
     border-radius: 0 10px 10px 0; 
     align-self: center;
     
-    /* CAMBIO CLAVE: Ya no usamos position: absolute, sino flex normal */
     position: relative; 
-    left: 0; /* Ya no necesitamos moverlo con left, flex lo empuja */
+    left: 0;
     
     z-index: 100;
     transition: transform 0.3s ease;
     box-shadow: 2px 0 5px rgba(0,0,0,0.2);
-    flex-shrink: 0; /* La pestaña nunca se encoge */
+    flex-shrink: 0;
 }
 
 #sidebarToggle:hover {
@@ -209,7 +233,7 @@ button:active {
    5. ÁREA CENTRAL (BLOCKLY)
 ============================================================ */
 #blocklyArea {
-    flex: 1 1 400px; /* Crece (1), se encoge (1), tamaño ideal 400px */
+    flex: 1 1 400px;
     min-width: 300px;
     position: relative;
     height: 100%;
@@ -222,7 +246,7 @@ button:active {
 }
 
 /* ============================================================
-   6. BARRA LATERAL DERECHA (ESCENAS Y ARBOL)
+   6. BARRA LATERAL DERECHA
 ============================================================ */
 #sidebar-right {
     flex: 0 0 250px; /* Tamaño ideal: 250px */
@@ -236,31 +260,8 @@ button:active {
 }
 
 /* ============================================================
-   NUEVO: PESTAÑA Y COLAPSO DE LA BARRA DERECHA
+    BARRA LATERAL DERECHA
 ============================================================ */
-
-/* Estilo del botón (Simétrico al izquierdo) */
-#sidebarRightToggle {
-    width: 20px;
-    height: 50px;
-    background: #711651;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 10px 0 0 10px; /* Borde redondeado a la izquierda */
-    align-self: center; /* Centrado verticalmente */
-    position: relative;
-    z-index: 100;
-    transition: transform 0.3s ease, background 0.3s ease;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
-    flex-shrink: 0; /* Nunca se encoge */
-}
-
-#sidebarRightToggle:hover {
-    background: #9c27b0;
-}
 
 /* Transiciones para la barra derecha */
 #sidebar-right {
@@ -348,6 +349,31 @@ button:active {
     color: #666;
     font-style: italic;
     margin: 10px 0;
+}
+
+/* ============================================================
+   PESTAÑA DE COLAPSO DERECHA
+============================================================ */
+#sidebarRightToggle {
+    width: 20px;
+    height: 50px;
+    background: #711651;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 10px 0 0 10px; /* Borde redondeado a la izquierda */
+    align-self: center; /* Centrado verticalmente */
+    position: relative;
+    z-index: 100;
+    transition: transform 0.3s ease, background 0.3s ease;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+    flex-shrink: 0; /* Nunca se encoge */
+}
+
+#sidebarRightToggle:hover {
+    background: #9c27b0;
 }
 
 /* ============================================================
@@ -457,16 +483,23 @@ button:active {
     text-align: center;
 }
 
-/* Ajustes para Mermaid (Diagramas) */
-.node rect {
-    fill: #f6ebff !important;
-    stroke: #b48de3 !important;
-    stroke-width: 2px;
+/* ============================================================
+   AJUSTES GLOBALES PARA GRÁFICOS MERMAID (ÁRBOLES)
+============================================================ */
+.node rect, .node polygon, .node circle {
+    rx: 8px !important;
+    ry: 8px !important;
 }
+
 .edgeLabel {
-    background-color: white;
-    padding: 4px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    border: 1px solid #ddd;
+    background-color: #ffffff !important;
+    color: #4a148c !important;
+    padding: 4px 10px !important;
+    border: 1px solid #d8a4ff !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.mermaid text {
+    font-family: "Poppins", sans-serif !important;
 }

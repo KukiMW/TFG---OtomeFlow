@@ -197,7 +197,8 @@ window.drawPath = async (pathJsonEncoded) => {
     }
 
     // Preparar el lienzo de Mermaid
-    let graph = "graph TD;\n";
+    let graph = "%%{init: {'flowchart': {'htmlLabels': false, 'padding': 10}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
+    graph += "graph TD;\n";
     graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
     
     for(let i = 0; i < pathArray.length; i++) {
@@ -207,7 +208,7 @@ window.drawPath = async (pathJsonEncoded) => {
         const sceneName = typeof step === 'string' ? step : step.scene;
         
         // Dibujamos el nodo de la escena
-        graph += `S${i}["🎬 ${sceneName}"];\n`;
+        graph += `S${i}[" ${sceneName} "];\n`;
         
         // Si no es la primera escena, dibujamos la flecha desde la anterior
         if (i > 0) {
@@ -221,7 +222,7 @@ window.drawPath = async (pathJsonEncoded) => {
             }
             
             // Conectamos la escena anterior con la actual, poniendo la respuesta en medio
-            graph += `S${i-1} -->|"${arrowLabel}"| S${i};\n`;
+            graph += `S${i-1} -->|"${arrowLabel} "| S${i};\n`;
         }
     }
 

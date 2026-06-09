@@ -344,3 +344,23 @@ form input, form textarea {
 .profile-item.logout:hover {
     background-color: #fce8e6;
 }
+
+/* ============================================================
+   AJUSTES GLOBALES PARA GRÁFICOS MERMAID (ÁRBOLES)
+============================================================ */
+.node rect, .node polygon, .node circle {
+    rx: 8px !important;
+    ry: 8px !important;
+}
+.edgeLabel {
+    background-color: #ffffff !important;
+    color: #4a148c !important;
+    padding: 4px 10px !important;
+    border: 1px solid #d8a4ff !important;
+    border-radius: 6px !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.mermaid text {
+    font-family: "Poppins", sans-serif !important;
+}
