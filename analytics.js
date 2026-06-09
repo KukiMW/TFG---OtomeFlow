@@ -197,7 +197,7 @@ window.drawPath = async (pathJsonEncoded) => {
     }
 
     // Preparar el lienzo de Mermaid
-    let graph = "%%{init: {'flowchart': {'htmlLabels': false, 'padding': 10}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
+    let graph = "%%{init: {'flowchart': {'htmlLabels': true, 'padding': 15}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
     graph += "graph TD;\n";
     graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
     

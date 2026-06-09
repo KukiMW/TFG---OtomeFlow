@@ -421,7 +421,7 @@ async function generateStoryTree() {
         const styleClass = (id === startScene) ? ":::start" : "";
         const safeId = id.replace(/[^a-zA-Z0-9]/g, '_');
         
-        graphDefinition += `${safeId}["${id}"]${styleClass};\n`;
+        graphDefinition += `${safeId}["<div style='padding: 0px 25px;'>${id}&nbsp&nbsp&nbsp&nbsp&nbsp</div>"]${styleClass};\n`;        
         
         try {
             const jsonStr = `{ ${assetState.scenes[id].code} }`;
@@ -445,7 +445,7 @@ async function generateStoryTree() {
                     const safeFalse = action.goto_false.replace(/[^a-zA-Z0-9]/g, '_');
                     const logicNode = `${safeId}_LOG_${Math.floor(Math.random()*1000)}`;
                     let opSymbol = action.operator;
-                    graphDefinition += `${safeId} -.-> ${logicNode}{{"¿${action.variable} ${opSymbol} ${action.value}?"}}:::logic;\n`;
+                    graphDefinition += `${safeId} -.-> ${logicNode}{{"<div style='padding: 0px 30px;'>¿${action.variable} ${opSymbol} ${action.value}?&nbsp&nbsp&nbsp&nbsp&nbsp</div>"}}:::logic;\n`;
                     graphDefinition += `${logicNode} -->|Sí| ${safeTrue};\n`;
                     graphDefinition += `${logicNode} -->|No| ${safeFalse};\n`;
                 }
