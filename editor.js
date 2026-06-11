@@ -48,7 +48,7 @@ function initEditor() {
         toolbox: initialToolbox, 
         scrollbars: true, 
         trashcan: true,
-        media: 'https://unpkg.com/blockly/media/'
+        media: 'https://cdnjs.cloudflare.com/ajax/libs/blockly/10.4.3/media/'
     });
 
     Blockly.JavaScript.init(workspace);
@@ -187,18 +187,43 @@ async function saveProjectToCloud() {
 // ============================================================
 //               4. GESTIÓN DE ESCENAS
 // ============================================================
-
-function createNewScene(forceName = null) {
+async function createNewScene(forceName = null) {
     if (currentSceneId) saveCurrentWorkspaceToMemory();
 
     let name = forceName;
     if (!name) {
-        name = prompt("Nombre de la nueva escena:");
-        if (!name) return;
-        name = name.trim().replace(/\s+/g, '_');
+        if (typeof Swal !== 'undefined') {
+            const { value } = await Swal.fire({
+                title: 'Nueva Escena',
+                input: 'text',
+                inputPlaceholder: 'Nombre de nueva escena',
+                showCancelButton: true,
+                confirmButtonColor: '#711651',
+                confirmButtonText: 'Crear',
+                cancelButtonText: 'Cancelar'
+            });
+            if (!value) return; // Si cancela, no hace nada
+            name = value.trim().replace(/\s+/g, '_');
+        } else {
+            // Fallback por si falla la librería
+            name = prompt("Nombre de la nueva escena:");
+            if (!name) return;
+            name = name.trim().replace(/\s+/g, '_');
+        }
+    }
+    
+    // Proteger la escena "inicio"
+    if (name.toLowerCase() === "inicio" && assetState.scenes["inicio"]) {
+        switchToScene("inicio");
+        return;
     }
 
     if (assetState.scenes[name]) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire("Aviso", "Esa escena ya existe. Te llevamos a ella.", "info");
+        } else {
+            alert("Esa escena ya existe. Te llevamos a ella.");
+        }
         switchToScene(name);
         return;
     }
@@ -206,8 +231,6 @@ function createNewScene(forceName = null) {
     currentSceneId = name;
     workspace.clear();
     spawnDefaultBlock(name);
-    
-    // Guardar inmediatamente
     saveCurrentWorkspaceToMemory();
     renderSceneList();
 }
@@ -302,23 +325,33 @@ function setupEventListeners() {
         });
     }
 
+    // --- ANADIR FONDO ---
     document.getElementById('bgInput').addEventListener('change', async e => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // 1. Comprobar si ya existe un fondo con ese nombre
+        // Comprobar si ya existe
         const existingIndex = assetState.backgrounds.findIndex(b => b.name === file.name);
         
         if (existingIndex !== -1) {
-            if (!confirm(`Ya existe un fondo llamado "${file.name}". ¿Quieres reemplazarlo por este nuevo?`)) {
-                e.target.value = ''; // Limpiar el input si cancela
-                return; 
+            const { isConfirmed } = await Swal.fire({
+                title: 'Fondo Duplicado',
+                text: `Ya existe un fondo llamado "${file.name}". ¿Quieres reemplazarlo?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#711651',
+                confirmButtonText: 'Sí, reemplazar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!isConfirmed) {
+                e.target.value = '';
+                return;
             }
         }
 
-        // 2. Subir a la nube
+        // Subir a la nube
         const asset = await uploadAssetToCloud(file, 'backgrounds');
-        
         if (asset) {
             if (existingIndex !== -1) {
                 // Si existía, lo reemplazamos (actualiza la URL)
@@ -330,38 +363,40 @@ function setupEventListeners() {
             refreshBlocklyEnv(); 
             renderAssetList();
         }
-        e.target.value = ''; // Limpiar el input para poder subir otro igual luego
+        e.target.value = '';
     });
 
+    //--- ANADIR SPRITE ---
     document.getElementById('spriteInput').addEventListener('change', async e => {
         const char = document.getElementById('charSelector').value;
         const file = e.target.files[0];
         
         if (!char || !file) return;
 
-        // 1. Comprobar si ya existe un sprite con ese nombre para este personaje
         const existingIndex = assetState.characters[char].findIndex(s => s.name === file.name);
         
         if (existingIndex !== -1) {
-            if (!confirm(`Ya existe un sprite llamado "${file.name}" para ${char}. ¿Quieres reemplazarlo?`)) {
+            const { isConfirmed } = await Swal.fire({
+                title: 'Sprite Duplicado',
+                text: `Ya existe un sprite llamado "${file.name}" para ${char}. ¿Quieres reemplazarlo?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#711651',
+                confirmButtonText: 'Sí, reemplazar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!isConfirmed) {
                 e.target.value = '';
                 return;
             }
         }
 
-        // 2. Subir a la nube
         const asset = await uploadAssetToCloud(file, 'characters');
-        
         if (asset) {
-            if (existingIndex !== -1) {
-                // Reemplazamos
-                assetState.characters[char][existingIndex] = asset;
-            } else {
-                // Añadimos
-                assetState.characters[char].push(asset);
-            }
-            refreshBlocklyEnv(); 
-            renderAssetList();
+            if (existingIndex !== -1) assetState.characters[char][existingIndex] = asset;
+            else assetState.characters[char].push(asset);
+            refreshBlocklyEnv(); renderAssetList();
         }
         e.target.value = '';
     });
@@ -482,19 +517,65 @@ async function generateStoryTree() {
 // ============================================================
 //               AUXILIARES UI
 // ============================================================
+
 function renderSceneList() {
-    const div = document.getElementById('sceneList'); div.innerHTML = '';
+    const div = document.getElementById('sceneList'); 
+    div.innerHTML = '';
     const keys = Object.keys(assetState.scenes);
-    if (!keys.length) { div.innerHTML = '<p class="empty-msg">Vacío</p>'; return; }
+    
+    if (!keys.length) { 
+        div.innerHTML = '<p class="empty-msg">Vacío</p>'; 
+        return; 
+    }
+
     keys.forEach(id => {
         const item = document.createElement('div');
         item.className = `scene-item ${id === currentSceneId ? 'active' : ''}`;
-        item.innerHTML = `<span>${id}</span> <button class="delete-btn">✕</button>`;
-        item.addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') switchToScene(id); });
-        item.querySelector('button').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if(confirm(`¿Borrar "${id}"?`)) { delete assetState.scenes[id]; renderSceneList(); }
+        item.innerHTML = `<span>🎬 ${id}</span> <button class="delete-btn">✕</button>`;
+        
+        item.addEventListener('click', (e) => { 
+            if (e.target.tagName !== 'BUTTON') switchToScene(id); 
         });
+        
+        item.querySelector('button').addEventListener('click', async (e) => {
+            e.stopPropagation(); // Evita que se cargue la escena al darle a la X
+            
+            // Protección extra para la escena "inicio"
+            if (id.toLowerCase() === "inicio") {
+                Swal.fire("Acción bloqueada", "La escena 'inicio' es obligatoria y no se puede borrar.", "error");
+                return;
+            }
+
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Borrar escena?',
+                text: `¿Estás seguro de que quieres borrar "${id}"? Se perderán todos sus bloques.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33', // Rojo para peligro
+                cancelButtonColor: '#888',
+                confirmButtonText: 'Sí, borrar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (isConfirmed) {
+                delete assetState.scenes[id]; 
+                
+                // Si estábamos dentro de esa escena, limpiamos la pantalla y vamos a otra
+                if (currentSceneId === id) {
+                    currentSceneId = null;
+                    workspace.clear();
+                    const remaining = Object.keys(assetState.scenes);
+                    if (remaining.length > 0) switchToScene(remaining[0]);
+                    else createNewScene("inicio");
+                } else {
+                    renderSceneList(); 
+                }
+
+                // Feedback visual de éxito
+                Swal.fire({ title: "¡Borrado!", icon: "success", timer: 1500, showConfirmButton: false });
+            }
+        });
+        
         div.appendChild(item);
     });
 }
@@ -562,28 +643,88 @@ function renderAssetList() {
 // ============================================================
 //               BORRAR ASSETS (IMÁGENES Y PERSONAJES)
 // ============================================================
-window.deleteAsset = function(type, parentName, index) {
-    if(!confirm("¿Seguro que quieres borrar este elemento? Los bloques que lo usen dejarán de funcionar correctamente.")) {
-        return;
+// window.deleteAsset = function(type, parentName, index) {
+//     if(!confirm("¿Seguro que quieres borrar este elemento? Los bloques que lo usen dejarán de funcionar correctamente.")) {
+//         return;
+//     }
+
+//     if (type === 'bg') {
+//         // Borrar fondo
+//         assetState.backgrounds.splice(index, 1);
+//     } 
+//     else if (type === 'char') {
+//         // Borrar personaje completo (carpeta y todos sus sprites)
+//         delete assetState.characters[parentName];
+//         updateCharDropdown(null); // Actualizar selector izquierdo
+//     } 
+//     else if (type === 'sprite') {
+//         // Borrar un sprite específico dentro de un personaje
+//         assetState.characters[parentName].splice(index, 1);
+//     }
+
+//     // Al borrar algo, hay que actualizar el menú de Blockly y la lista visual
+//     refreshBlocklyEnv(); 
+//     renderAssetList();
+// };
+
+window.deleteAsset = async function(type, parentName, index) {
+    let tituloAlerta = "";
+    let textoAlerta = "";
+
+    // 1. Configuramos el texto inteligente según lo que estemos borrando
+    if (type === 'bg') {
+        const bgName = assetState.backgrounds[index].name;
+        tituloAlerta = '¿Borrar Fondo?';
+        textoAlerta = `¿Seguro que quieres borrar el fondo "${bgName}"?`;
+    } 
+    else if (type === 'char') {
+        tituloAlerta = '¿Borrar Personaje Completo?';
+        textoAlerta = `¿Seguro que quieres borrar a "${parentName}" y todas sus imágenes asociadas?`;
+    } 
+    else if (type === 'sprite') {
+        const spriteName = assetState.characters[parentName][index].name;
+        tituloAlerta = '¿Borrar Expresión?';
+        textoAlerta = `¿Seguro que quieres borrar la imagen "${spriteName}" de ${parentName}?`;
     }
 
+    // 2. Mostramos el SweetAlert
+    const { isConfirmed } = await Swal.fire({
+        title: tituloAlerta,
+        text: textoAlerta + " Los bloques que lo usen en tus escenas dejarán de funcionar.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33', // Rojo peligro
+        cancelButtonColor: '#888',
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    // 3. Si el usuario cancela, no hacemos nada
+    if (!isConfirmed) return;
+
+    // 4. Si acepta, borramos los datos de memoria
     if (type === 'bg') {
-        // Borrar fondo
         assetState.backgrounds.splice(index, 1);
     } 
     else if (type === 'char') {
-        // Borrar personaje completo (carpeta y todos sus sprites)
         delete assetState.characters[parentName];
         updateCharDropdown(null); // Actualizar selector izquierdo
     } 
     else if (type === 'sprite') {
-        // Borrar un sprite específico dentro de un personaje
         assetState.characters[parentName].splice(index, 1);
     }
 
-    // Al borrar algo, hay que actualizar el menú de Blockly y la lista visual
+    // 5. Actualizamos el menú de Blockly y la lista visual
     refreshBlocklyEnv(); 
     renderAssetList();
+
+    // 6. Mensaje de éxito
+    Swal.fire({
+        title: "¡Borrado!",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+    });
 };
 
 function updateCharDropdown(sel) {

@@ -109,8 +109,20 @@
             }
         }
 
-        document.getElementById('exitGameBtn').addEventListener('click', () => {
-            if(confirm("¿Seguro que quieres salir? Se perderá el progreso no guardado.")) {
+        // Botón de salir
+        document.getElementById('exitGameBtn').addEventListener('click', async () => {
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Seguro que quieres salir?',
+                text: "Se perderá el progreso de esta partida.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#711651',
+                cancelButtonColor: '#888',
+                confirmButtonText: 'Sí, salir',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (isConfirmed) {
                 window.location.href = "dashboard.html";
             }
         });
