@@ -279,8 +279,8 @@ const createForm = document.getElementById('createForm');
 if (createForm) {
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const title = document.getElementById('newTitle').value;
-        const desc = document.getElementById('newDesc').value;
+        const title = document.getElementById('newTitle').value.replace(/['"]/g, "");
+        const desc = document.getElementById('newDesc').value.replace(/['"]/g, "");
         const maxAttInput = document.getElementById('newMaxAttempts');
         const maxAttempts = maxAttInput ? (parseInt(maxAttInput.value) || 0) : 0;
 

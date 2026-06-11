@@ -23,6 +23,22 @@
             animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #exitGameBtn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #exitGameBtn:hover { background: rgba(255,0,0,0.7); }
     </style>
 </head>
 <body>
@@ -35,6 +51,7 @@
 
     <!-- JUEGO -->
     <div id="game">
+        <button id="exitGameBtn">Salir</button>
         <img id="background" class="background" alt="Fondo de la escena">
         <img id="character" class="character" alt="Personaje en pantalla">
         <div id="textbox" class="textbox">
@@ -42,6 +59,7 @@
             <span id="next-arrow" class="arrow circle"></span>
         </div>
         <div id="choices" class="choices"></div>
+        
     </div>
 
     <script src="supabaseClient.js"></script>
@@ -91,6 +109,11 @@
             }
         }
 
+        document.getElementById('exitGameBtn').addEventListener('click', () => {
+            if(confirm("¿Seguro que quieres salir? Se perderá el progreso no guardado.")) {
+                window.location.href = "dashboard.html";
+            }
+        });
         // Arrancar cuando cargue la ventana
         window.onload = initGame;
     </script>

@@ -483,6 +483,16 @@ button:active {
     text-align: center;
 }
 
+/* Truncar textos largos en la lista de archivos */
+.tree-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 /* ============================================================
    AJUSTES GLOBALES PARA GRÁFICOS MERMAID (ÁRBOLES)
 ============================================================ */
