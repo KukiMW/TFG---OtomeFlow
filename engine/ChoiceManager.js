@@ -17,7 +17,7 @@ export class ChoiceManager {
                 const b = document.createElement("button");
                 b.innerText = opt.text;
 
-                // --- NUEVO: LEER TEXTO AL PASAR EL RATÓN (HOVER) ---
+                // Lee texto de respuestas
                 b.onmouseenter = () => {
                     if (this.synth) {
                         this.synth.cancel(); // Corta lo que estuviera diciendo antes
@@ -26,7 +26,6 @@ export class ChoiceManager {
                         this.synth.speak(utterance);
                     }
                 };
-                // ----------------------------------------------------
 
                 b.onclick = () => {
                     // Callamos a la voz cuando el jugador hace clic para avanzar

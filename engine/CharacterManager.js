@@ -53,17 +53,17 @@ export class CharacterManager {
                 const containerRect = this.bgElement.getBoundingClientRect();
                 const renderedBg = this.getRenderedBackgroundRect();
 
-                // --- 1. ESCALADO (RESPONSIVE) ---
+                // --- ESCALADO (RESPONSIVO) ---
                 // Nunca será más alto que el 95% del fondo, ni más ancho que el 60%
                 this.charElement.style.maxHeight = `${renderedBg.height * 0.95}px`;
                 this.charElement.style.maxWidth = `${renderedBg.width * 0.6}px`;
 
-                // Obligamos al navegador a recalcular el tamaño real de la imagen ahora mismo
+                // Obliga al navegador a recalcular el tamaño real de la imagen
                 const charRect = this.charElement.getBoundingClientRect();
                 const charHeight = charRect.height;
 
-                // --- 2. POSICIÓN HORIZONTAL ---
-                // Como en CSS pusimos translateX(-50%), el 'left' marca el centro exacto del personaje.
+                // --- POSICIÓN HORIZONTAL ---
+                // Marca el centro exacto del personaje.
                 let targetLeft;
                 switch(action.position) {
                     case "left":
@@ -80,7 +80,8 @@ export class CharacterManager {
                 }
                 this.charElement.style.left = `${targetLeft}px`;
 
-                // --- 3. POSICIÓN VERTICAL (INTELIGENCIA DE SUELO) ---
+                // --- POSICIÓN VERTICAL---
+                // Para no quedar detras de caja de texto, segun tam imagen
                 const windowHeight = window.innerHeight;
                 const bgBottomEdge = containerRect.top + renderedBg.y + renderedBg.height;
                 
@@ -89,9 +90,6 @@ export class CharacterManager {
 
                 let targetBottom = spaceBelowBg;
 
-                // LÓGICA: Si la imagen es bajita (mide menos del 45% de la pantalla),
-                // la subimos unos 150px para que se apoye en la caja de diálogo y no se tape.
-                // Si es alta (cuerpo entero), la dejamos tocando el suelo del fondo para que no flote.
                 if (charHeight < (windowHeight * 0.45)) {
                     targetBottom = Math.max(spaceBelowBg, 150);
                 }

@@ -1,5 +1,5 @@
 <!--------------------------------------------------------- 
-        analytics.html 
+        analytics.html      Adriana MW
 --------------------------------------------------------->
 <!DOCTYPE html>
 <html lang="es">
@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/OF.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -85,7 +86,7 @@
         </div>
     </div>
 
-    <!-- MODAL 1: HISTORIAL DE INTENTOS -->
+    <!-- HISTORIAL DE INTENTOS -->
     <div id="historyModal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <h2 id="historyTitle">Historial de Intentos</h2>
@@ -98,14 +99,15 @@
         </div>
     </div>
 
-    <!-- MODAL 2: ÁRBOL DE RUTA MERMAID -->
+    <!-- ARBOL DE RUTA MERMAID -->
     <div id="pathModal" class="modal-overlay" style="display: none; z-index: 1100;">
         <div class="modal-card" style="max-width: 800px; width: 90%;">
             <h2>Ruta del Intento</h2>
             <p style="font-size:0.85rem; color:#666;">Secuencia exacta de escenas visitadas.</p>
             <div id="mermaidPath" class="mermaid" style="margin: 20px 0; overflow:auto; max-height: 400px; background:#f9f9f9; padding:15px; border-radius:8px; text-align:center;"></div>
             <div class="modal-actions">
-                <button onclick="document.getElementById('pathModal').style.display='none'; document.getElementById('scoresModal').style.display='flex';">Cerrar Ruta</button>            </div>
+                <button onclick="document.getElementById('pathModal').style.display='none'; document.getElementById('scoresModal').style.display='flex';">Cerrar Ruta</button>
+            </div>
         </div>
     </div>
 

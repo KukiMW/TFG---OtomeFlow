@@ -1,5 +1,5 @@
 <!--------------------------------------------------------- 
-        editor.html 
+        editor.html     Adriana MW
 --------------------------------------------------------->
 <!DOCTYPE html>
 <html lang="es">
@@ -17,7 +17,7 @@
 </head>
 <body>
 
-    <!-- 1. BARRA SUPERIOR (HEADER) -->
+    <!-- BARRA SUPERIOR (HEADER) -->
     <header id="top-bar">
         <div class="header-left">
             <!-- El título ahora es el botón de volver -->
@@ -26,15 +26,14 @@
                 <h1>OTOME EDITOR</h1>
             </a>
         </div>
-        <div class="header-right">
-            <!-- Aquí podrías poner usuario o configuración en el futuro -->
+            <div class="header-right">
         </div>
     </header>
 
     <!-- CONTENEDOR PRINCIPAL -->
     <div id="main-wrapper">
 
-        <!-- 1. SIDEBAR IZQUIERDA: CONTROLES DE ASSETS Y LISTA -->
+    <!---- SIDEBAR IZQUIERDA ---->
     <aside id="sidebar-left">
         <div class="section">
             <h3>Añadir Recursos</h3>
@@ -57,8 +56,8 @@
             </select>
             
             <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
-                <label>Añadir Sprite a <b id="displayCharName">...</b>:</label>
-                <label for="spriteInput" class="custom-file-btn">Subir Expresión (Sprite)</label>
+                <label>Añadir imagen a <b id="displayCharName">...</b>:</label>
+                <label for="spriteInput" class="custom-file-btn">Subir imagen del personaje (Sprite)</label>
                 <input type="file" id="spriteInput" accept="image/*" style="display: none;">
             </div>
         </div>
@@ -74,7 +73,7 @@
         <span class="material-icons">chevron_left</span>
     </div>
 
-    <!-- 2. CENTRO: BLOCKLY -->
+    <!---- CENTRO: BLOCKLY ---->
     <main id="blocklyArea">
         <div id="blocklyDiv"></div>
     </main>
@@ -84,15 +83,11 @@
         <span class="material-icons">chevron_right</span>
     </div>
 
-    <!-- 3. DERECHA: ESCENAS Y NUBE -->
+    <!-- SIDEBAR DERECHA -->
     <aside id="sidebar-right">
         <div class="section">
             <h3>Proyecto en Nube</h3>
 
-            <!-- DE ESTO DEPENDE GUARDAR EN NUBE Y VER ARBOL-->
-            <label>Nombre de Inicio:</label>
-            <input type="text" id="startSceneInput" value="inicio" title="Debe coincidir con el nombre de tu primera escena">
-            
             <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:0.95rem; margin-top: 10px; background:#711651;">
                 GUARDAR PROYECTO EN LA NUBE
             </button>
@@ -103,7 +98,7 @@
         </div>
 
         <div class="section scene-section">
-            <h3>Escenas</h3>
+            <h3>Menú de Escenas</h3>
             <div class="scene-controls">
                 <button id="newSceneBtn" class="btn-new-scene">Nueva</button>
                 <button id="saveSceneBtn" class="btn-save-scene">Guardar escena</button>
@@ -114,7 +109,7 @@
         
     </aside>    
 
-    <!-- MODAL ÁRBOL -->
+    <!-- MODAL ARBOL -->
     <div id="treeModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -132,17 +127,17 @@
         <category name="Lógica" colour="210"></category>
     </xml>
 
-    <!-- 1. Librerías Externas -->
+    <!-- Librerías Externas -->
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- 2. Configuración Supabase -->
+    <!-- Configuración Supabase -->
     <script src="supabaseClient.js"></script>
 
-    <!-- 3. Lógica del Editor -->
+    <!-- Lógica del Editor -->
     <script src="editor.js"></script>
 </body>
 

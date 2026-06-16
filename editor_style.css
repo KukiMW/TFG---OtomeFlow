@@ -1,6 +1,6 @@
 
 /* ============================================================
-   editor_style.css
+   editor_style.css       Adriana MW
 ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
@@ -16,7 +16,7 @@ body, html {
 }
 
 /* ============================================================
-   1. BARRA SUPERIOR (HEADER)
+   BARRA SUPERIOR (HEADER)
 ============================================================ */
 #top-bar {
     height: 50px;
@@ -51,7 +51,7 @@ body, html {
 }
 
 /* ============================================================
-   2. CONTENEDOR PRINCIPAL (LAYOUT FLEX)
+   CONTENEDOR PRINCIPAL
 ============================================================ */
 #main-wrapper {
     display: flex;
@@ -62,10 +62,10 @@ body, html {
 }
 
 /* ============================================================
-   3. BARRA LATERAL IZQUIERDA (CONTROLES)
+   BARRA LATERAL IZQUIERDA
 ============================================================ */
 #sidebar-left {
-    flex: 0 0 280px; /* Tamaño ideal: 280px. No crece (0), no se encoge por defecto (0) */
+    flex: 0 0 280px; /* No crece - No encoge - Tam. ideal */
     min-width: 220px;
     
     background: #c8a4ff;
@@ -79,7 +79,7 @@ body, html {
 
 /* Estado Cerrado (Colapsado) */
 #sidebar-left.closed {
-    flex-basis: 0 !important; /* En lugar de width: 0, usamos flex-basis: 0 */
+    flex-basis: 0 !important;
     min-width: 0 !important;
     padding: 0;
     overflow: hidden;
@@ -205,6 +205,42 @@ button:active {
 .btn-import { background: #ff9800; } /* Naranja */
 
 /* ============================================================
+   LISTA DE ARCHIVOS
+============================================================ */
+.tree-category {
+    margin-bottom: 15px;
+    color: #4a148c;
+}
+
+.tree-item {
+    background: rgba(255, 255, 255, 0.7);
+    margin-bottom: 4px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(180, 141, 227, 0.3);
+}
+
+.char-folder {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 8px;
+}
+
+.char-name {
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    color: #4a148c;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* ============================================================
    PESTAÑA DE COLAPSO IZQUIERDA
 ============================================================ */
 #sidebarToggle {
@@ -233,7 +269,7 @@ button:active {
 }
 
 /* ============================================================
-   5. ÁREA CENTRAL (BLOCKLY)
+   ÁREA CENTRAL (BLOCKLY)
 ============================================================ */
 #blocklyArea {
     flex: 1 1 400px;
@@ -249,7 +285,7 @@ button:active {
 }
 
 /* ============================================================
-   6. BARRA LATERAL DERECHA
+   BARRA LATERAL DERECHA
 ============================================================ */
 #sidebar-right {
     flex: 0 0 250px; /* Tamaño ideal: 250px */
@@ -260,14 +296,6 @@ button:active {
     overflow-y: auto;
     border-left: 2px solid white;
     z-index: 10;
-}
-
-/* ============================================================
-    BARRA LATERAL DERECHA
-============================================================ */
-
-/* Transiciones para la barra derecha */
-#sidebar-right {
     transition: flex-basis 0.3s ease, min-width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
 }
 
@@ -380,43 +408,7 @@ button:active {
 }
 
 /* ============================================================
-   7. LISTA DE ARCHIVOS (ASSETS TREE)
-============================================================ */
-.tree-category {
-    margin-bottom: 15px;
-    color: #4a148c;
-}
-
-.tree-item {
-    background: rgba(255, 255, 255, 0.7);
-    margin-bottom: 4px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid rgba(180, 141, 227, 0.3);
-}
-
-.char-folder {
-    background: rgba(255, 255, 255, 0.5);
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 8px;
-}
-
-.char-name {
-    font-weight: bold;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-    color: #4a148c;
-    display: flex;
-    justify-content: space-between;
-}
-
-/* ============================================================
-   8. MODAL (VENTANA EMERGENTE)
+   VENTANA EMERGENTE
 ============================================================ */
 .modal-overlay {
     position: fixed;
@@ -497,7 +489,7 @@ button:active {
 }
 
 /* ============================================================
-   AJUSTES GLOBALES PARA GRÁFICOS MERMAID (ÁRBOLES)
+   AJUSTES PARA ARBOLES
 ============================================================ */
 .node rect, .node polygon, .node circle {
     rx: 8px !important;

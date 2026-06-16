@@ -1,26 +1,30 @@
+// ============================================================
+//      server.js       Adriana MW
+// ============================================================
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
 const PORT = 3000;
 
-// Servir archivos estáticos (tu editor, css, imagenes)
+// Servir archivos estáticos (editor, css, imagenes)
 app.use(express.static('.'));
 
-// API: Devolver lista de fondos y personajes
+// Devolver lista de fondos y personajes
 app.get('/api/assets', (req, res) => {
     const assets = {
         backgrounds: [],
         characters: {}
     };
 
-    // 1. Leer Fondos
+    // Leer Fondos
     const bgPath = path.join(__dirname, 'assets', 'backgrounds');
     if (fs.existsSync(bgPath)) {
         assets.backgrounds = fs.readdirSync(bgPath).filter(file => /\.(png|jpg|jpeg)$/i.test(file));
     }
 
-    // 2. Leer Personajes (Carpetas)
+    // Leer Personajes (Carpetas)
     const charPath = path.join(__dirname, 'assets', 'characters');
     if (fs.existsSync(charPath)) {
         const chars = fs.readdirSync(charPath, { withFileTypes: true })

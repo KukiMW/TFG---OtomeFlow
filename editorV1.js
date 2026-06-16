@@ -1,10 +1,7 @@
-// ============================================================
-//      editor.js       Adriana MW
-// ============================================================
 
-//---------------------------------------------------------------
-//      ESTADO GLOBAL (MEMORIA RAM)
-//---------------------------------------------------------------
+// ============================================================
+//               1. ESTADO GLOBAL (MEMORIA RAM)
+// ============================================================
 const assetState = {
     backgrounds: [], 
     characters: {},
@@ -16,9 +13,9 @@ let currentSceneId = null;
 // ID del proyecto en la URL
 let projectDBId = new URLSearchParams(window.location.search).get('id');
 
-//---------------------------------------------------------------
-//      INICIALIZACIÓN
-//---------------------------------------------------------------
+// ============================================================
+//               2. INICIALIZACIÓN
+// ============================================================
 function initEditor() {
     console.log("Iniciando Editor Otome Flow...");
 
@@ -29,7 +26,7 @@ function initEditor() {
     }
 
     if (!projectDBId) {
-        if(confirm("No hay proyecto seleccionado. ¿Volver al Dashboard?")) {
+        if(confirm("⚠️ No hay proyecto seleccionado. ¿Volver al Dashboard?")) {
             window.location.href = "dashboard.html";
         }
         return;
@@ -37,37 +34,39 @@ function initEditor() {
 
     if (!Blockly.JavaScript) { alert("Error: Falta JS Compressed"); return; }
 
-    // Definir Bloques
+    // 1. Definir Bloques
     defineStaticBlocks();
     registerStaticGenerators();
 
-    // Inyectar Blockly
+    // 2. Inyectar Blockly
     const initialToolbox = `
     <xml>
         <category name="Cargando..." colour="290"></category>
     </xml>`;
 
-    // La basura de la esquina
     workspace = Blockly.inject('blocklyDiv', {
         toolbox: initialToolbox, 
         scrollbars: true, 
         trashcan: true,
-        media: './assets/blockly-media/'
+        media: 'https://cdn.jsdelivr.net/npm/blockly/media/'
     });
 
     Blockly.JavaScript.init(workspace);
 
-    // Configurar UI
+    // 3. Configurar UI
     setupEventListeners();
-    // Cargar Toolbox
+
+    // 4. Cargar Toolbox BASE inmediatamente
     refreshBlocklyEnv(); 
-    // Descargar datos de la nube
+    
+    // 5. Descargar datos de la nube
     loadProjectFromCloud();
 }
 
-//---------------------------------------------------------------
-//      CONEXIÓN SUPABASE
-//---------------------------------------------------------------
+// ============================================================
+//               3. CONEXIÓN NUBE
+// ============================================================
+
 async function loadProjectFromCloud() {
     console.log("Cargando proyecto ID:", projectDBId);
     
@@ -89,6 +88,10 @@ async function loadProjectFromCloud() {
         assetState.scenes = data.project_data.scenes;
         assetState.backgrounds = data.project_data.assets?.backgrounds || [];
         assetState.characters = data.project_data.assets?.characters || {};
+        
+        //const startScene = data.project_data.startScene || "inicio";
+        //const startInput = document.getElementById('startSceneInput');
+        //if(startInput) startInput.value = startScene;
 
         // Actualizar UI
         refreshBlocklyEnv();
@@ -142,6 +145,7 @@ async function saveProjectToCloud() {
 
     const editorData = {
         startScene: "inicio",
+        //startScene: document.getElementById('startSceneInput').value,
         scenes: assetState.scenes,
         assets: {
             backgrounds: assetState.backgrounds,
@@ -181,9 +185,9 @@ async function saveProjectToCloud() {
     }
 }
 
-//---------------------------------------------------------------
-//      GESTIÓN DE ESCENAS
-//---------------------------------------------------------------
+// ============================================================
+//               4. GESTIÓN DE ESCENAS
+// ============================================================
 async function createNewScene(forceName = null) {
     if (currentSceneId) saveCurrentWorkspaceToMemory();
 
@@ -277,9 +281,9 @@ function spawnDefaultBlock(id) {
     block.initSvg(); block.render(); workspace.scrollCenter();
 }
 
-//---------------------------------------------------------------
-//      EVENTOS UI
-//---------------------------------------------------------------
+// ============================================================
+//               5. EVENTOS UI
+// ============================================================
 function setupEventListeners() {
     
     // --- COLAPSAR BARRA IZQUIERDA ---
@@ -291,10 +295,11 @@ function setupEventListeners() {
         toggleLeftBtn.addEventListener('click', () => {
             sidebarLeft.classList.toggle('closed');
             
+            // Lógica simétrica:
             if (sidebarLeft.classList.contains('closed')) {
-                toggleLeftIcon.innerText = 'chevron_right'; // Si está cerrada
+                toggleLeftIcon.innerText = 'chevron_right'; // Si está cerrada, apunta a la derecha para "tirar" de ella
             } else {
-                toggleLeftIcon.innerText = 'chevron_left';  // Si está abierta
+                toggleLeftIcon.innerText = 'chevron_left';  // Si está abierta, apunta a la izquierda para "empujarla"
             }
             
             setTimeout(() => Blockly.svgResize(workspace), 350);
@@ -310,10 +315,11 @@ function setupEventListeners() {
         toggleRightBtn.addEventListener('click', () => {
             sidebarRight.classList.toggle('closed');
             
+            // Lógica simétrica:
             if (sidebarRight.classList.contains('closed')) {
-                toggleRightIcon.innerText = 'chevron_left';
+                toggleRightIcon.innerText = 'chevron_left';  // Si está cerrada, apunta a la izquierda para "tirar" de ella
             } else {
-                toggleRightIcon.innerText = 'chevron_right';
+                toggleRightIcon.innerText = 'chevron_right'; // Si está abierta, apunta a la derecha para "empujarla"
             }
             
             setTimeout(() => Blockly.svgResize(workspace), 350);
@@ -427,13 +433,13 @@ function setupEventListeners() {
     document.getElementById('closeTreeBtn').addEventListener('click', () => document.getElementById('treeModal').style.display = 'none');
 }
 
-//---------------------------------------------------------------
-//      ARBOL VISUAL (MERMAID)
-//---------------------------------------------------------------
-
+// ============================================================
+//               6. ÁRBOL VISUAL (MERMAID)
+// ============================================================
 async function generateStoryTree() {
     saveCurrentWorkspaceToMemory(); 
 
+    // 1. CONFIGURACIÓN MÁGICA: Desactivamos htmlLabels y forzamos la fuente
     let graphDefinition = "%%{init: {'flowchart': {'htmlLabels': false, 'padding': 10}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
     graphDefinition += "graph TD;\n";
     graphDefinition += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
@@ -442,6 +448,7 @@ async function generateStoryTree() {
 
     const sceneIds = Object.keys(assetState.scenes);
     const startScene = "inicio"; 
+    //const startScene = document.getElementById('startSceneInput').value;
 
     if (sceneIds.length === 0) {
         if (typeof Swal !== 'undefined') Swal.fire("Aviso", "No hay escenas para visualizar.", "info");
@@ -453,105 +460,67 @@ async function generateStoryTree() {
         const styleClass = (id === startScene) ? ":::start" : "";
         const safeId = id.replace(/[^a-zA-Z0-9]/g, '_');
         
-        graphDefinition += `${safeId}["<div style='padding: 0px 25px;'>${id}&nbsp;&nbsp;&nbsp;&nbsp;</div>"]${styleClass};\n`;        
-
-
+        graphDefinition += `${safeId}["<div style='padding: 0px 25px;'>${id}&nbsp&nbsp&nbsp&nbsp&nbsp</div>"]${styleClass};\n`;        
+        
         try {
             const jsonStr = `{ ${assetState.scenes[id].code} }`;
             const sceneObj = JSON.parse(jsonStr);
             const actions = sceneObj[Object.keys(sceneObj)[0]]; 
 
             actions.forEach(action => {
-                // CONEXIONES DE DECISIÓN
                 if (action.action === "choice") {
                     action.options.forEach(opt => {
-                        let dest = null;
-                        let ptsLabel = "";
-                        
-                        // Buscamos si el usuario metió un salto o puntos DENTRO de la opción
-                        if (opt.actions) {
-                            const jumpAct = opt.actions.find(a => a.action === 'jump');
-                            if (jumpAct) dest = jumpAct.goto;
-                            
-                            const modAct = opt.actions.find(a => a.action === 'modify_variable');
-                            if (modAct) ptsLabel = `<br>[${modAct.varName} +${modAct.value}]`;
-                        }
-
-                        if (dest) {
-                            const safeDest = dest.replace(/[^a-zA-Z0-9]/g, '_');
+                        if (opt.goto) {
+                            const safeDest = opt.goto.replace(/[^a-zA-Z0-9]/g, '_');
                             let label = opt.text.substring(0, 15) + (opt.text.length>15?"...":"");
-                            if (ptsLabel) label += ptsLabel;
+                            if(opt.varVal && opt.varVal != 0) label += ` [${opt.varName} +${opt.varVal}]`;
                             label = label.replace(/"/g, "'");
                             graphDefinition += `${safeId} -->|"${label}"| ${safeDest};\n`;
                         }
                     });
                 }
-                
-                // CONEXIONES DE JUEZ
                 if (action.action === "check_variable") {
-                    let destTrue = null;
-                    let destFalse = null;
-                    
-                    if (action.actions_true) {
-                        const jt = action.actions_true.find(a => a.action === 'jump');
-                        if (jt) destTrue = jt.goto;
-                    }
-                    if (action.actions_false) {
-                        const jf = action.actions_false.find(a => a.action === 'jump');
-                        if (jf) destFalse = jf.goto;
-                    }
-
-                    if (destTrue || destFalse) {
-                        const logicNode = `${safeId}_LOG_${Math.floor(Math.random()*1000)}`;
-                        let opSymbol = action.operator;
-                        if(opSymbol === 'gte') opSymbol = '&ge;';   // Símbolo ≥
-                        if(opSymbol === 'gt') opSymbol = '&gt;';    // Símbolo >
-                        if(opSymbol === 'eq') opSymbol = '=';       // Símbolo =
-                        if(opSymbol === 'lt') opSymbol = '&lt;';    // Símbolo <
-                        if(opSymbol === 'lte') opSymbol = '&le;';   // Símbolo ≤
-                        
-                        graphDefinition += `${safeId} -.-> ${logicNode}{{"<div style='padding: 0px 30px;'>¿${action.variable} ${opSymbol} ${action.value}?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>"}}:::logic;\n`;
-                        
-                        if (destTrue) {
-                            const safeTrue = destTrue.replace(/[^a-zA-Z0-9]/g, '_');
-                            graphDefinition += `${logicNode} -->|"Sí"| ${safeTrue};\n`;
-                        }
-                        if (destFalse) {
-                            const safeFalse = destFalse.replace(/[^a-zA-Z0-9]/g, '_');
-                            graphDefinition += `${logicNode} -->|"No"| ${safeFalse};\n`;
-                        }
-                    }
+                    const safeTrue = action.goto_true.replace(/[^a-zA-Z0-9]/g, '_');
+                    const safeFalse = action.goto_false.replace(/[^a-zA-Z0-9]/g, '_');
+                    const logicNode = `${safeId}_LOG_${Math.floor(Math.random()*1000)}`;
+                    let opSymbol = action.operator;
+                    graphDefinition += `${safeId} -.-> ${logicNode}{{"<div style='padding: 0px 30px;'>¿${action.variable} ${opSymbol} ${action.value}?&nbsp&nbsp&nbsp&nbsp&nbsp</div>"}}:::logic;\n`;
+                    graphDefinition += `${logicNode} -->|Sí| ${safeTrue};\n`;
+                    graphDefinition += `${logicNode} -->|No| ${safeFalse};\n`;
                 }
-                
-                // SALTO DIRECTO
                 if (action.action === "jump") {
                     const safeDest = action.goto.replace(/[^a-zA-Z0-9]/g, '_');
-                    graphDefinition += `${safeId} -->|"Salto"| ${safeDest};\n`;
+                    graphDefinition += `${safeId} -->|Salto| ${safeDest};\n`;
                 }
             });
         } catch (e) { console.error("Error Mermaid:", e); }
     });
 
+    // 2. ABRIMOS EL MODAL PRIMERO PARA QUE EL NAVEGADOR CALCULE EL ESPACIO
     const modal = document.getElementById('treeModal');
     modal.style.display = 'flex';
-    void modal.offsetWidth; 
+    
+    // Forzamos al navegador a repintar la pantalla (Truco Reflow)
+    void modal.offsetWidth;
 
+    // 3. ESPERAMOS 50 MILISEGUNDOS Y DIBUJAMOS
     setTimeout(async () => {
         const container = document.getElementById('mermaidGraph');
         container.innerHTML = graphDefinition;
         container.removeAttribute('data-processed');
+        
         try {
             await mermaid.run({ nodes: [container] });
         } catch(err) {
             console.error("Error renderizando gráfico:", err);
-            container.innerHTML = "Error al generar gráfico. Revisa que los nombres de escenas no tengan caracteres extraños.";
+            container.innerHTML = "Error al generar gráfico.";
         }
     }, 50);
 }
 
-//---------------------------------------------------------------
-//      AUXILIARES UI
-//---------------------------------------------------------------
+// ============================================================
+//               AUXILIARES UI
+// ============================================================
 
 function renderSceneList() {
     const div = document.getElementById('sceneList'); 
@@ -566,7 +535,7 @@ function renderSceneList() {
     keys.forEach(id => {
         const item = document.createElement('div');
         item.className = `scene-item ${id === currentSceneId ? 'active' : ''}`;
-        item.innerHTML = `<span>${id}</span> <button class="delete-btn">✕</button>`;
+        item.innerHTML = `<span>🎬 ${id}</span> <button class="delete-btn">✕</button>`;
         
         item.addEventListener('click', (e) => { 
             if (e.target.tagName !== 'BUTTON') switchToScene(id); 
@@ -675,14 +644,38 @@ function renderAssetList() {
     }
 }
 
-//---------------------------------------------------------------
-//      BORRAR ASSETS (IMAGENES Y PERSONAJES)
-//---------------------------------------------------------------
+// ============================================================
+//               BORRAR ASSETS (IMÁGENES Y PERSONAJES)
+// ============================================================
+// window.deleteAsset = function(type, parentName, index) {
+//     if(!confirm("¿Seguro que quieres borrar este elemento? Los bloques que lo usen dejarán de funcionar correctamente.")) {
+//         return;
+//     }
+
+//     if (type === 'bg') {
+//         // Borrar fondo
+//         assetState.backgrounds.splice(index, 1);
+//     } 
+//     else if (type === 'char') {
+//         // Borrar personaje completo (carpeta y todos sus sprites)
+//         delete assetState.characters[parentName];
+//         updateCharDropdown(null); // Actualizar selector izquierdo
+//     } 
+//     else if (type === 'sprite') {
+//         // Borrar un sprite específico dentro de un personaje
+//         assetState.characters[parentName].splice(index, 1);
+//     }
+
+//     // Al borrar algo, hay que actualizar el menú de Blockly y la lista visual
+//     refreshBlocklyEnv(); 
+//     renderAssetList();
+// };
+
 window.deleteAsset = async function(type, parentName, index) {
     let tituloAlerta = "";
     let textoAlerta = "";
 
-    // Configuramos el texto inteligente segun lo que estemos borrando
+    // 1. Configuramos el texto inteligente según lo que estemos borrando
     if (type === 'bg') {
         const bgName = assetState.backgrounds[index].name;
         tituloAlerta = '¿Borrar Fondo?';
@@ -698,22 +691,22 @@ window.deleteAsset = async function(type, parentName, index) {
         textoAlerta = `¿Seguro que quieres borrar la imagen "${spriteName}" de ${parentName}?`;
     }
 
-    // Mostramos Alerta
+    // 2. Mostramos el SweetAlert
     const { isConfirmed } = await Swal.fire({
         title: tituloAlerta,
         text: textoAlerta + " Los bloques que lo usen en tus escenas dejarán de funcionar.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
+        confirmButtonColor: '#d33', // Rojo peligro
         cancelButtonColor: '#888',
         confirmButtonText: 'Sí, borrar',
         cancelButtonText: 'Cancelar'
     });
 
-    // Si el usuario cancela, no hacemos nada
+    // 3. Si el usuario cancela, no hacemos nada
     if (!isConfirmed) return;
 
-    // Si acepta, borramos los datos de memoria
+    // 4. Si acepta, borramos los datos de memoria
     if (type === 'bg') {
         assetState.backgrounds.splice(index, 1);
     } 
@@ -725,11 +718,11 @@ window.deleteAsset = async function(type, parentName, index) {
         assetState.characters[parentName].splice(index, 1);
     }
 
-    // Actualizamos el menu de Blockly y la lista visual
+    // 5. Actualizamos el menú de Blockly y la lista visual
     refreshBlocklyEnv(); 
     renderAssetList();
 
-    // Mensaje de éxito
+    // 6. Mensaje de éxito
     Swal.fire({
         title: "¡Borrado!",
         icon: "success",
@@ -749,48 +742,13 @@ function updateCharDropdown(sel) {
 // ------------------------------------------------------------------
 function defineStaticBlocks() {
     Blockly.defineBlocksWithJsonArray([
-        { type: "def_scene", message0: "Escena nombre: %1 %2 Eventos: %3", 
-            args0: [{ type: "field_input", name: "SCENE_ID", text: "inicio" }, { type: "input_dummy" }, { type: "input_statement", name: "ACTIONS" }], colour: 290 },
-        { type: "action_narrator", message0: "Narrador: %1", 
-            args0: [{ type: "field_input", name: "TEXT", text: "..." }], previousStatement: null, nextStatement: null, colour: 160 },
-        { type: "choice", message0: "Decisión %1", 
-            args0: [{ type: "input_statement", "name": "OPTIONS" }], previousStatement: null, nextStatement: null, colour: 20 },
-        { "type": "choice_option", "message0": "Opción: %1 %2 Al elegirla, hacer: %3", 
-            "args0": [
-                { "type": "field_input", "name": "TEXT", "text": "..." }, 
-                { "type": "input_dummy" }, 
-                { "type": "input_statement", "name": "DO_ACTIONS" } // La "boca"
-            ], "previousStatement": null, "nextStatement": null, "colour": 45 
-        },
-        { "type": "logic_check_var", "message0": "Juez: Si %1 %2 %3 %4 Entonces hacer: %5 %6 Si no, hacer: %7", 
-            "args0": [
-                { "type": "field_input", "name": "VAR", "text": "puntos" }, 
-                { "type": "field_dropdown", "name": "OP", "options": [
-                    ["Mayor o Igual (≥)", "gte"], 
-                    ["Mayor (>)", "gt"], 
-                    ["Igual (=)", "eq"], 
-                    ["Menor (<)", "lt"], 
-                    ["Menor o Igual (≤)", "lte"]
-                ]},
-                { "type": "field_number", "name": "VAL", "value": 5 }, 
-                { "type": "input_dummy" }, 
-                { "type": "input_statement", "name": "DO_TRUE" }, // Boca Verdadera
-                { "type": "input_dummy" }, 
-                { "type": "input_statement", "name": "DO_FALSE" } // Boca Falsa
-            ], "previousStatement": null, "nextStatement": null, "colour": 0 
-        },
-        { "type": "action_modify_var", "message0": "Modificar variable %1 sumando %2", 
-            "args0": [
-                { "type": "field_input", "name": "VAR_NAME", "text": "puntos" },
-                { "type": "field_number", "name": "VALUE", "value": 1 }
-            ], "previousStatement": null, "nextStatement": null, "colour": 330 
-        },
-        { type: "action_jump", message0: "Ir directamente a escena: %1", 
-            args0: [
-                { type: "field_input", 
-                  name: "GOTO", 
-                  "text": "nombre_escena" }
-            ], previousStatement: null, nextStatement: null, colour: 210 }
+        { type: "def_scene", message0: "Escena ID: %1 %2 Acciones: %3", args0: [{ type: "field_input", name: "SCENE_ID", text: "inicio" }, { type: "input_dummy" }, { type: "input_statement", name: "ACTIONS" }], colour: 290 },
+        { type: "action_narrator", message0: "Narrador: %1", args0: [{ type: "field_input", name: "TEXT", text: "..." }], previousStatement: null, nextStatement: null, colour: 160 },
+        { type: "choice", message0: "Decisión %1", args0: [{ type: "input_statement", "name": "OPTIONS" }], previousStatement: null, nextStatement: null, colour: 20 },
+        { type: "choice_points", message0: "Opción: %1 Efecto: %2 Sumar %3", args0: [{ type: "field_input", name: "TEXT", text: "Respuesta" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 1 }], previousStatement: null, nextStatement: null, colour: 45 },
+        { type: "choice_option", message0: "Opción: %1 Ir a: %2 %3 Efecto: %4 Sumar %5", args0: [{ type: "field_input", name: "TEXT", text: "Sí" }, { type: "field_input", name: "GOTO", "text": "otra_escena" }, { type: "input_dummy" }, { type: "field_input", name: "VAR_NAME", text: "puntos" }, { type: "field_number", name: "VAR_VAL", value: 0 }], previousStatement: null, nextStatement: null, colour: 45 },
+        { type: "logic_check_var", message0: "Juez: Si %1 %2 %3 %4 Ir a: %5 %6 Si no: %7", args0: [{ type: "field_input", name: "VAR", text: "puntos" }, { type: "field_dropdown", name: "OP", options: [["≥", "gte"], [">", "gt"], ["=", "eq"], ["<", "lt"], ["≤", "lte"]] }, { type: "field_number", name: "VAL", value: 5 }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_TRUE", text: "aprobado" }, { type: "input_dummy" }, { type: "field_input", name: "GOTO_FALSE", text: "suspenso" }], previousStatement: null, nextStatement: null, colour: 0 },
+        { type: "action_jump", message0: "Ir directamente a escena: %1", args0: [{ type: "field_input", name: "GOTO", "text": "nombre_escena" }], previousStatement: null, nextStatement: null, colour: 210, tooltip: "Cambia de escena automáticamente sin preguntar." }
     ]);
 }
 
@@ -801,28 +759,16 @@ function registerStaticGenerators() {
     assign('def_scene', b => `${JSON.stringify(b.getFieldValue('SCENE_ID').trim())}: [\n${Blockly.JavaScript.statementToCode(b, 'ACTIONS').replace(/,\s*$/, "")}\n]`);
     assign('action_narrator', b => `{"action": "dialogue", "speaker": "", "text": ${JSON.stringify(b.getFieldValue('TEXT'))}},`);
     assign('choice', b => `{"action": "choice", "options": [${Blockly.JavaScript.statementToCode(b, 'OPTIONS').replace(/,\s*$/, "")}]},`);
-    assign('action_jump', b => `{"action": "jump", "goto": ${JSON.stringify(b.getFieldValue('GOTO'))}},`);
-    
-    // Generador de Variable
-    assign('action_modify_var', b => `{"action": "modify_variable", "varName": ${JSON.stringify(b.getFieldValue('VAR_NAME'))}, "value": ${b.getFieldValue('VALUE')}},`);
-
-    // Generador de Opcion
+    assign('choice_points', b => `{"text": ${JSON.stringify(b.getFieldValue('TEXT'))}, "varName": ${JSON.stringify(b.getFieldValue('VAR_NAME'))}, "varVal": ${b.getFieldValue('VAR_VAL')}},`);
     assign('choice_option', b => {
-        let actions = Blockly.JavaScript.statementToCode(b, 'DO_ACTIONS').replace(/,\s*$/, "");
-        return `{"text": ${JSON.stringify(b.getFieldValue('TEXT'))}, "actions": [${actions}]},`;
+        const val = b.getFieldValue('VAR_VAL');
+        const varJson = (val != 0) ? `, "varName": ${JSON.stringify(b.getFieldValue('VAR_NAME'))}, "varVal": ${val}` : "";
+        return `{"text": ${JSON.stringify(b.getFieldValue('TEXT'))}, "goto": ${JSON.stringify(b.getFieldValue('GOTO'))}${varJson}},`;
     });
-
-    // Generador de Juez
-    assign('logic_check_var', b => {
-        let actionsTrue = Blockly.JavaScript.statementToCode(b, 'DO_TRUE').replace(/,\s*$/, "");
-        let actionsFalse = Blockly.JavaScript.statementToCode(b, 'DO_FALSE').replace(/,\s*$/, "");
-        
-        return JSON.stringify({
-            action: "check_variable", 
-            variable: b.getFieldValue('VAR'), 
-            operator: b.getFieldValue('OP'), 
-            value: b.getFieldValue('VAL')
-        }).slice(0, -1) + `, "actions_true": [${actionsTrue}], "actions_false": [${actionsFalse}]},`;
+    assign('logic_check_var', b => JSON.stringify({ action: "check_variable", variable: b.getFieldValue('VAR'), operator: b.getFieldValue('OP'), value: b.getFieldValue('VAL'), goto_true: b.getFieldValue('GOTO_TRUE'), goto_false: b.getFieldValue('GOTO_FALSE') }) + ",");
+    assign('action_jump', (b) => {
+        const dest = JSON.stringify(b.getFieldValue('GOTO'));
+        return `{"action": "jump", "goto": ${dest}},`;
     });
 }
 
@@ -873,21 +819,15 @@ function refreshBlocklyEnv() {
 
     workspace.updateToolbox(`
     <xml>
-        <category name="Estructura" colour="000">
-            <block type="def_scene"></block></category>
-        <category name="Lógica" colour="020">
-            <block type="choice"></block>
-            <block type="choice_option"></block>
-            <block type="logic_check_var"></block>
-            <block type="action_modify_var"></block>
+        <category name="Estructura" colour="290"><block type="def_scene"></block></category>
+        <category name="Fondos" colour="230"><block type="action_set_background"></block></category>
+        <category name="Narrativa" colour="160"><block type="action_narrator"></block></category>
+        <category name="Personajes" colour="120">${charXml}</category>
+        <category name="Lógica" colour="210">
+            <block type="choice"></block><block type="choice_option"></block>
+            <block type="choice_points"></block><block type="logic_check_var"></block>
             <block type="action_jump"></block>
         </category>
-        <category name="Fondos" colour="060">
-            <block type="action_set_background"></block></category>
-        <category name="Narrativa" colour="180">
-            <block type="action_narrator"></block>
-        </category>
-        <category name="Personajes" colour="120">${charXml}</category>
     </xml>`);
 }
 

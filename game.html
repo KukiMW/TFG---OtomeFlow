@@ -1,5 +1,5 @@
 <!--------------------------------------------------------- 
-        game.html 
+        game.html       Adriana MW
 --------------------------------------------------------->
 <!DOCTYPE html>
 <html lang="es">
@@ -72,7 +72,7 @@
         const loadingText = document.getElementById('loadingText');
 
         async function initGame() {
-            // 1. Obtener ID de la URL
+            // Obtener ID de la URL
             const params = new URLSearchParams(window.location.search);
             const projectId = params.get('id');
 
@@ -83,7 +83,7 @@
             }
 
             try {
-                // 2. Descargar datos de Supabase
+                // Descargar datos de Supabase
                 const { data, error } = await sb
                     .from('projects')
                     .select('story_data')
@@ -95,7 +95,7 @@
 
                 console.log("Historia cargada:", data.story_data);
 
-                // 3. Iniciar Motor (El JSON ya tiene las URLs públicas de Supabase)
+                // Iniciar Motor
                 otomeFlow.loadStoryFromData(data.story_data);
                 
                 // Ocultar carga y empezar
@@ -109,7 +109,7 @@
             }
         }
 
-        // Botón de salir
+        // Boton de salir
         document.getElementById('exitGameBtn').addEventListener('click', async () => {
             const { isConfirmed } = await Swal.fire({
                 title: '¿Seguro que quieres salir?',

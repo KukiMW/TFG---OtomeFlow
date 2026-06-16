@@ -1,12 +1,12 @@
 <!--------------------------------------------------------- 
-        index.html 
+        index.html          Adriana MW
 --------------------------------------------------------->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">    <title>Otome Flow - Acceso</title>
+    <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código."> <title>Otome Flow - Acceso</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -41,7 +41,7 @@
         <h1>Otome Flow</h1>
         <p class="subtitle">Plataforma Educativa Narrativa</p>
 
-        <!-- Pestañas -->
+        <!-- PESTAÑAS -->
         <div class="tabs">
             <div class="tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</div>
             <div class="tab" id="tabRegister" onclick="switchTab('register')">Registrarse</div>
@@ -123,7 +123,7 @@
             const email = document.getElementById('regEmail').value.trim();
             const pass = document.getElementById('regPass').value;
 
-            // 1. Validación básica para todos
+            // Validacion basica
             if (!name || !email || !pass) {
                 msgBox.style.color = "#d32f2f"; 
                 msgBox.innerText = "❌ Por favor, rellena todos los campos básicos.";
@@ -136,12 +136,11 @@
                 last_name: lastname
             };
 
-            // 2. VALIDACIÓN ESTRICTA PARA ALUMNOS (NUEVO)
+            // Validacion alumnos
             if (role === 'student') {
                 const dni = document.getElementById('regDni').value.trim();
                 const className = document.getElementById('regClass').value.trim();
 
-                // Si falta el DNI o la Clase, cortamos el registro y avisamos
                 if (!dni || !className) {
                     msgBox.style.color = "#d32f2f"; 
                     msgBox.innerText = "❌ Si eres alumno, los campos DNI y Clase son OBLIGATORIOS.";
@@ -164,7 +163,7 @@
             if (error) {
                 msgBox.style.color = "#d32f2f"; msgBox.innerText = "❌ " + error.message;
             } else {
-                msgBox.style.color = "green"; msgBox.innerText = "✅ ¡Cuenta creada! Iniciando sesión...";
+                msgBox.style.color = "green"; msgBox.innerText = "¡Cuenta creada! Iniciando sesión...";
                 setTimeout(() => window.location.href = 'dashboard.html', 1500);
             }
         }
@@ -176,10 +175,6 @@
             
             const { error } = await window.sb.auth.signInWithOAuth({
                 provider: 'google'
-                // ⚠️ HEMOS BORRADO EL 'redirectTo'. 
-                // Ahora Supabase te devolverá a index.html por defecto, 
-                // procesará el token invisiblemente y el evento 'onAuthStateChange' 
-                // te saltará automáticamente al dashboard de forma segura.
             });
             
             if (error) {

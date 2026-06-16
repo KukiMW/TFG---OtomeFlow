@@ -1,9 +1,10 @@
 // ============================================================
-//               ANALÍTICAS Y CALIFICACIONES
+//      analytics.js        Adriana MW
 // ============================================================
 
 let allData =[]; // Tabla resumen (1 fila por alumno/proyecto)
 let allProgressHistory =[]; // TODO el historial crudo de la BD
+// CHECKEAR - añadir por nombre de alumno
 
 async function initAnalytics() {
     const { data: { session } } = await window.sb.auth.getSession();
@@ -11,7 +12,7 @@ async function initAnalytics() {
 
     const teacherId = session.user.id;
 
-    // 1. Obtener proyectos
+    // Obtener proyectos
     const { data: myProjects } = await window.sb.from('projects').select('id, title').eq('user_id', teacherId);
     if (!myProjects || myProjects.length === 0) {
         document.querySelector('tbody').innerHTML = '<tr><td colspan="6" style="text-align:center;">No has creado ningún proyecto aún.</td></tr>';
@@ -23,7 +24,7 @@ async function initAnalytics() {
     const filterProject = document.getElementById('filterProject');
     myProjects.forEach(p => filterProject.innerHTML += `<option value="${p.id}">${p.title}</option>`);
 
-    // 2. Obtener asignaciones
+    // Obtener asignaciones
     const projectIds = myProjects.map(p => p.id);
     const { data: assignments } = await window.sb.from('assignments').select('*').in('project_id', projectIds);
 
@@ -32,7 +33,7 @@ async function initAnalytics() {
         return;
     }
 
-    // 3. Obtener perfiles
+    // Obtener perfiles
     const studentEmails = [...new Set(assignments.map(a => a.student_email))];
     const { data: profiles } = await window.sb.from('profiles').select('email, first_name, last_name, class_name').in('email', studentEmails);
     const profileMap = {};
@@ -46,27 +47,25 @@ async function initAnalytics() {
     const filterClass = document.getElementById('filterClass');
     classSet.forEach(c => filterClass.innerHTML += `<option value="${c}">${c}</option>`);
 
-    // 4. Obtener progresos (TODOS LOS INTENTOS)
-    // Asegurarnos de traer el 'path' de la base de datos
+    // Obtener progresos (TODOS LOS INTENTOS)
     const { data: progress } = await window.sb
         .from('student_progress')
         .select('*, path')
         .in('project_id', projectIds)
         .order('completed_at', { ascending: false }); // Más recientes primero
     
-    allProgressHistory = progress ||[]; // Guardamos globalmente
+    allProgressHistory = progress ||[];
     
-    const progressMap = {}; // Guardará solo el MEJOR intento para la tabla principal
+    const progressMap = {}; // Guarda el MEJOR intento para la tabla principal
     
     allProgressHistory.forEach(p => {
         const key = `${p.user_email}_${p.project_id}`;
-        // Si es la primera vez que lo vemos, o tiene mejor nota, lo guardamos como "el mejor"
         if (!progressMap[key] || p.score > progressMap[key].score) {
             progressMap[key] = p;
         }
     });
 
-    // 5. Construir la tabla principal (Resumen)
+    // Construir la tabla principal (Resumen)
     allData = assignments.map(assign => {
         const email = assign.student_email;
         const prof = profileMap[email] || {};
@@ -84,7 +83,7 @@ async function initAnalytics() {
         };
     });
 
-    // Aplicar filtro si venimos de la URL
+    // Aplicar filtro si venimos de la URL - CHECKEAR
     const urlParams = new URLSearchParams(window.location.search);
     const filterId = urlParams.get('project');
     if (filterId) filterProject.value = filterId;
@@ -137,16 +136,16 @@ function renderTable() {
     });
 }
 
-// ============================================================
-//               HISTORIAL Y RUTAS
-// ============================================================
+// -----------------------------------------
+//      HISTORIAL Y RUTAS
+// -----------------------------------------
 
-// 1. Abrir Modal de Historial
+// Abrir Modal de Historial
 window.openHistoryModal = (email, projectId, studentName) => {
     document.getElementById('historyTitle').innerText = `Intentos de ${studentName}`;
     const list = document.getElementById('historyList');
     
-    // Filtrar todos los intentos de este alumno para esta tarea
+    // Filtrar intentos por tarea
     const attempts = allProgressHistory.filter(p => p.user_email === email && p.project_id === projectId);
     
     if (attempts.length === 0) {
@@ -162,7 +161,7 @@ window.openHistoryModal = (email, projectId, studentName) => {
         const mins = Math.floor(att.time_spent / 60);
         const secs = att.time_spent % 60;
         
-        // Escapamos el array de la ruta para pasarlo al botón HTML de forma segura
+        // Acceso a ruta - Codificar datos
         const pathJson = att.path ? encodeURIComponent(JSON.stringify(att.path)) : null;
 
         let pathBtn = "-";
@@ -184,11 +183,11 @@ window.openHistoryModal = (email, projectId, studentName) => {
     document.getElementById('historyModal').style.display = 'flex';
 };
 
-// ============================================================
-//               VER RUTA DEL ALUMNO
-// ============================================================
+// -----------------------------------------
+//      VER RUTA DEL ALUMNO
+// -----------------------------------------
 window.drawPath = async (pathJsonEncoded) => {
-    // Decodificar los datos que nos manda el botón
+    // Decodificar datos - Acceso a ruta
     const pathArray = JSON.parse(decodeURIComponent(pathJsonEncoded));
     
     if (!pathArray || pathArray.length === 0) {
@@ -197,18 +196,15 @@ window.drawPath = async (pathJsonEncoded) => {
     }
 
     // Preparar el lienzo de Mermaid
-    let graph = "%%{init: {'flowchart': {'htmlLabels': true, 'padding': 15}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
+    let graph = "%%{init: {'flowchart': {'htmlLabels': true, 'padding': 35px}, 'themeVariables': {'fontFamily': 'Poppins, sans-serif'}}}%%\n";
     graph += "graph TD;\n";
     graph += "classDef default fill:#fff,stroke:#b48de3,stroke-width:2px;\n";
     
     for(let i = 0; i < pathArray.length; i++) {
         const step = pathArray[i];
-        
-        // Mantenemos compatibilidad por si abres una partida vieja (string) vs nueva (objeto)
         const sceneName = typeof step === 'string' ? step : step.scene;
-        
-        // Dibujamos el nodo de la escena
-        graph += `S${i}[" ${sceneName} "];\n`;
+
+        graph += `S${i}["<div style='padding: 10px 30px;'>${sceneName}</div>"];\n`;
         
         // Si no es la primera escena, dibujamos la flecha desde la anterior
         if (i > 0) {
@@ -221,8 +217,10 @@ window.drawPath = async (pathJsonEncoded) => {
                 arrowLabel = prevStep.choice.replace(/"/g, "'");
             }
             
+            const formattedLabel = `<div style='white-space: nowrap; padding: 6px 14px; font-size: 13px;'>${arrowLabel}&nbsp;</div>`;
             // Conectamos la escena anterior con la actual, poniendo la respuesta en medio
-            graph += `S${i-1} -->|"${arrowLabel} "| S${i};\n`;
+            graph += `S${i-1} -->|"${formattedLabel}"| S${i};\n`;
+            
         }
     }
 
@@ -245,16 +243,16 @@ window.drawPath = async (pathJsonEncoded) => {
     }
 };
 
-// ============================================================
-//               FILTROS Y CSV
-// ============================================================
+// -----------------------------------------
+//      CSV
+// -----------------------------------------
 document.getElementById('filterProject').addEventListener('change', renderTable);
 document.getElementById('filterClass').addEventListener('change', renderTable);
 
 document.getElementById('downloadCsvBtn').addEventListener('click', () => {
     let csv = "DNI,Nombre,Apellidos,Email,Clase,Tarea,Estado,Nota_Maxima,Tiempo,Fecha_Ultimo_Intento\n";
     
-    // Obtener los datos filtrados actuales
+    // Obtener los datos filtrados
     const filterP = document.getElementById('filterProject').value;
     const filterC = document.getElementById('filterClass').value;
     const filtered = allData.filter(d => {

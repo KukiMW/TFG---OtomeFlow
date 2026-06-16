@@ -1,13 +1,12 @@
 /* ============================================================
-   dashboard.css
+   dashboard.css        Adriana MW
 ============================================================ */
 body, html {
-    overflow-y: auto !important; /* Forzamos a que permita el scroll vertical */
-    height: auto !important;     /* Dejamos que la página crezca si hay muchas tarjetas */
-    min-height: 100vh;           /* Como mínimo, ocupa toda la pantalla */
+    overflow-y: auto !important;
+    height: auto !important;
+    min-height: 100vh;
 }
 
-/* NAVBAR */
 .navbar {
     background-color: white;
     height: 64px;
@@ -45,7 +44,9 @@ body, html {
 }
 #logoutBtn:hover { color: var(--primary); text-decoration: underline; }
 
-/* CONTENEDOR PRINCIPAL */
+/* ============================================================
+    CONTENEDOR PRINCIPAL
+============================================================ */
 .main-container {
     margin-top: 80px; /* Espacio para la navbar */
     padding: 20px;
@@ -63,19 +64,19 @@ body, html {
 .dashboard-header h1 { font-size: 2rem; color: #202124; margin: 0; }
 .dashboard-header p { color: #3c4043;; margin-top: 5px; }
 
-/* GRID DE PROYECTOS */
 .games-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
 
-/* TARJETAS (CARDS) */
+/* ---------------------------------------------------------
+   TARJETAS
+--------------------------------------------------------- */
 .class-card {
     background: white;
     border: 1px solid #dadce0;
     border-radius: 8px;
-    /*overflow: hidden;*/
     display: flex;
     flex-direction: column;
     transition: box-shadow 0.2s, transform 0.2s;
@@ -135,7 +136,9 @@ body, html {
 }
 
 
-/* BOTONES EN TARJETA */
+/* ---------------------------------------------------------
+   BOTONES EN TARJETA
+--------------------------------------------------------- */
 .icon-btn {
     background: transparent;
     border: none;
@@ -167,7 +170,9 @@ body, html {
 }
 .btn-play:hover { background-color: #5a1040; }
 
-/* MENÚ DESPLEGABLE (3 PUNTOS) */
+/* ---------------------------------------------------------
+   MENU DESPELGABLE (3 PUNTOS)
+--------------------------------------------------------- */
 .dropdown {
     position: absolute; top: 10px; right: 5px;
 }
@@ -195,9 +200,9 @@ body, html {
 .dropdown-content a:hover { background-color: #f1f1f1; }
 .show { display: block; }
 
-/* ============================================================
-   BOTÓN FLOTANTE (+)
-============================================================ */
+/* ---------------------------------------------------------
+   BOTON (+)
+--------------------------------------------------------- */
 .fab {
     position: fixed;
     bottom: 30px; right: 30px;
@@ -213,7 +218,9 @@ body, html {
 }
 .fab:hover { transform: scale(1.1); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
 
-/* FORMULARIO MODAL */
+/* ---------------------------------------------------------
+   FORMULARIO CREAR
+--------------------------------------------------------- */
 form label { display: block; margin-top: 15px; font-weight: 600; color: #555; }
 form input, form textarea {
     width: 100%; padding: 10px; margin-top: 5px;
@@ -232,13 +239,13 @@ form input, form textarea {
 }
 .btn-primary:hover { background: #1557b0; }
 
-/* ============================================================
-   BOTÓN FLOTANTE SECUNDARIO (IMPORTAR ZIP)
-============================================================ */
+/* ---------------------------------------------------------
+   BOTON SUBIR ZIP
+--------------------------------------------------------- */
 .fab-secondary {
-    bottom: 100px; /* Lo eleva 70px por encima del botón principal (que está a 30px) */
-    background: #ff9800; /* Color naranja */
-    width: 50px;  /* Un poco más pequeño que el principal para dar jerarquía */
+    bottom: 100px; /* Encima de (+) */
+    background: #ff9800;
+    width: 50px;
     height: 50px;
     font-size: 24px;
 }
@@ -250,7 +257,7 @@ form input, form textarea {
 }
 
 /*============================================================
-                MENÚ DEL AVATAR (PERFIL)
+    MENÚ DEL AVATAR (PERFIL)
 ============================================================*/
 
 .user-profile-container {
@@ -346,7 +353,7 @@ form input, form textarea {
 }
 
 /* ============================================================
-   AJUSTES GLOBALES PARA GRÁFICOS MERMAID (ÁRBOLES)
+   AJUSTES PARA ARBOLES
 ============================================================ */
 .node rect, .node polygon, .node circle {
     rx: 8px !important;
