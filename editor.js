@@ -1,5 +1,6 @@
 // ============================================================
-//      editor.js       Adriana MW
+//                  OtomeFlow - Editor.js
+//                  Adriana MW      2026
 // ============================================================
 
 //---------------------------------------------------------------
@@ -17,12 +18,12 @@ let currentSceneId = null;
 let projectDBId = new URLSearchParams(window.location.search).get('id');
 
 //---------------------------------------------------------------
-//      INICIALIZACIÓN
+//      INICIALIZACION
 //---------------------------------------------------------------
 function initEditor() {
     console.log("Iniciando Editor Otome Flow...");
 
-    // Validación de Supabase
+    // Validacion de Supabase
     if (!window.sb) {
         alert("Error Crítico: Supabase no está conectado. Revisa supabaseClient.js");
         return;
@@ -66,7 +67,7 @@ function initEditor() {
 }
 
 //---------------------------------------------------------------
-//      CONEXIÓN SUPABASE
+//      CONEXION SUPABASE
 //---------------------------------------------------------------
 async function loadProjectFromCloud() {
     console.log("Cargando proyecto ID:", projectDBId);
@@ -137,7 +138,7 @@ async function saveProjectToCloud() {
     saveCurrentWorkspaceToMemory(); 
     
     const btn = document.getElementById('saveCloudBtn');
-    btn.innerText = "⏳ Guardando...";
+    btn.innerText = "Guardando...";
     btn.disabled = true;
 
     const editorData = {
@@ -182,7 +183,7 @@ async function saveProjectToCloud() {
 }
 
 //---------------------------------------------------------------
-//      GESTIÓN DE ESCENAS
+//      GESTION DE ESCENAS
 //---------------------------------------------------------------
 async function createNewScene(forceName = null) {
     if (currentSceneId) saveCurrentWorkspaceToMemory();
@@ -462,13 +463,13 @@ async function generateStoryTree() {
             const actions = sceneObj[Object.keys(sceneObj)[0]]; 
 
             actions.forEach(action => {
-                // CONEXIONES DE DECISIÓN
+                // CONEXIONES DE DECISION
                 if (action.action === "choice") {
                     action.options.forEach(opt => {
                         let dest = null;
                         let ptsLabel = "";
                         
-                        // Buscamos si el usuario metió un salto o puntos DENTRO de la opción
+                        // Buscamos si el usuario metio un salto o puntos DENTRO de la opcion
                         if (opt.actions) {
                             const jumpAct = opt.actions.find(a => a.action === 'jump');
                             if (jumpAct) dest = jumpAct.goto;
@@ -504,11 +505,11 @@ async function generateStoryTree() {
                     if (destTrue || destFalse) {
                         const logicNode = `${safeId}_LOG_${Math.floor(Math.random()*1000)}`;
                         let opSymbol = action.operator;
-                        if(opSymbol === 'gte') opSymbol = '&ge;';   // Símbolo ≥
-                        if(opSymbol === 'gt') opSymbol = '&gt;';    // Símbolo >
-                        if(opSymbol === 'eq') opSymbol = '=';       // Símbolo =
-                        if(opSymbol === 'lt') opSymbol = '&lt;';    // Símbolo <
-                        if(opSymbol === 'lte') opSymbol = '&le;';   // Símbolo ≤
+                        if(opSymbol === 'gte') opSymbol = '&ge;';   // Simbolo ≥
+                        if(opSymbol === 'gt') opSymbol = '&gt;';    // Simbolo >
+                        if(opSymbol === 'eq') opSymbol = '=';       // Simbolo =
+                        if(opSymbol === 'lt') opSymbol = '&lt;';    // Simbolo <
+                        if(opSymbol === 'lte') opSymbol = '&le;';   // Simbolo ≤
                         
                         graphDefinition += `${safeId} -.-> ${logicNode}{{"<div style='padding: 0px 30px;'>¿${action.variable} ${opSymbol} ${action.value}?&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>"}}:::logic;\n`;
                         
@@ -595,7 +596,7 @@ function renderSceneList() {
             if (isConfirmed) {
                 delete assetState.scenes[id]; 
                 
-                // Si estábamos dentro de esa escena, limpiamos la pantalla y vamos a otra
+                // Si estabamos dentro de esa escena, limpiamos la pantalla y vamos a otra
                 if (currentSceneId === id) {
                     currentSceneId = null;
                     workspace.clear();
@@ -606,7 +607,7 @@ function renderSceneList() {
                     renderSceneList(); 
                 }
 
-                // Feedback visual de éxito
+                // Feedback visual de exito
                 Swal.fire({ title: "¡Borrado!", icon: "success", timer: 1500, showConfirmButton: false });
             }
         });
@@ -652,7 +653,7 @@ function renderAssetList() {
             const charFolder = document.createElement('div'); 
             charFolder.className = 'char-folder';
             
-            // Nombre del Personaje y botón X para borrar todo el personaje
+            // Nombre del Personaje y boton X para borrar todo el personaje
             charFolder.innerHTML = `<div class="char-name">${charName} <button class="delete-btn" onclick="deleteAsset('char', '${charName}', null)">✕</button></div>`;
             
             const ul = document.createElement('ul'); 
@@ -662,7 +663,7 @@ function renderAssetList() {
                 const li = document.createElement('li'); 
                 li.className = 'tree-item';
                 
-                // Nombre del Sprite y botón X para borrar solo el sprite
+                // Nombre del Sprite y boton X para borrar solo el sprite
                 li.innerHTML = `<span>${f.name}</span><button class="delete-btn" onclick="deleteAsset('sprite', '${charName}', ${i})">✕</button>`;
                 ul.appendChild(li);
             });
@@ -729,7 +730,7 @@ window.deleteAsset = async function(type, parentName, index) {
     refreshBlocklyEnv(); 
     renderAssetList();
 
-    // Mensaje de éxito
+    // Mensaje de exito
     Swal.fire({
         title: "¡Borrado!",
         icon: "success",
@@ -745,7 +746,7 @@ function updateCharDropdown(sel) {
 }
 
 // ------------------------------------------------------------------
-// BLOQUES ESTÁTICOS
+// BLOQUES ESTATICOS
 // ------------------------------------------------------------------
 function defineStaticBlocks() {
     Blockly.defineBlocksWithJsonArray([

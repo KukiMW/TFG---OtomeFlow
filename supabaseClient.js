@@ -1,11 +1,12 @@
 // ============================================================
-//      supabaseClient.js       Adriana MW
+//                  OtomeFlow - SupabaseClient.js
+//                  Adriana MW - 2026
 // ============================================================
 
 const PROJECT_URL = 'https://gbnnzbehlctprgxaskwm.supabase.co'; 
 const PROJECT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdibm56YmVobGN0cHJneGFza3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwMTc1ODEsImV4cCI6MjA4NzU5MzU4MX0.gutyZ5bbz-U8eu66rE0gKE5vwrOUOZoKbxMMiCn6CAI';
 
-// Comprobar si la librería cargó
+// Comprobar si la libreria cargo
 if (typeof window.supabase === 'undefined') {
     console.error("❌ La librería de Supabase no se ha cargado. Revisa el HTML.");
 } else {

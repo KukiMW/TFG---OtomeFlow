@@ -1,5 +1,6 @@
 // ============================================================
-//      dashboard.js        Adriana MW
+//                  OtomeFlow - Dashboard.js
+//                  Adriana MW      2026
 // ============================================================
 
 let currentUser = null;
@@ -15,7 +16,7 @@ const OtomeAlert = Swal.mixin({
 });
 
 // ---------------------------------------------------------------
-//  INICIALIZACIÓN
+//  INICIALIZACION
 // ---------------------------------------------------------------
 async function initDashboard() {
     try {
@@ -161,7 +162,7 @@ function renderGrid(projects, myProgress =[]) {
         const safeDesc = (proj.description || "").replace(/'/g, "\\'").replace(/\n/g, " ");
         const maxAttempts = (proj.project_data && proj.project_data.max_attempts) ? proj.project_data.max_attempts : 0;
 
-        //Opciones de la tarjeta
+        // Opciones de la tarjeta
         if (currentProfile.role === 'teacher') {
             headerExtra = `
                 <div class="dropdown">
@@ -252,7 +253,7 @@ window.onclick = function(event) {
 };
 
 // ---------------------------------------------------------------
-//  LÓGICA DE PROYECTOS (CREAR, EDITAR, BORRAR, CLONAR)
+//  LOGICA DE PROYECTOS (CREAR, EDITAR, BORRAR, CLONAR)
 // ---------------------------------------------------------------
 
 const fabAdd = document.getElementById('fabAdd');
@@ -319,7 +320,7 @@ window.editProjectMetadata = (id, title, desc, maxAtt) => {
 };
 
 window.deleteProject = async (id) => {
-    // Pedir confirmación
+    // Pedir confirmacion
     const { isConfirmed } = await OtomeAlert.fire({
         title: '¿Borrar proyecto?',
         text: "Esta acción no se puede deshacer. Se borrarán también las notas y asignaciones de los alumnos.",
@@ -340,7 +341,7 @@ window.deleteProject = async (id) => {
         const { error } = await window.sb.from('projects').delete().eq('id', id);
         
         if (!error) {
-            // Mensaje de éxito
+            // Mensaje de exito
             OtomeAlert.fire({
                 title: "¡Borrado!",
                 text: "El proyecto ha sido eliminado.",
@@ -356,7 +357,7 @@ window.deleteProject = async (id) => {
 };
 
 window.cloneProject = async (id) => {
-    // Pedir confirmación
+    // Pedir confirmacion
     const { isConfirmed } = await OtomeAlert.fire({
         title: '¿Duplicar proyecto?',
         text: "Se creará una copia exacta de esta historia en tu cuenta.",
@@ -387,7 +388,7 @@ window.cloneProject = async (id) => {
     if (error) {
         OtomeAlert.fire("Error al clonar", error.message, "error");
     } else {
-        // Mensaje de éxito
+        // Mensaje de exito
         OtomeAlert.fire({
             title: "¡Duplicado!",
             text: "El proyecto se ha copiado con éxito.",
@@ -446,18 +447,18 @@ if (assignEmailForm) {
         }]);
 
         if(error) {
-            // Error 23505 es "Violación de unicidad" (ya existe en la base de datos)
+            // Error 23505: "Violacion de unicidad" (ya existe en la base de datos)
             if(error.code === '23505') {
                 OtomeAlert.fire("Aviso", "Este alumno ya tiene asignada esta tarea.", "info");
             } else {
                 OtomeAlert.fire("Error al asignar", error.message, "error");
             }
         } else {
-            // Éxito
+            // Exito
             document.getElementById('studentEmail').value = '';
             await loadAssignedStudents(currentAssignId);
             
-            // Notificación visual rápida
+            // Notificacion visual rapida
             OtomeAlert.fire({
                 title: "¡Asignado!", 
                 text: `Tarea enviada a ${email}`, 
@@ -489,7 +490,7 @@ if (assignClassForm) {
             return; 
         }
 
-        // Feedback visual de que está procesando
+        // Feedback visual de que esta procesando
         const btnSubmit = assignClassForm.querySelector('button[type="submit"]');
         const originalText = btnSubmit.innerText;
         btnSubmit.innerText = "Asignando...";
@@ -509,11 +510,11 @@ if (assignClassForm) {
             if (!error) count++;
         }
 
-        // Restaurar botón
+        // Restaurar boton
         btnSubmit.innerText = originalText;
         btnSubmit.disabled = false;
 
-        // Alerta de éxito con el total
+        // Alerta de exito con el total
         OtomeAlert.fire(
             "¡Completado!", 
             `Se ha asignado la tarea a ${count} alumno(s) nuevo(s) de la clase ${className}.`, 
@@ -536,7 +537,7 @@ window.openShareModal = (id) => {
     if(em) em.value = ''; 
 };
 
-// Formulario: Compartir Proyecto con otro Profesor
+// Formulario: Compartir proyecto con otro Profesor
 const shareForm = document.getElementById('shareForm');
 if (shareForm) {
     shareForm.addEventListener('submit', async (e) => {
@@ -544,7 +545,7 @@ if (shareForm) {
         const emailToShare = document.getElementById('teacherEmail').value.trim();
         if (!emailToShare) return;
 
-        // Feedback visual: Bloquear botón mientras procesa
+        // Feedback visual: Bloquear boton mientras procesa
         const btnSubmit = shareForm.querySelector('button[type="submit"]');
         const originalText = btnSubmit.innerText;
         btnSubmit.innerText = "Buscando...";
@@ -590,14 +591,14 @@ if (shareForm) {
             story_data: original.story_data
         }]);
 
-        // Restaurar botón
+        // Restaurar boton
         btnSubmit.innerText = originalText;
         btnSubmit.disabled = false;
 
         if (cloneError) {
             OtomeAlert.fire("Error al compartir", cloneError.message, "error");
         } else {
-            // Éxito
+            // Exito
             document.getElementById('shareModal').style.display = 'none';
             document.getElementById('teacherEmail').value = ''; // Limpiar el campo
             
@@ -728,7 +729,7 @@ if (fabImport && importInput) {
                 }
             });
 
-            // SUBIR IMÁGENES
+            // SUBIR IMAGENES
             const backgrounds = pDataObj.assets?.backgrounds ||[];
             for (let bg of backgrounds) {
                 const zipFile = zip.file(`assets/backgrounds/${bg.name}`);
@@ -768,7 +769,7 @@ if (fabImport && importInput) {
 
             if (error) throw error;
             
-            // ÉXITO
+            // EXITO
             OtomeAlert.fire({
                 title: "¡Completado!",
                 text: "El proyecto se ha importado con éxito.",

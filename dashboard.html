@@ -1,6 +1,7 @@
-<!--------------------------------------------------------- 
-        dashboard.html      Adriana MW
---------------------------------------------------------->
+<!--============================================================
+                    OtomeFlow – Dashboard
+                    Adriana MW      2026
+============================================================-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,36 +9,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">
     <title>Otome Classroom</title>
+    
+    <!-- Estilos locales -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
+    
+    <!-- Fuentes e iconos externos -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/OF.png">
+    
+    <!-- Librerias de terceros (Supabase, JSZip, SweetAlert2) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
-    <!-- NAVBAR SUPERIOR -->
+    <!-- -----------------------------------------
+         BARRA DE NAVEGACION SUPERIOR
+    ------------------------------------------ -->
     <nav class="navbar">
         <div class="nav-left">
             <span class="logo-text">Otome <b>Classroom</b></span>
         </div>
+        
         <div class="nav-right">
+            <!-- Etiqueta dinamica de rol (Docente/Alumno) -->
             <span id="roleLabel" style="margin-right:15px; color:#5f6368; font-size:0.9rem; font-weight:bold;"></span>
             
-            <!-- CONTENEDOR DEL PERFIL -->
+            <!-- Menu desplegable del perfil de usuario -->
             <div class="user-profile-container">
                 <div class="user-avatar" id="userAvatar" onclick="toggleProfileMenu()">U</div>
                 
-                <!-- MENU DESPLEGABLE-->
                 <div id="profileMenu" class="profile-menu">
                     <div class="profile-header">
                         <span class="profile-name" id="menuUserName">Usuario</span>
                         <span class="profile-email" id="menuUserEmail">correo@ejemplo.com</span>
                     </div>
                     
-                    <!-- OPCION ANALITICAS -->
+                    <!-- Enlace a panel de analiticas (Visible solo para docentes) -->
                     <a href="analytics.html" id="menuAnalytics" class="profile-item" style="display: none;">
                         <span class="material-icons">analytics</span>
                         Cuaderno de Evaluación
@@ -49,10 +60,12 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </nav>
 
+    <!-- ==========================================
+         CONTENEDOR PRINCIPAL
+    =========================================== -->
     <main class="main-container">
         <header class="dashboard-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -61,33 +74,46 @@
             </div>
         </header>
 
+        <!-- Cuadricula dinamica para inyeccion de tarjetas de proyectos -->
         <div id="gamesGrid" class="games-grid">
             <p>Cargando...</p>
         </div>
     </main>
 
-    <!-- BOTON FLOTANTE IMPORTAR ZIP -->
+    <!-- -----------------------------------------
+         BOTONES FLOTANTES DE ACCION (FAB)
+    ------------------------------------------ -->
+    
+    <!-- Boton de importacion (Invoca al input oculto) -->
     <button id="fabImport" class="fab fab-secondary" title="Importar proyecto ZIP" style="display:none;">
         <span class="material-icons">file_upload</span>
     </button>
 
-    <!-- BOTON CREAR -->
+    <!-- Boton de creacion de nuevo proyecto -->
     <button id="fabAdd" class="fab" title="Crear nueva historia" style="display:none;">+</button>
 
+    <!-- Input oculto para carga de archivos ZIP -->
     <input type="file" id="importInput" accept=".zip" style="display: none;">
 
-    <!-- MODAL CREAR -->
+    <!-- ==========================================
+         VENTANAS MODALES
+    =========================================== -->
+
+    <!-- Modal 1: Creacion y Edicion de Proyecto -->
     <div id="createModal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <h2>Nueva Historia</h2>
             <form id="createForm">
                 <label for="newTitle">Título:</label>
                 <input type="text" id="newTitle" required placeholder="Ej: La Revolución Francesa">
-                <label for="newDescription">Descripción:</label>
+                
+                <label for="newDesc">Descripción:</label>
                 <textarea id="newDesc" placeholder="Breve descripción..."></textarea>
-                <label for="maxChances">Límite de intentos permitidos:</label>
+                
+                <label for="newMaxAttempts">Límite de intentos permitidos:</label>
                 <input type="number" id="newMaxAttempts" value="0" min="0" placeholder="0 = Sin límite">
                 <small style="color:#666; font-size:0.8rem;">(Pon 0 para intentos infinitos)</small>
+                
                 <div class="modal-actions">
                     <button type="button" id="closeModal" class="btn-text">Cancelar</button>
                     <button type="submit" class="btn-primary">Crear</button>
@@ -96,21 +122,23 @@
         </div>
     </div>
 
-    <!-- MODAL ASIGNAR TAREA -->
+    <!-- Modal 2: Gestion de Asignaciones -->
     <div id="assignModal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <h2>Asignar Tarea</h2>
             
+            <!-- Asignacion individual por correo -->
             <div style="margin-bottom: 20px;">
-                <label for="assigneByEmail"><b>Opción A: Por correo electrónico</b></label>
+                <label for="studentEmail"><b>Opción A: Por correo electrónico</b></label>
                 <form id="assignEmailForm" style="display: flex; gap:5px;">
                     <input type="email" id="studentEmail" placeholder="alumno@ejemplo.com" required style="margin:0;">
                     <button type="submit" class="btn-primary" style="margin:0;">Añadir</button>
                 </form>
             </div>
 
+            <!-- Asignacion masiva por clase -->
             <div style="margin-bottom: 20px;">
-                <label for="assigneByClassroom"><b>Opción B: A una clase entera</b></label>
+                <label for="classSelect"><b>Opción B: A una clase entera</b></label>
                 <form id="assignClassForm" style="display: flex; gap:5px;">
                     <select id="classSelect" required style="margin:0;">
                         <option value="">Cargando clases...</option>
@@ -119,6 +147,7 @@
                 </form>
             </div>
             
+            <!-- Listado dinamico de alumnos asignados -->
             <h3 style="font-size:1rem; border-bottom:1px solid #eee; padding-bottom:5px;">Alumnos ya asignados:</h3>
             <ul id="assignedList" style="list-style:none; padding:0; max-height:100px; overflow-y:auto; font-size:0.9rem;"></ul>
 
@@ -128,7 +157,7 @@
         </div>
     </div>
 
-    <!-- MODAL COMPARTIR CON PROFESOR -->
+    <!-- Modal 3: Clonacion de proyectos entre docentes -->
     <div id="shareModal" class="modal-overlay" style="display: none;">
         <div class="modal-card">
             <h2>Compartir Proyecto</h2>
@@ -145,7 +174,7 @@
         </div>
     </div>
 
-    <input type="file" id="importInput" accept=".zip" style="display: none;">
+    <!-- Inicializacion de logica de cliente -->
     <script src="supabaseClient.js"></script>
     <script src="dashboard.js"></script>
 </body>

@@ -1,17 +1,24 @@
-<!--------------------------------------------------------- 
-        game.html       Adriana MW
---------------------------------------------------------->
+<!--============================================================
+                    OtomeFlow – Game
+                    Adriana MW  2026
+============================================================-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Configuracion del viewport estricta para evitar redimensionamientos no deseados en dispositivos moviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">
     <title>Jugando Historia</title>
+    
+    <!-- Dependencias externas e internas -->
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Estilos en linea exclusivos para componentes de la interfaz de ejecucion -->
     <style>
+        /* Capa de bloqueo para carga asincrona inicial */
         #loadingScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #711651; color: white; display: flex; flex-direction: column;
@@ -23,6 +30,8 @@
             animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Boton de interrupcion de ejecucion */
         #exitGameBtn {
             position: absolute;
             top: 20px;
@@ -43,36 +52,53 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE CARGA -->
+    <!--------------------------------------------
+         PANTALLA DE CARGA (PRE-RENDERIZADO)
+    ---------------------------------------------->
     <div id="loadingScreen">
         <div class="spinner"></div>
         <h2 id="loadingText">Cargando historia...</h2>
     </div>
 
-    <!-- JUEGO -->
-    <div id="game">
+    <!--------------------------------------------
+         CONTENEDOR PRINCIPAL DEL MOTOR (DOM)
+    ---------------------------------------------->
+    <!-- Este contenedor permanece oculto hasta que se resuelve el JSON de la base de datos -->
+    <div id="game" style="display: none;">
         <button id="exitGameBtn">Salir</button>
+        
+        <!-- Capas de renderizado gestionadas por Engine.js -->
         <img id="background" class="background" alt="Fondo de la escena">
         <img id="character" class="character" alt="Personaje en pantalla">
+        
+        <!-- Interfaz de lectura y dialogo -->
         <div id="textbox" class="textbox">
             <span id="text-content"></span>
             <span id="next-arrow" class="arrow circle"></span>
         </div>
-        <div id="choices" class="choices"></div>
         
+        <!-- Contenedor para inyeccion dinamica de nodos de decision -->
+        <div id="choices" class="choices"></div>
     </div>
 
+    <!-- Archivo de conexion BaaS -->
     <script src="supabaseClient.js"></script>
     
+    <!-- Logica de inicializacion del cliente -->
     <script type="module">
+        // Importacion del nucleo del motor
         import { Engine } from './engine/Engine.js';
 
         const otomeFlow = new Engine();
         const loadingScreen = document.getElementById('loadingScreen');
         const loadingText = document.getElementById('loadingText');
 
+        /**
+         * Inicializa la partida solicitando los datos compilados a la base de datos
+         * utilizando el parametro ID proporcionado en la URL.
+         */
         async function initGame() {
-            // Obtener ID de la URL
+            // 1. Extraccion de parametros GET de la URL
             const params = new URLSearchParams(window.location.search);
             const projectId = params.get('id');
 
@@ -83,7 +109,7 @@
             }
 
             try {
-                // Descargar datos de Supabase
+                // 2. Consulta asincrona del codigo fuente de la historia (story_data)
                 const { data, error } = await sb
                     .from('projects')
                     .select('story_data')
@@ -93,12 +119,10 @@
                 if (error) throw error;
                 if (!data.story_data) throw new Error("Este proyecto está vacío o corrupto.");
 
-                console.log("Historia cargada:", data.story_data);
-
-                // Iniciar Motor
+                // 3. Inyeccion de dependencias en el Motor
                 otomeFlow.loadStoryFromData(data.story_data);
                 
-                // Ocultar carga y empezar
+                // 4. Transicion de estado de la interfaz y arranque del Game Loop
                 loadingScreen.style.display = 'none';
                 document.getElementById('game').style.display = 'block';
                 otomeFlow.start();
@@ -109,7 +133,10 @@
             }
         }
 
-        // Boton de salir
+        /**
+         * Manejador de eventos para interrupcion de la partida.
+         * Advierte al usuario sobre la perdida de datos de telemetria no guardados.
+         */
         document.getElementById('exitGameBtn').addEventListener('click', async () => {
             const { isConfirmed } = await Swal.fire({
                 title: '¿Seguro que quieres salir?',
@@ -126,7 +153,8 @@
                 window.location.href = "dashboard.html";
             }
         });
-        // Arrancar cuando cargue la ventana
+
+        // Evento disparador del ciclo de vida de la pagina
         window.onload = initGame;
     </script>
 </body>

@@ -1,36 +1,48 @@
-<!--------------------------------------------------------- 
-        index.html          Adriana MW
---------------------------------------------------------->
+<!--============================================================
+                    OtomeFlow - Index
+                    Adriana MW  2026
+============================================================-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código."> <title>Otome Flow - Acceso</title>
+    <meta name="description" content="Plataforma educativa para crear y compartir novelas visuales interactivas sin código."> 
+    <title>Otome Flow - Acceso</title>
+    
+    <!-- Dependencias de UI -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Dependencias de Logica y Notificaciones -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Estilos locales encapsulados para la vista de autenticacion -->
     <style>
         body { margin: 0; height: 100vh; background: linear-gradient(135deg, #f3e5f5 0%, #ce93d8 100%); font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; color: #4a148c; }
         .auth-container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(74, 20, 140, 0.2); width: 400px; max-height: 90vh; overflow-y: auto; }
         h1 { margin: 0 0 10px; font-size: 2.2rem; text-align: center; }
         p.subtitle { text-align: center; color: #7b1fa2; margin-bottom: 20px; }
         
+        /* Navegacion por pestanas */
         .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #f3e5f5; }
-        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #711651;; transition: 0.3s; }
+        .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; font-weight: bold; color: #711651; transition: 0.3s; }
         .tab.active { color: #711651; border-bottom: 3px solid #711651; }
 
+        /* Elementos de formulario */
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 500; }
         input[type="text"], input[type="email"], input[type="password"], select { width: 100%; padding: 10px; border: 1px solid #e1bee7; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
         
+        /* Botones de accion */
         button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background: #711651; color: white; }
         .btn-primary:hover { background: #4a0030; }
         .btn-google { background: white; color: #444; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;}
         .btn-google:hover { background: #f1f1f1; }
 
+        /* Clases de utilidad */
         .hidden { display: none !important; }
         .radio-group { display: flex; gap: 15px; margin-bottom: 15px; }
     </style>
@@ -41,13 +53,17 @@
         <h1>Otome Flow</h1>
         <p class="subtitle">Plataforma Educativa Narrativa</p>
 
-        <!-- PESTAÑAS -->
+        <!-- -----------------------------------------
+             SISTEMA DE PESTANAS
+        ------------------------------------------ -->
         <div class="tabs">
             <div class="tab active" id="tabLogin" onclick="switchTab('login')">Iniciar Sesión</div>
             <div class="tab" id="tabRegister" onclick="switchTab('register')">Registrarse</div>
         </div>
 
-        <!-- FORMULARIO LOGIN -->
+        <!-- -----------------------------------------
+             VISTA 1: INICIO DE SESION
+        ------------------------------------------ -->
         <div id="loginForm">
             <div class="form-group"><label for="loginEmail">Email</label><input type="email" id="loginEmail"></div>
             <div class="form-group"><label for="loginPass">Contraseña</label><input type="password" id="loginPass"></div>
@@ -57,43 +73,70 @@
             </button>
         </div>
 
-        <!-- FORMULARIO REGISTRO -->
+        <!-- -----------------------------------------
+             VISTA 2: REGISTRO DE USUARIO
+        ------------------------------------------ -->
         <div id="registerForm" class="hidden">
+            
+            <!-- Selector de Rol -->
             <div class="form-group">
-                <label for="regRole">Soy un...</label>
+                <label>Soy un...</label>
                 <div class="radio-group">
-                    <label for="regAsAlumn"><input type="radio" name="role" value="student" checked onchange="toggleStudentFields(true)">Alumno</label>
-                    <label for="regAsTeacher"><input type="radio" name="role" value="teacher" onchange="toggleStudentFields(false)">Profesor</label>
+                    <label for="regAsAlumn"><input type="radio" id="regAsAlumn" name="role" value="student" checked onchange="toggleStudentFields(true)"> Alumno</label>
+                    <label for="regAsTeacher"><input type="radio" id="regAsTeacher" name="role" value="teacher" onchange="toggleStudentFields(false)"> Profesor</label>
                 </div>
             </div>
 
+            <!-- Datos genericos -->
             <div class="form-group"><label for="regName">Nombre</label><input type="text" id="regName"></div>
             <div class="form-group"><label for="regLastname">Apellidos</label><input type="text" id="regLastname"></div>
             
+            <!-- Datos condicionales (Solo Alumnos) -->
             <div id="studentFields">
-                <div class="form-group"><label for="regID">DNI</label><input type="text" id="regDni"></div>
-                <div class="form-group"><label for="regClassroom">Clase / Grupo (Ej: 3A)</label><input type="text" id="regClass"></div>
+                <div class="form-group"><label for="regDni">DNI</label><input type="text" id="regDni"></div>
+                <div class="form-group"><label for="regClass">Clase / Grupo (Ej: 3A)</label><input type="text" id="regClass"></div>
             </div>
 
+            <!-- Credenciales -->
             <div class="form-group"><label for="regEmail">Email</label><input type="email" id="regEmail"></div>
             <div class="form-group"><label for="regPass">Contraseña</label><input type="password" id="regPass"></div>
             
             <button class="btn-primary" onclick="doRegister()">Crear Cuenta</button>
         </div>
 
+        <!-- Contenedor para feedback del sistema -->
         <p id="msg" style="margin-top: 15px; font-size: 0.85rem; text-align: center; color: #d32f2f;"></p>
     </main>
 
+    <!-- Importacion del cliente de Supabase instanciado -->
     <script src="supabaseClient.js"></script>
+    
     <script>
+        // Referencia global al contenedor de mensajes de error/exito
         const msgBox = document.getElementById('msg');
 
-        // Comprobar si ya estamos logueados
+        // ==========================================
+        // CONTROL DE SESION
+        // ==========================================
+        
+        // Listener reactivo para eventos de autenticación (Ej. Retorno de Google OAuth)
+        window.sb.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' && session) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+
+        // Comprobación síncrona de sesión activa al cargar el DOM
         window.onload = async () => {
             const { data: { session } } = await window.sb.auth.getSession();
             if (session) window.location.href = 'dashboard.html';
         };
 
+        // ==========================================
+        // LOGICA DE INTERFAZ (UI)
+        // ==========================================
+        
+        // Alterna la visibilidad entre los formularios de Login y Registro
         function switchTab(tab) {
             document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
             document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
@@ -102,20 +145,32 @@
             msgBox.innerText = "";
         }
 
+        // Muestra u oculta los campos DNI y Clase en base al rol seleccionado
         function toggleStudentFields(show) {
             document.getElementById('studentFields').classList.toggle('hidden', !show);
         }
 
+        // ==========================================
+        // OPERACIONES DE AUTENTICACION (CRUD)
+        // ==========================================
+
+        // Procesa el inicio de sesion por correo y contrasena
         async function doLogin() {
-            msgBox.style.color = "#333"; msgBox.innerText = "Conectando...";
+            msgBox.style.color = "#333"; 
+            msgBox.innerText = "Conectando...";
+            
             const { error } = await window.sb.auth.signInWithPassword({
                 email: document.getElementById('loginEmail').value,
                 password: document.getElementById('loginPass').value
             });
-            if (error) msgBox.innerText = "❌ " + error.message;
-            else window.location.href = 'dashboard.html';
+            
+            if (error) {
+                msgBox.innerText = "Error: " + error.message;
+            }
+            // La redireccion exitosa es manejada por onAuthStateChange
         }
 
+        // Procesa la creacion de un nuevo usuario, inyectando metadatos para el Trigger SQL
         async function doRegister() {
             const role = document.querySelector('input[name="role"]:checked').value;
             const name = document.getElementById('regName').value.trim();
@@ -123,27 +178,28 @@
             const email = document.getElementById('regEmail').value.trim();
             const pass = document.getElementById('regPass').value;
 
-            // Validacion basica
+            // 1. Validacion de campos obligatorios generales
             if (!name || !email || !pass) {
                 msgBox.style.color = "#d32f2f"; 
-                msgBox.innerText = "❌ Por favor, rellena todos los campos básicos.";
+                msgBox.innerText = "Error: Por favor, rellena todos los campos básicos.";
                 return;
             }
 
+            // Construccion del objeto de metadatos (Enviado a auth.users en Supabase)
             const metadata = {
                 role: role,
                 first_name: name,
                 last_name: lastname
             };
 
-            // Validacion alumnos
+            // 2. Validacion y asignacion de campos especificos de Alumno
             if (role === 'student') {
                 const dni = document.getElementById('regDni').value.trim();
                 const className = document.getElementById('regClass').value.trim();
 
                 if (!dni || !className) {
                     msgBox.style.color = "#d32f2f"; 
-                    msgBox.innerText = "❌ Si eres alumno, los campos DNI y Clase son OBLIGATORIOS.";
+                    msgBox.innerText = "Error: Si eres alumno, los campos DNI y Clase son obligatorios.";
                     return;
                 }
 
@@ -152,26 +208,28 @@
             }
 
             msgBox.style.color = "#333"; 
-            msgBox.innerText = "Registrando...";
+            msgBox.innerText = "Registrando usuario en la base de datos...";
 
+            // 3. Ejecucion de la peticion a Supabase
             const { data, error } = await window.sb.auth.signUp({
                 email: email,
                 password: pass,
-                options: { data: metadata }
+                options: { data: metadata } // Los metadatos seran procesados por el Trigger PL/pgSQL
             });
 
             if (error) {
-                msgBox.style.color = "#d32f2f"; msgBox.innerText = "❌ " + error.message;
+                msgBox.style.color = "#d32f2f"; 
+                msgBox.innerText = "Error de registro: " + error.message;
             } else {
-                msgBox.style.color = "green"; msgBox.innerText = "¡Cuenta creada! Iniciando sesión...";
-                setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                msgBox.style.color = "green"; 
+                msgBox.innerText = "Cuenta creada. Procediendo a autenticar...";
             }
         }
 
-        // --- LOGIN CON GOOGLE ---
+        // Procesa la redireccion al proveedor OAuth 2.0 (Google)
         async function doGoogleLogin() {
             msgBox.style.color = "#333"; 
-            msgBox.innerText = "Redirigiendo a Google...";
+            msgBox.innerText = "Redirigiendo al proveedor de identidad...";
             
             const { error } = await window.sb.auth.signInWithOAuth({
                 provider: 'google'
@@ -179,7 +237,7 @@
             
             if (error) {
                 msgBox.style.color = "#d32f2f";
-                msgBox.innerText = "Error con Google: " + error.message;
+                msgBox.innerText = "Error de OAuth: " + error.message;
             }
         }
     </script>

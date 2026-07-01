@@ -1,6 +1,7 @@
 /* ============================================================
-   style.css        Adriana MW
-============================================================ */
+                    OtomeFlow - General Style
+                    Adriana MW - 2026
+============================================================*/
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
@@ -159,7 +160,7 @@ body, html {
     50% { transform: translateY(-5px); }
 }
 
-/* -------------------- Botones de elección ---------------- */
+/* -------------------- Botones de eleccion ---------------- */
 .choices {
     position: absolute;
     top: 50%; /* Centrado en pantalla */
@@ -195,7 +196,7 @@ body, html {
 }
 
 /* ============================================================
-   DISEÑO RESPONSIVO (MÓVILES)
+   DISENO RESPONSIVO (MOVILES)
 ============================================================ */
 @media (max-width: 768px) {
     
@@ -211,7 +212,7 @@ body, html {
         max-height: calc(100% - 160px);
     }
 
-    /* 3. La caja de texto se sitúa en la zona negra, segura y visible */
+    /* 3. La caja de texto se situa en la zona negra*/
     .textbox {
         width: 95%;
         padding: 15px 20px;
@@ -228,7 +229,7 @@ body, html {
         padding: 3px 15px;
     }
 
-    /* Botones de decisión adaptados */
+    /* Botones de decision adaptados */
     .choices {
         width: 95%;
     }

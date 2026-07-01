@@ -1,5 +1,6 @@
 // ============================================================
-//      server.js       Adriana MW
+//                  OtomeFlow - Server.js
+//                  Adriana MW - 2026
 // ============================================================
 
 const express = require('express');

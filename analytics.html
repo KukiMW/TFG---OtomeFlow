@@ -1,6 +1,7 @@
-<!--------------------------------------------------------- 
-        analytics.html      Adriana MW
---------------------------------------------------------->
+<!--============================================================
+                    OtomeFlow – Analytics
+                    Adriana MW      2026
+============================================================-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,18 +9,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">
     <title>Otome Classroom - Calificaciones</title>
+    
+    <!-- Hojas de estilo -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="dashboard.css">
+    
+    <!-- Dependencias de fuentes e iconos -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/OF.png">
+    
+    <!-- Librerias externas -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Estilos locales especificos de la vista de analiticas -->
     <style>
         .analytics-container {
             max-width: 1200px; margin: 80px auto 20px; padding: 20px;
             background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
+        
+        /* Barra de herramientas de filtrado */
         .filters-bar {
             display: flex; gap: 15px; margin-bottom: 20px; padding: 15px;
             flex-wrap: wrap;  
@@ -27,6 +38,7 @@
         }
         .filters-bar select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; flex: 1; }
         
+        /* Componente de tabla de datos */
         .styled-table {
             width: 100%; border-collapse: collapse; margin: 25px 0;
             font-size: 0.95em; font-family: sans-serif;
@@ -38,35 +50,48 @@
         .styled-table tbody tr:nth-of-type(even) { background-color: #f3e5f5; }
         .styled-table tbody tr:last-of-type { border-bottom: 2px solid #711651; }
         
+        /* Indicadores de estado */
         .status-done { color: green; font-weight: bold; }
         .status-pending { color: #d32f2f; font-weight: bold; }
         .time-badge { background: #e0c3fc; padding: 3px 8px; border-radius: 12px; font-size: 0.85rem; color: #4a148c; }
+        
+        /* Boton de acciones secundarias */
         .btn-history { background: #ff9800; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
         .btn-history:hover { background: #f57c00; }
     </style>
 </head>
 <body>
 
+    <!-- ==========================================
+         BARRA DE NAVEGACION SUPERIOR
+    =========================================== -->
     <nav class="navbar">
         <div class="nav-left">
-            <a href="dashboard.html" class="back-link"><span class="material-icons">arrow_back</span></a>
+            <a href="dashboard.html" class="back-link" aria-label="Volver al panel principal"><span class="material-icons">arrow_back</span></a>
             <span class="logo-text">Otome <b>Analytics</b></span>
         </div>
         <div class="nav-right">
+            <!-- Accion global: Exportacion de dataset -->
             <button id="downloadCsvBtn" class="btn-play" style="background:#4caf50;">Exportar a Excel (CSV)</button>
         </div>
     </nav>
 
-    <div class="analytics-container">
+    <!-- ==========================================
+         CONTENEDOR PRINCIPAL: PANEL DE DATOS
+    =========================================== -->
+    <main class="analytics-container">
         <h2>Cuaderno de Evaluación</h2>
         <p>Consulta el progreso, la dedicación y las calificaciones de tus alumnos.</p>
 
+        <!-- Controles de filtrado de dataset -->
         <div class="filters-bar">
-            <label for="filterProjects"><strong>Filtrar por:</strong></label>
+            <label for="filterProject"><strong>Filtrar por:</strong></label>
             <select id="filterProject"><option value="all">Todas las tareas (Juegos)</option></select>
+            <label for="filterClass" style="display: none;">Clase</label>
             <select id="filterClass"><option value="all">Todas las clases</option></select>
         </div>
 
+        <!-- Renderizado de datos en tabla con scroll horizontal preventivo para dispositivos moviles -->
         <div style="overflow-x: auto; width: 100%; box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); border-radius: 8px;">
             <table class="styled-table" id="analyticsTable">
                 <thead>
@@ -80,18 +105,23 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Inyeccion dinamica de filas desde analytics.js -->
                     <tr><td colspan="6" style="text-align: center;">Cargando datos...</td></tr>
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
 
-    <!-- HISTORIAL DE INTENTOS -->
+    <!-- ==========================================
+         VENTANAS MODALES
+    =========================================== -->
+
+    <!-- Modal 1: Desglose historico de iteraciones por usuario -->
     <div id="historyModal" class="modal-overlay" style="display: none;">
         <div class="modal-card" style="max-width: 600px;">
             <h2 id="historyTitle">Historial de Intentos</h2>
             <div id="historyList" style="margin-top:20px; max-height:300px; overflow-y:auto;">
-                <!-- Se llena con JS -->
+                <!-- Inyeccion dinamica de tabla de intentos -->
             </div>
             <div class="modal-actions">
                 <button type="button" onclick="document.getElementById('historyModal').style.display='none'" class="btn-primary">Cerrar</button>
@@ -99,18 +129,23 @@
         </div>
     </div>
 
-    <!-- ARBOL DE RUTA MERMAID -->
+    <!-- Modal 2: Visualizacion de Grafo (Arbol de decisiones Mermaid.js) -->
     <div id="pathModal" class="modal-overlay" style="display: none; z-index: 1100;">
         <div class="modal-card" style="max-width: 800px; width: 90%;">
             <h2>Ruta del Intento</h2>
             <p style="font-size:0.85rem; color:#666;">Secuencia exacta de escenas visitadas.</p>
+            
+            <!-- Contenedor destino para el renderizado del SVG de Mermaid -->
             <div id="mermaidPath" class="mermaid" style="margin: 20px 0; overflow:auto; max-height: 400px; background:#f9f9f9; padding:15px; border-radius:8px; text-align:center;"></div>
+            
             <div class="modal-actions">
-                <button onclick="document.getElementById('pathModal').style.display='none'; document.getElementById('scoresModal').style.display='flex';">Cerrar Ruta</button>
+                <!-- Accion de retorno al historial de intentos -->
+                <button class="btn-primary" onclick="document.getElementById('pathModal').style.display='none'; document.getElementById('historyModal').style.display='flex';">Cerrar Ruta</button>
             </div>
         </div>
     </div>
 
+    <!-- Archivos de logica funcional -->
     <script src="supabaseClient.js"></script>
     <script src="analytics.js"></script>
 </body>

@@ -1,7 +1,8 @@
 
 /* ============================================================
-   editor_style.css       Adriana MW
-============================================================ */
+                    OtomeFlow - Editor Style
+                    Adriana MW - 2026
+============================================================*/
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
 
 body, html {
@@ -87,7 +88,7 @@ body, html {
     border: none;
 }
 
-/* Títulos de secciones */
+/* Titulos de secciones */
 .section {
     background: rgba(255, 255, 255, 0.4);
     padding: 12px;
@@ -147,7 +148,7 @@ input[type="file"] {
     gap: 5px;
 }
 
-/* Botones Genéricos */
+/* Botones Genericos */
 button {
     width: 100%;
     padding: 8px;
@@ -169,7 +170,7 @@ button:active {
     transform: translateY(1px);
 }
 
-/* Botones Específicos */
+/* Botones Especificos */
 #addCharBtn {
     width: 40px;
     margin-top: 0;
@@ -241,7 +242,7 @@ button:active {
 }
 
 /* ============================================================
-   PESTAÑA DE COLAPSO IZQUIERDA
+   PESTANA DE COLAPSO IZQUIERDA
 ============================================================ */
 #sidebarToggle {
     width: 20px;
@@ -269,7 +270,7 @@ button:active {
 }
 
 /* ============================================================
-   ÁREA CENTRAL (BLOCKLY)
+   AREA CENTRAL (BLOCKLY)
 ============================================================ */
 #blocklyArea {
     flex: 1 1 400px;
@@ -383,7 +384,7 @@ button:active {
 }
 
 /* ============================================================
-   PESTAÑA DE COLAPSO DERECHA
+   PESTANA DE COLAPSO DERECHA
 ============================================================ */
 #sidebarRightToggle {
     width: 20px;

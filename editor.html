@@ -1,6 +1,7 @@
-<!--------------------------------------------------------- 
-        editor.html     Adriana MW
---------------------------------------------------------->
+<!--============================================================
+                    OtomeFlow - Editor
+                    Adriana MW  2026
+============================================================-->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,108 +9,132 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Otome Flow es una plataforma educativa gratuita para crear, jugar y compartir novelas visuales interactivas y juegos narrativos sin código.">
     <title>Otome Flow - Editor Visual</title>
-    <!-- CSS -->
+    
+    <!-- Dependencias de estilos y fuentes -->
     <link rel="stylesheet" href="editor_style.css">
-    <!-- Iconos Material -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="assets/OF.png">
+    
+    <!-- Libreria de notificaciones -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
-    <!-- BARRA SUPERIOR (HEADER) -->
+    <!-- ==========================================
+         BARRA DE NAVEGACION SUPERIOR
+    =========================================== -->
     <header id="top-bar">
         <div class="header-left">
-            <!-- El título ahora es el botón de volver -->
             <a href="index.html" class="home-link" title="Volver al Menú Principal">
                 <span class="material-icons">home</span>
                 <h1>OTOME EDITOR</h1>
             </a>
         </div>
-            <div class="header-right">
-        </div>
+        <div class="header-right"></div>
     </header>
 
-    <!-- CONTENEDOR PRINCIPAL -->
+    <!-- ==========================================
+         CONTENEDOR PRINCIPAL
+    =========================================== -->
     <div id="main-wrapper">
 
-    <!---- SIDEBAR IZQUIERDA ---->
-    <aside id="sidebar-left">
-        <div class="section">
-            <h3>Añadir Recursos</h3>
+        <!-- --------------------------------------
+             COLUMNA IZQUIERDA: GESTION DE RECURSOS
+        --------------------------------------- -->
+        <aside id="sidebar-left">
             
-            <label>1. Fondo:</label>
-            <label for="bgInput" class="custom-file-btn">Subir Imagen de Fondo</label>
-            <input type="file" id="bgInput" accept="image/*" style="display: none;">
-            
-            <hr class="divider">
-            
-            <label>2. Crear Personaje:</label>
-            <div class="input-group">
-                <input type="text" id="newCharName" placeholder="Nombre">
-                <button id="addCharBtn">+</button>
+            <!-- Formularios de subida y registro de activos multimedia -->
+            <div class="section">
+                <h3>Añadir Recursos</h3>
+                
+                <!-- Carga de fondos. -->
+                <label>1. Fondo:</label>
+                <label for="bgInput" class="custom-file-btn">Subir Imagen de Fondo</label>
+                <input type="file" id="bgInput" accept="image/*" style="display: none;">
+                
+                <hr class="divider">
+                
+                <!-- Creacion estructural de entidades de personaje -->
+                <label>2. Crear Personaje:</label>
+                <div class="input-group">
+                    <input type="text" id="newCharName" placeholder="Nombre">
+                    <button id="addCharBtn">+</button>
+                </div>
+                
+                <!-- Asignacion de recursos graficos (sprites) a entidades de personaje -->
+                <label>3. Editar Personaje:</label>
+                <select id="charSelector">
+                    <option value="" disabled selected>-- Selecciona --</option>
+                </select>
+                
+                <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
+                    <label>Añadir imagen a <b id="displayCharName">...</b>:</label>
+                    <label for="spriteInput" class="custom-file-btn">Subir imagen del personaje (Sprite)</label>
+                    <input type="file" id="spriteInput" accept="image/*" style="display: none;">
+                </div>
             </div>
-            
-            <label>3. Editar Personaje:</label>
-            <select id="charSelector">
-                <option value="" disabled selected>-- Selecciona --</option>
-            </select>
-            
-            <div id="spriteUploadSection" style="display: none; margin-top: 10px;">
-                <label>Añadir imagen a <b id="displayCharName">...</b>:</label>
-                <label for="spriteInput" class="custom-file-btn">Subir imagen del personaje (Sprite)</label>
-                <input type="file" id="spriteInput" accept="image/*" style="display: none;">
+
+            <!-- Contenedor para renderizado dinamico del inventario en memoria -->
+            <div class="section">
+                <h3>Archivos Cargados</h3>
+                <div id="assetList"><p class="empty-msg">Vacío</p></div>
             </div>
+        </aside>
+
+        <!-- Elemento interactivo para el colapso del panel izquierdo -->
+        <div id="sidebarToggle" title="Contraer/Expandir">
+            <span class="material-icons">chevron_left</span>
         </div>
 
-        <div class="section">
-            <h3>Archivos Cargados</h3>
-            <div id="assetList"><p class="empty-msg">Vacío</p></div>
-        </div>
-    </aside>
+        <!-- --------------------------------------
+             COLUMNA CENTRAL: ENTORNO DE AUTORIA
+        --------------------------------------- -->
+        <!-- Nodo de inyeccion para la libreria Google Blockly -->
+        <main id="blocklyArea">
+            <div id="blocklyDiv"></div>
+        </main>
 
-    <!-- PESTAÑA DE COLAPSO IZQUIERDA -->
-    <div id="sidebarToggle" title="Contraer/Expandir">
-        <span class="material-icons">chevron_left</span>
+        <!-- Elemento interactivo para el colapso del panel derecho -->
+        <div id="sidebarRightToggle" title="Contraer/Expandir">
+            <span class="material-icons">chevron_right</span>
+        </div>
+
+        <!-- -----------------------------------------
+             COLUMNA DERECHA: GESTION DE ESTADO Y NUBE
+        ------------------------------------------ -->
+        <aside id="sidebar-right">
+            
+            <!-- Controles de persistencia en base de datos remota -->
+            <div class="section">
+                <h3>Proyecto en Nube</h3>
+                <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:0.95rem; margin-top: 10px; background:#711651;">
+                    GUARDAR PROYECTO EN LA NUBE
+                </button>
+                
+                <div style="margin-top:15px; text-align:center;">
+                    <a href="dashboard.html" style="color:#711651; text-decoration:underline; font-size:0.85rem;">Volver al Dashboard</a>
+                </div>
+            </div>
+
+            <!-- Controles de estado local (Gestion de escenas/pestanas) -->
+            <div class="section scene-section">
+                <h3>Menú de Escenas</h3>
+                <div class="scene-controls">
+                    <button id="newSceneBtn" class="btn-new-scene">Nueva</button>
+                    <button id="saveSceneBtn" class="btn-save-scene">Guardar escena</button>
+                    <button id="viewTreeBtn" class="btn-tree">Ver Árbol</button>
+                </div>
+                <!-- Contenedor para renderizado dinamico de escenas almacenadas en RAM -->
+                <div id="sceneList"><p class="empty-msg">Vacío</p></div>
+            </div>
+        </aside>    
     </div>
 
-    <!---- CENTRO: BLOCKLY ---->
-    <main id="blocklyArea">
-        <div id="blocklyDiv"></div>
-    </main>
+    <!-- ==========================================
+         MODALES Y ELEMENTOS OCULTOS
+    =========================================== -->
 
-    <!-- PESTAÑA DE COLAPSO DERECHA -->
-    <div id="sidebarRightToggle" title="Contraer/Expandir">
-        <span class="material-icons">chevron_right</span>
-    </div>
-
-    <!-- SIDEBAR DERECHA -->
-    <aside id="sidebar-right">
-        <div class="section">
-            <h3>Proyecto en Nube</h3>
-
-            <button id="saveCloudBtn" class="btn-save-scene" style="padding:15px; font-size:0.95rem; margin-top: 10px; background:#711651;">
-                GUARDAR PROYECTO EN LA NUBE
-            </button>
-            
-            <div style="margin-top:15px; text-align:center;">
-                <a href="dashboard.html" style="color:#711651; text-decoration:underline; font-size:0.85rem;">Volver al Dashboard</a>
-            </div>
-        </div>
-
-        <div class="section scene-section">
-            <h3>Menú de Escenas</h3>
-            <div class="scene-controls">
-                <button id="newSceneBtn" class="btn-new-scene">Nueva</button>
-                <button id="saveSceneBtn" class="btn-save-scene">Guardar escena</button>
-                <button id="viewTreeBtn" class="btn-tree">Ver Árbol</button>
-            </div>
-            <div id="sceneList"><p class="empty-msg">Vacío</p></div>
-        </div>
-        
-    </aside>    
-
-    <!-- MODAL ARBOL -->
+    <!-- Modal para visualizacion de grafos narrativos -->
     <div id="treeModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -117,32 +142,33 @@
                 <button id="closeTreeBtn" class="close-btn">Cerrar</button>
             </div>
             <div class="modal-body">
+                <!-- Contenedor de renderizado vectorial para Mermaid.js -->
                 <div id="mermaidGraph" class="mermaid"></div>
             </div>
         </div>
     </div>
 
-    <!-- TOOLBOX XML -->
+    <!-- Estructura XML base requerida por Blockly. 
+         El contenido se sobrescribe dinamicamente en editor.js -->
     <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
         <category name="Lógica" colour="210"></category>
     </xml>
 
-    <!-- Librerías Externas -->
+    <!-- ==========================================
+         SCRIPTS Y DEPENDENCIAS DE CLIENTE
+    =========================================== -->
+
+    <!-- 1. Librerias Externas -->
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Configuración Supabase -->
+    <!-- 2. Inicializacion de conexión a BaaS -->
     <script src="supabaseClient.js"></script>
 
-    <!-- Lógica del Editor -->
+    <!-- 3. Logica principal del modulo de edicion -->
     <script src="editor.js"></script>
-</body>
-
-
-</html>
-
 </body>
 </html>

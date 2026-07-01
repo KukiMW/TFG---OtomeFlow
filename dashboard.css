@@ -1,6 +1,7 @@
 /* ============================================================
-   dashboard.css        Adriana MW
-============================================================ */
+                    OtomeFlow - Dashboard Style
+                    Adriana MW - 2026
+============================================================*/
 body, html {
     overflow-y: auto !important;
     height: auto !important;
@@ -257,7 +258,7 @@ form input, form textarea {
 }
 
 /*============================================================
-    MENÚ DEL AVATAR (PERFIL)
+    MENU DEL AVATAR (PERFIL)
 ============================================================*/
 
 .user-profile-container {
